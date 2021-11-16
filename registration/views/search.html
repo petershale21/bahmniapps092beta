@@ -1,0 +1,216 @@
+<section class="reg-search-wrapper">
+
+    <section class="primary-section-grid">
+        <h2 class="section-title">Location</h2>
+        <form class="select-file-form">
+            <fieldset class="select-file-type" style="padding:2px">
+                <ul ng-repeat="(key, searchDomain) in searchDomains" style="float: left">
+                    <li style="width: 120px">
+                        <input type="radio" name="upload-type" ng-model="option.selected" id="{{ key }}" ng-value="'{{ key }}'">
+                        <label for="{{ key }}"><strong>{{ searchDomain }}</strong></label>
+                    </li>
+                </ul>
+            </fieldset>
+        </form>
+    </section>
+
+    <section class="reg-search">
+        <section class="reg-search">
+            <article class="search-seperator-l" ng-if="::patientIdentifierSearchConfig.show">
+                <form name="searchByIdForm" ng-submit="searchById()" class="simple-form-ui clearfix">
+                    <label for="registrationNumber"><strong>{{ ::'REGISTRATION_LABEL_PATIENT_ID' |
+                            translate}}</strong></label>
+                    <div class="search-patient-id fl">
+                        <input ng-if="showNationalId()" tabindex="2" class="fl" type="text" id="registrationNumber" ng-model="searchParameters.registrationNumber" focus-me="true" placeholder="{{ ::'REGISTRATION_LABEL_ENTER_National_ID' | translate}}">
+
+                        <input ng-if="showLocalId()" tabindex="2" class="fl" type="text" id="registrationNumber" ng-model="searchParameters.registrationNumber" focus-me="true" placeholder="{{ ::'REGISTRATION_LABEL_ENTER_ID' | translate}}">
+                        <div class="reg-srch-btn fl">
+                            <button tabindex="3" type="submit" ng-disabled="!searchParameters.registrationNumber">{{
+                                ::'REGISTRATION_LABEL_SEARCH' | translate}}</button>
+                        </div>
+                    </div>
+
+                </form>
+            </article>
+
+            <article class="search-seperator-r">
+                <form name="searchByNameForm" ng-submit="searchPatients()" class="simple-form-ui">
+
+                    <article class="fl">
+                        <label for="name"><strong>{{ ::'REGISTRATION_LABEL_NAME' | translate}}</strong></label>
+                        <input tabindex="4" type="text" id="name" ng-model="searchParameters.name" placeholder="{{ ::'REGISTRATION_LABEL_ENTER_NAME' | translate}}">
+                    </article>
+                    <article class="fl">
+                        <label for="last_name"><strong>{{ ::'REGISTRATION_LABEL_LAST_NAME' |
+                                translate}}</strong></label>
+                        <input tabindex="4" type="text" id="last_name" ng-model="searchParameters.last_name" placeholder="{{ ::'REGISTRATION_LABEL_ENTER_LAST_NAME' | translate}}">
+                    </article>
+
+                    <article class="fl" ng-show="showNationalId()">
+                        <fieldset class="select-file-type">
+                            <label><strong>Gender</strong></label>
+                            <ul ng-repeat="(key, gender) in genderoptions">
+                                <li style="width: 120px">
+                                    <input type="radio" name="upload-type" ng-model="genderoption.selected" id="{{ key }}" ng-value="'{{ key }}'">
+                                    <label for="{{ key }}"><strong>{{ gender }}</strong></label>
+                                </li>
+                            </ul>
+                        </fieldset>
+                    </article>
+
+                    <article class="fl" ng-if="::customAttributesSearchConfig.show" ng-show="!showNationalId()">
+                        <label for="name"><strong>{{::customAttributesSearchConfig.label}}</strong></label>
+                        <input tabindex="5" type="text" id="customAttribute" ng-model="searchParameters.customAttribute" placeholder="{{::customAttributesSearchConfig.placeholder}}">
+                    </article>
+                    <article class="fl" ng-if="::addressSearchConfig.show">
+                        <label for="name"><strong>{{::addressSearchConfig.label}}</strong></label>
+                        <input tabindex="6" type="text" id="addressFieldValue" ng-model="searchParameters.addressFieldValue" placeholder="{{::addressSearchConfig.placeholder}}">
+                    </article>
+
+                    <article class="fl" ng-show="::programAttributesSearchConfig.show">
+                        <label for="name"><strong>{{ ::programAttributesSearchConfig.label |
+                                translate}}</strong></label>
+                        <input tabindex="7" type="text" id="programAttribute" ng-model="searchParameters.programAttributeFieldValue" placeholder="{{ ::programAttributesSearchConfig.placeholder}}">
+                    </article>
+
+                    <!-- <article class="fl" ng-show="showNationalId()">
+                    <label for="name"><strong>National ID Number</strong></label>
+                    <input tabindex="8" type="text" id="nationalID" ng-model="searchParameters.nationalIdNumber" placeholder="Lesotho National ID">
+                </article> -->
+
+
+                    <article class="fl">
+                        <div class="reg-srch-btn">
+                            <button tabindex="9" type="submit" ng-disabled="disableSearchButton()">{{
+                                ::'REGISTRATION_LABEL_SEARCH' | translate}}</button>
+                        </div>
+                    </article>
+                </form>
+
+            </article>
+        </section>
+
+        <div class="note-container no-search-results" ng-if="noResultsMessage">
+            <div class="note warning">
+                <div class="text">
+                    <p>{{noResultsMessage | translate:patientIdentifier }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- HIE SEARCH LIST -->
+        <div ng-if="hieresultsPresent()" class="registraition-search-results-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th><strong>Patient Identifier</strong></th>
+                        <th><strong>National ID</strong></th>
+                        <!--th><strong>Name</strong></th-->
+                        <th ng-click="sortPatient('familyName');orderByField='familyName'"><strong>Name
+                                <span ng-show="orderByField == 'familyName'" class="sort-pos">
+                                    <span ng-show="direction[0] === 'asc'"><i class="sort-by-asc"></i></span>
+                                    <span ng-show="direction[0] === 'desc'"><i class="sort-by-asc"></i></span>
+                                </span>
+                            </strong></th>
+                        <th><strong>Surname</strong></th>
+                        <th><strong>Gender</strong></th>
+                        <th><strong>Age</strong></th>
+                        <th><strong>Constituency</strong></th>
+                        <th><strong>Village</strong></th>
+                        <th><strong>District</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="result in hieresults">
+                        <td>
+                            <a tabindex="{{ :: 9 + $index + 1 }}" ng-if="::(searchActions.length > 0)" ng-click="importPatientFromCR(result)">
+                                {{::result.identifier || 'Not Assigned'}}
+                            </a>
+                        </td>
+                        <td>{{::result.extraIdentifiers["National ID"]}}</td>
+                        <td>{{::result.givenName}}</td>
+                        <td>{{::result.familyName}}</td>
+                        <td>{{::result.gender}}</td>
+                        <td>{{::result.age}}</td>
+                        <td>{{::result.constituency}}</td>
+                        <td>{{::result.village}}</td>
+                        <td>{{::result.district}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- HIE SEARCH LIST -->
+        <!-- LOCAL SEARCH LIST -->
+
+        <div ng-if="resultsPresent()" infinite-scroll="nextPage()" infinite-scroll-immediate-check="false" infinite-scroll-disabled="noMoreResultsPresent" class="registraition-search-results-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th ng-click="sortPatient('identifier'); orderByField='identifier'"><strong>{{
+                                ::'REGISTRATION_LABEL_ID' | translate}}
+                                <span ng-show="orderByField == 'identifier'" class="sort-pos">
+                                    <span ng-show="direction[0] === 'asc'"><i class="sort-by-asc"></i></span>
+                                    <span ng-show="direction[0] === 'desc'"><i class="sort-by-asc"></i></span>
+                                </span>
+                            </strong></th>
+                        <th ng-repeat="type in ::extraIdentifierTypes track by $index"><strong>{{type.name}}</strong>
+                        </th>
+                        <th ng-click="sortPatient('givenName');orderByField='givenName'"><strong>{{
+                                ::'REGISTRATION_LABEL_NAME' | translate}}
+                                <span ng-show="orderByField == 'givenName'" class="sort-pos">
+                                    <span ng-show="direction[0] === 'asc'"><i class="sort-by-asc"></i></span>
+                                    <span ng-show="direction[0] === 'desc'"><i class="sort-by-asc"></i></span>
+                                </span>
+                            </strong></th>
+                        <th ng-repeat="field in ::personSearchResultsConfig.fields track by $index">
+                            <strong>{{::convertToTableHeader(field)}}</strong>
+                        </th>
+                        <th><strong>{{ ::'REGISTRATION_LABEL_GENDER' | translate}}</strong></th>
+                        <th><strong>{{ ::'REGISTRATION_LABEL_AGE' | translate}}</strong></th>
+                        <th ng-repeat="field in ::addressSearchResultsConfig.fields">
+                            <strong>{{::convertToTableHeader(getAddressColumnName(field))}}</strong>
+                        </th>
+                        <th><strong>{{ ::'REGISTRATION_LABEL_REGISTRATION_DATE' | translate}}</strong></th>
+                        <th ng-if="::programAttributesSearchConfig.show">
+                            <strong>{{::convertToTableHeader(programAttributesSearchConfig.label)}}</strong>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="result in results">
+                        <td>
+                            <a tabindex="{{ :: 9 + $index + 1 }}" ng-if="::(searchActions.length > 0)" ng-click="forPatient(result).doExtensionAction(searchActions[0])">
+                                {{::result.identifier || 'Not Assigned'}}
+                            </a>
+                        </td>
+                        <td ng-repeat="type in ::extraIdentifierTypes track by $index">
+                            {{::result.extraIdentifiers[type.name]}}
+                        </td>
+
+                        <td>{{::result.givenName}} {{::result.middleName}} {{::result.familyName}}</td>
+                        <td ng-repeat="field in ::personSearchResultsConfig.fields track by $index">
+                            {{::result.customAttribute[field] || "" | bahmniDateInStrictMode}}</td>
+                        <td>{{::result.gender}}</td>
+                        <td>{{::result.age}}</td>
+                        <td ng-repeat="field in ::addressSearchResultsConfig.fields">{{::result.addressFieldValue[field]
+                            || ""}}</td>
+                        <td>{{::result.dateCreated | bahmniDate}}</td>
+                        <td ng-if="::programAttributesSearchConfig.show">{{getProgramAttributeValues(result) |
+                            bahmniDateInStrictMode}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- LOCAL SEARCH LIST -->
+        <div id="loader" ng-show="loadingMoreResults()"></div>
+
+        <div class="note-container no-more-results" ng-if="noMoreResultsPresent">
+            <div class="note warning">
+                <div class="text">
+                    <p>{{ ::'REGISTRATION_LABEL_NO_RESULTS' | translate}}</p>
+                </div>
+            </div>
+        </div>
+    </section></section>
