@@ -301,7 +301,7 @@ angular.module('bahmni.common.conceptSet')
                                                                        isAutoFillEncouterdataToday(new Date(response.data[0].visitStartDateTime), response_))
                                                                         obs.value = response.data[0].value;
 
-                                                                        if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                                        if(obs.value && !autofillfield.fieldValue.enableEditAfterAutoFill)
                                                                             obs.disabled = true;
                                                                 });
                                                             }
@@ -319,7 +319,7 @@ angular.module('bahmni.common.conceptSet')
                                             if(formValue){
                                                 obs.value = formValue;
 
-                                                if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                if(obs.value && !autofillfield.fieldValue.enableEditAfterAutoFill)
                                                     obs.disabled = true;
                                             }
 
@@ -332,7 +332,7 @@ angular.module('bahmni.common.conceptSet')
                                             if(formValue){
                                                     obs.value = formValue;
                                                     
-                                                    if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                    if(obs.value && !autofillfield.fieldValue.enableEditAfterAutoFill)
                                                                 obs.disabled = true;
                                              }
                                             if(obs.value && obs.value != undefined)
@@ -370,7 +370,7 @@ angular.module('bahmni.common.conceptSet')
                                                                           isAutoFillEncouterdataToday(new Date(response.data[0].visitStartDateTime), response_)){    
                                                                             Answer = answer;
                                                                             
-                                                                            if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                                            if(Answer && !autofillfield.fieldValue.enableEditAfterAutoFill)
                                                                                 obs.disabled = true;
 
                                                                             if(obs.value && obs.value != undefined)
@@ -395,7 +395,7 @@ angular.module('bahmni.common.conceptSet')
                                                     if(formValue){
                                                         Answer = answer;
         
-                                                     if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                     if(Answer && !autofillfield.fieldValue.enableEditAfterAutoFill)
                                                             obs.disabled = true;
                                                     }
                                                 if(obs.value && obs.value != undefined)
@@ -406,7 +406,7 @@ angular.module('bahmni.common.conceptSet')
                                                 var formValue = response.data[response.data.length-1].value;
                                                 if(formValue){
                                                     Answer = answer;
-                                                 if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                 if(Answer && !autofillfield.fieldValue.enableEditAfterAutoFill)
                                                     obs.disabled = true;
                                                 }
 
