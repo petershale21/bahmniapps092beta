@@ -405,7 +405,7 @@ angular.module('bahmni.common.conceptSet')
                                 let Answer = null;
                                 
                                 if(!$scope.AutopopulateHeight && obs.concept.name ==="HEIGHT" )
-                                return;
+                                    return;
 
                                 observationsService.fetch($scope.patient.uuid, obs.concept.name).then(function (response) {
                                     var index = autofillfield.fieldValue.scopedEncounter.toString().toLowerCase().replace(/\s/g,'');
@@ -541,8 +541,7 @@ angular.module('bahmni.common.conceptSet')
                     $scope.AutoFilledFields.forEach((__autofield)=>{
                         fields.forEach((__field)=>{
                             if(__field.field == __autofield){
-                                console.log(__field.field == __autofield)
-                                    return;
+                                return;
                             }
                         });
                     });
