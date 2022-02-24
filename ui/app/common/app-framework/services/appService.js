@@ -285,7 +285,7 @@ angular.module('bahmni.common.appFramework')
             //---------------------------Auto fill of observations flags
             //**Setting a check field for autopopulations on forms */
             let isFormSaved = false;
-            let savedFormName = '';y
+            let savedFormName = '';
 
 
 
