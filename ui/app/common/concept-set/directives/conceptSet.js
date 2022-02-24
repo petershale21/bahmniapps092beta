@@ -1,8 +1,8 @@
 'use strict';
 
 angular.module('bahmni.common.conceptSet')
-    .directive('conceptSet', ['$rootScope', 'contextChangeHandler', 'appService', 'observationsService', 'messagingService', 'conceptSetService', 'conceptSetUiConfigService', 'spinner', '$q',
-        function ($timeout,contextChangeHandler, appService, observationsService, messagingService, conceptSetService, conceptSetUiConfigService, spinner, $q) {
+    .directive('conceptSet', ['$rootScope', 'contextChangeHandler', 'appService', 'visitService', 'observationsService', 'messagingService', 'conceptSetService', 'conceptSetUiConfigService', 'spinner', '$q',
+        function ($rootScope,contextChangeHandler, appService, visitService, observationsService, messagingService, conceptSetService, conceptSetUiConfigService, spinner, $q) {
             var controller = function ($scope) {
                 var conceptSetName = $scope.conceptSetName;
                 var ObservationUtil = Bahmni.Common.Obs.ObservationUtil;
@@ -257,61 +257,198 @@ angular.module('bahmni.common.conceptSet')
                     }
                 };
 
-                //auto filling form values ---  Pheko - Phenduka
+                //helper function -- checks if the auto populating data's encouter date is for current active visit - Phenduka
+                var isAutoFillEncouterdataToday = function (encounterDate, visitdate){
+                    return (encounterDate.getTime() >= visitdate.data.startDateTime);
+                } 
+
+                //helper function -- checking if the patient has an active visit - Phenduka
+                var getPatientSpecificActiveVisits = function (response) {
+                    var currentActiveVisit = _.last(response.data.results);
+                    return currentActiveVisit ? currentActiveVisit.uuid : null;
+                };
+
+                //helper function - perfoms the autofilling - Pheko - Phenduka
+                var fillingformValuesOnPreviousEncouter = function(flattenedObs,fields)
+                {   
+                    flattenedObs.forEach(function (obs) {
+                        fields.forEach(function (autofillfield) {
+                            if(obs.concept.name == autofillfield.field && autofillfield.fieldValue.isAutoFill && 
+                                (obs.concept.dataType == "Numeric" || obs.concept.dataType == "Date" || obs.concept.dataType =="Text" || obs.concept.dataType == "Boolean")){
+                                observationsService.fetch($scope.patient.uuid, obs.concept.name).then(function (response) {
+
+                                    var index = autofillfield.fieldValue.scopedEncounter.toString().toLowerCase().replace(/\s/g,'');
+                                    
+                                    if(!_.isEmpty(response.data)){
+
+                                        if( index === "currentvisit" && response.data[0] && response.data[0].visitStartDateTime){
+                                            if(response.data[0].visitStartDateTime )
+
+                                                var formValue_ = response.data[0].value;
+
+                                                if(formValue_ != null){
+
+                                                    if ($scope.patient) {
+
+                                                        visitService.search({patient: $scope.patient.uuid, includeInactive: false
+                                                        }).then(function (visitsResponse) {
+
+                                                            var visitUuid = getPatientSpecificActiveVisits(visitsResponse);
+
+                                                            if (visitUuid) {
+                                                                 visitService.getVisitSummary(visitUuid).then(function (response_) {
+                                                                    if(response_.data.stopDateTime == null && 
+                                                                       isAutoFillEncouterdataToday(new Date(response.data[0].visitStartDateTime), response_))
+                                                                        obs.value = response.data[0].value;
+
+                                                                        if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                                            obs.disabled = true;
+                                                                });
+                                                            }
+                                                            else if(autofillfield.fieldValue.enableDefaultValue)
+                                                                obs.value = response.data[0].value;
+                                                        });
+                                                    }
+                                                }
+                                                if(obs.value && obs.value != undefined)
+                                                    appService.setIsFieldAutoFilled(true);
+                                                
+                                        }
+                                        if(index === "latestvisit" && response.data[0] && response.data[0].visitStartDateTime){
+                                            var formValue = response.data[0].value;
+                                            if(formValue){
+                                                obs.value = formValue;
+
+                                                if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                    obs.disabled = true;
+                                            }
+
+                                            if(obs.value && obs.value != undefined)
+                                                appService.setIsFieldAutoFilled(true);
+                                        
+                                        }
+                                        if(index ==="firstvisit" && response.data[response.data.length-1] && response.data[response.data.length-1].visitStartDateTime) {
+                                            var formValue = response.data[response.data.length-1].value;
+                                            if(formValue){
+                                                    obs.value = formValue;
+                                                    
+                                                    if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                                obs.disabled = true;
+                                             }
+                                            if(obs.value && obs.value != undefined)
+                                                appService.setIsFieldAutoFilled(true);
+                                        }
+
+                                    }
+                                });
+                            }
+
+                            if(obs.concept.name == autofillfield.field && obs.concept.dataType == "Coded" && autofillfield.fieldValue.isAutoFill){
+                                let Answer = {};
+                                
+                                observationsService.fetch($scope.patient.uuid, obs.concept.name).then(function (response) {
+                                    var index = autofillfield.fieldValue.scopedEncounter.toString().toLowerCase().replace(/\s/g,'');
+                                    var formValue_ = response.data[autofillfield.fieldValue.scopedEncounter].value;
+                                    if(!_.isEmpty(response.data && response.data[index])){
+                                    obs.possibleAnswers.forEach(function (answer){
+                                        if(formValue_)
+                                            if( index === "currentvisit" && response.data[0] && response.data[0].visitStartDateTime){
+                                                if(response.data[0].visitStartDateTime )
+                                                
+                                                    var formValue_ = response.data[0].value;
+    
+                                                    if(formValue_ != null){
+                                                        
+                                                        if ($scope.patient) {
+                                                             visitService.search({patient: $scope.patient.uuid, includeInactive: false
+                                                            }).then(function (visitsResponse) {
+                                                                var visitUuid = getPatientSpecificActiveVisits(visitsResponse);
+                                                                if (visitUuid) {
+                                                                     visitService.getVisitSummary(visitUuid).then(function (response_) {
+
+                                                                        if(response_.data.stopDateTime == null && 
+                                                                          isAutoFillEncouterdataToday(new Date(response.data[0].visitStartDateTime), response_)){    
+                                                                            Answer = answer;
+                                                                            
+                                                                            if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                                                obs.disabled = true;
+
+                                                                            if(obs.value && obs.value != undefined)
+                                                                                appService.setIsFieldAutoFilled(true);
+                                                                            
+                                                                            else if(autofillfield.fieldValue.enableDefaultValue)
+                                                                                obs.value = response.data[0].value;
+                                                                        }
+                                                                    });
+                                                                } //
+                                                                else if(autofillfield.fieldValue.enableDefaultValue)
+                                                                    obs.value = response.data[0].value;
+                                                            });
+                                                        }
+                                                    }
+                                                    if(obs.value && obs.value != undefined)
+                                                        appService.setIsFieldAutoFilled(true);
+                                            }
+                                            if(index === "latestvisit" && response.data[0] && response.data[0].visitStartDateTime){
+                                                var formValue = response.data[0].value;
+                                                   
+                                                    if(formValue){
+                                                        Answer = answer;
+        
+                                                     if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                            obs.disabled = true;
+                                                    }
+                                                if(obs.value && obs.value != undefined)
+                                                    appService.setIsFieldAutoFilled(true);
+                                                
+                                            }
+                                            if(index ==="firstvisit" && response.data[response.data.length-1] && response.data[response.data.length-1].visitStartDateTime) {
+                                                var formValue = response.data[response.data.length-1].value;
+                                                if(formValue){
+                                                    Answer = answer;
+                                                 if(!autofillfield.fieldValue.enableEditAfterAutoFill)
+                                                    obs.disabled = true;
+                                                }
+
+                                                if(obs.value && obs.value != undefined)
+                                                    appService.setIsFieldAutoFilled(true);
+                                                
+                                            }
+                                    });
+
+                                if(formValue_){
+                                    obs.value = Answer;
+                                    if(!_.isEmpty(obs.value)){
+                                        appService.setIsFieldAutoFilled(true);
+                                     }
+                                    }
+                                }
+                                });
+                            }
+                            
+                        });
+                    });
+                }
+
+                //auto filling form values --- Pheko - Phenduka
                 var autoFillFormValues = function (flattenedObs,fields) {
+                    
+                    let isRetrospectiveMode = $rootScope.retrospectiveEntry;
+
                     flattenedObs.forEach(function (obs) {
                         fields.forEach(function (autofillfield) {
 
-                        if(obs.concept.name == autofillfield.field && autofillfield.fieldValue.isAutoFill && 
-                            (obs.concept.dataType == "Numeric" || obs.concept.dataType == "Date" || obs.concept.dataType =="Text" || obs.concept.dataType == "Boolean")){
-                            observationsService.fetch($scope.patient.uuid, obs.concept.name).then(function (response) {
-                                var index_ = autofillfield.fieldValue.scopedEncounter;
-                                if(!_.isEmpty(response.data) && response.data[index_]){
+                            //Check if a field is auto-filled enabled on retrospective mode - Phenduka
+                            if(isRetrospectiveMode){
 
-                                    var formValue = response.data[index_].value;
-
-                                    if(formValue){
-                                        obs.value = formValue;
-                                    }
-                                    if(obs.value && obs.value != undefined){
-                                        appService.setIsFieldAutoFilled(true);
-                                    }
-                                }
-                            });
-                        }
-
-                        if(obs.concept.name == autofillfield.field && obs.concept.dataType == "Coded" && autofillfield.fieldValue.isAutoFill){
-                            let Answer = {};
-                            
-                            observationsService.fetch($scope.patient.uuid, obs.concept.name).then(function (response) {
-                                var index = autofillfield.fieldValue.scopedEncouter;
-                                var formValue_ = response.data[autofillfield.fieldValue.scopedEncounter].value;
-                                if(!_.isEmpty(response.data && response.data[index])){
-                                obs.possibleAnswers.forEach(function (answer){
-                                    if(formValue_)
-                                        if(answer.displayString == response.data[index].value.name){
-                                        
-                                                Answer = answer;
-                                            if(obs.value && obs.value != undefined){
-                                                appService.setIsFieldAutoFilled(true);
-                                            }
-                                        }
-                                });
-
-                              if(formValue_){
-                                obs.value = Answer;
-                                if(!_.isEmpty(obs.value)){
-                                    appService.setIsFieldAutoFilled(true);
-                                }
-                              }
+                                if(autofillfield.fieldValue.isFilledOnRetrospectiveMode)
+                                    fillingformValuesOnPreviousEncouter(flattenedObs,fields);   
                             }
-                            });
-                        }
-                    })
+                            else
+                                fillingformValuesOnPreviousEncouter(flattenedObs,fields);
+                        });
                     });
-
                 }
-
         
 
                 var processConditions = function (flattenedObs, fields, disable, error, hide, assingvalue,autocalculatevalue) {
@@ -322,7 +459,7 @@ angular.module('bahmni.common.conceptSet')
                         var clonedObsInSameGroup;
                         var conceptNaming;
                         
-                        //------------------- Pheko - Phenduka  Calling AutoFull---------------------------------
+                        //Calling AutoFull methods Pheko - Phenduka
                        if(!appService.getIsFieldAutoFilled()){
                            try {
                                 if(!appService.getSavedFormCheck()){
@@ -330,7 +467,6 @@ angular.module('bahmni.common.conceptSet')
                                     appService.setFormName($scope.conceptSetName);
                                     autoFillFormValues(flattenedObs,fields);
                                 }
-                                    
             
                                 if(appService.getSavedFormCheck() && appService.getFormName != $scope.conceptSetName){
                                     appService.setFormName($scope.conceptSetName);
@@ -519,6 +655,7 @@ angular.module('bahmni.common.conceptSet')
                     }
                 };
                 var init = function () {
+                    //flgs checking ifthe scope is active and is a filled is set to autofill -- Phenduka
                     appService.setActive(false);
                     appService.setIsFieldAutoFilled(false);
                     //appService.setIsFieldAutoFilled(false);
