@@ -11,7 +11,7 @@ angular.module('bahmni.clinical')
                 // var patientContext = $scope.patientContext.additionalPatientIdentifiers;
                 var programAttributes = $scope.patientContext.programAttributes;
                 var personAttributes = $scope.patientContext.personAttributes;
-                console.log($scope.patientContext);
+                //console.log($scope.patientContext);
 
                 convertBooleanValuesToEnglish(personAttributes);
                 convertBooleanValuesToEnglish(programAttributes);
