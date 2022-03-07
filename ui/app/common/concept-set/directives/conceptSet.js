@@ -581,7 +581,7 @@ angular.module('bahmni.common.conceptSet')
                         if (!_.isEmpty(matchingObsArray)) {
                               //passing the autocalculatevalue parameter to be used in the setObservationState function implementation --Pheko
                              setObservationState(matchingObsArray, disable, error, hide, obsValue,conceptNaming,autocalculatevalue);
-                            var obsTreatment = $scope.observations[0].groupMembers[0].groupMembers;
+                             var obsTreatment = $scope.observations;
 
                             //hack to check changes on ART & AHD treatment followup form to autopopulate medication from obs to medication tab --pheko---phenduka
                             $scope.$watch(function() { 
@@ -605,32 +605,40 @@ angular.module('bahmni.common.conceptSet')
                                         else appService.setIsOrderRegimenInserted(false); 
                                     }
                                 });
-                                obsTreatment.forEach(element => {
-                                    if(element.label == "Follow-up date"){
-                                        if(element.value != undefined ) {
-                                            appService.setFollowupdate(element.value);
-                                            var isNotEmpty = appService.getDeactivated();
-                                            var isDeactivated = isNotEmpty == null ?  false : isNotEmpty;
-                                            if (isDeactivated == false) {
-                                                appService.setActive(true);
-                                            }
-                                            else{
-                                                isDeactivated == false;
-                                            }
-                                        }
-                                    }
+                                obsTreatment.forEach((element) => { 
+                                    if(element.label == "HIV Treatment and Care - Follow Up"){
+                                        element.groupMembers.forEach((_element)=>{
+                                            if(_element.label == "Patient Register"){
+                                                _element.groupMembers.forEach((inner_element)=>{
+                                                    if(inner_element.label == "Follow-up date")
+                                                        if(inner_element.value != undefined ) {
+                                                            appService.setFollowupdate(inner_element.value);
+                                                            var isNotEmpty = appService.getDeactivated();
+                                                            var isDeactivated = isNotEmpty == null ?  false : isNotEmpty;
+                                                            if (isDeactivated == false) {
+                                                                appService.setActive(true);
+                                                            }
+                                                            else{
+                                                                isDeactivated == false;
+                                                            }
+                                                        }
+                                                    if(inner_element.label == "AHD Details"){
+                                                        inner_element.groupMembers.forEach((inner_)=>{
+                                                        if(inner_.label == "Crypto Menengitis Regimen")
+                                                            if(inner_.value != undefined ) {
+                                                                appService.set_AHD_Regimen(inner_.value.displayString);
+                                                            }
+                                                            else{
+                                                                appService.set_AHD_Regimen('');
+                                                            }
+                                                        });
+                                                    }
 
-                                    element.groupMembers.forEach(element => {
-                                        if(element.label == "Crypto Menengitis Regimen")
-                                        {
-                                            if(element.value != undefined ) {
-                                                appService.set_AHD_Regimen(element.value.displayString);
+                                                });
                                             }
-                                            else{
-                                                appService.set_AHD_Regimen('');
-                                            }
-                                        }
-                                    });
+
+                                        })
+                                    }
                                 })
                             });
                             
