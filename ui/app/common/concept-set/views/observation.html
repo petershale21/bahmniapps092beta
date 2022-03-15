@@ -43,7 +43,6 @@
                     <span class="details" ng-bind-html="::observation.primaryObs.concept.description"></span>
                 </div>
 
-
                 <label class="control-label" ng-hide="observation.getControlType()== 'image'" ng-if="::showTitle" for="{{::observation.uniqueId}}">
                     <span ng-bind="::observation.label"></span>
                     <span ng-if="::getBooleanResult(observation.primaryObs.units)"
@@ -91,7 +90,7 @@
                     <div ng-switch-when="freeTextAutocomplete">
                         <div ng-include src="'../common/concept-set/views/observationDataTypes/autocompleteFreeTextType.html'"></div>
                     </div>
-
+                    
                     <div ng-switch-when="buttonselect">
                         <div ng-include src="'../common/concept-set/views/observationDataTypes/buttonSelectType.html'"></div>
                     </div>
@@ -181,10 +180,12 @@
                 <label class="control-label" ng-hide="observation.getControlType()== 'image'"  ng-if="::showTitle" for="{{::observation.uniqueId}}">
                     <span ng-bind="::observation.label"></span>
                     <span ng-show="::getBooleanResult(observation.units)" ng-bind-html="::'(' + observation.units + ')'"></span>
-                    <span ng-if="::observation.conceptUIConfig.required===true" class="asterick">*</span>
+                    <span ng-if="::observation.conceptUIConfig.required===true" class="asterick">{{!observation.isChecked ? '*' : ''}}</span>
                     <i class="fa fa-question-circle concept-tooltip-trigger" bm-pop-over-trigger
                        ng-if="::getBooleanResult(observation.concept.description)">
                     </i>
+                    
+                    
                 </label>
 
                 <div class="field-value" ng-switch="::observation.getControlType()"  ng-class="{'field-value-buttonSelectType' :observation.getControlType()== 'buttonselect' || observation.getControlType()== 'grid'}">
@@ -309,6 +310,7 @@
                     <p ng-switch-default class="field-value info fa fa-info-sign"> The concept data type
                         '{{::observation.dataTypeName}}' is not supported yet.</p>
                 </div>
+                
                 <hint concept-details="::observation.concept"/>
                 <div ng-if="observation.getControlType() != 'video'">
                     <div class="fl" ng-if="isRemoveValid(observation)" ng-include src="'../common/concept-set/views/observationDataTypes/removeClone.html'"></div>
@@ -324,6 +326,11 @@
                     </i>
                     <i class="fa fa-file-text-o"></i>
                 </button>
+                
+                <span ng-if="observation.parentForm == 'Nutritional Values' && observation.label == 'WEIGHT'">
+                    <label >N/A</label>
+                    <input type="checkbox" ng-model="observation.isChecked" ng-change="isNotMandadory(observation)">
+                </span>
 
                 <div ng-if="::observation.canHaveComment()" class="offset-label" >
                     <label class="control-label"></label>
