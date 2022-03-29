@@ -1,9 +1,9 @@
 'use strict';
 
 angular.module('bahmni.appointments')
-    .controller('AppointmentsListViewController', ['$scope', '$state', '$rootScope', '$translate', '$stateParams', 'spinner',
+    .controller('AppointmentsListViewController', ['$scope', '$state', '$rootScope', '$translate', '$stateParams', 'spinner', '$http',
         'appointmentsService', 'appService', 'appointmentsFilter', 'printer', 'checkinPopUp', 'confirmBox', 'ngDialog', 'messagingService',
-        function ($scope, $state, $rootScope, $translate, $stateParams, spinner, appointmentsService, appService,
+        function ($scope, $state, $rootScope, $translate, $stateParams, spinner,$http, appointmentsService, appService,
                   appointmentsFilter, printer, checkinPopUp, confirmBox, ngDialog, messagingService) {
             $scope.enableSpecialities = appService.getAppDescriptor().getConfigValue('enableSpecialities');
             $scope.enableServiceTypes = appService.getAppDescriptor().getConfigValue('enableServiceTypes');
@@ -19,8 +19,8 @@ angular.module('bahmni.appointments')
             $scope.tableInfo = [{heading: 'APPOINTMENT_PATIENT_ID', sortInfo: 'patient.identifier', enable: true},
                 {heading: 'APPOINTMENT_PATIENT_NAME', sortInfo: 'patient.name', class: true, enable: true},
                 {heading: 'APPOINTMENT_DATE', sortInfo: 'date', enable: true},
-                {heading: 'APPOINTMENT_START_TIME_KEY', sortInfo: 'startDateTime', enable: true},
-                {heading: 'APPOINTMENT_END_TIME_KEY', sortInfo: 'endDateTime', enable: true},
+                {heading: 'APPOINTMENT_PATIENT_AGE', sortInfo: 'age', enable: true},
+                {heading: 'APPOINTMENT_PATIENT_SEX', sortInfo: 'sex', enable: true},
                 {heading: 'APPOINTMENT_PROVIDER', sortInfo: 'provider.name', class: true, enable: true},
                 {heading: 'APPOINTMENT_SERVICE_SPECIALITY_KEY', sortInfo: 'service.speciality.name', enable: $scope.enableSpecialities},
                 {heading: 'APPOINTMENT_SERVICE', sortInfo: 'service.name', class: true, enable: true},
@@ -36,6 +36,15 @@ angular.module('bahmni.appointments')
                 $scope.isFilterOpen = $stateParams.isFilterOpen;
             };
 
+            var getPatient = function (uuid) {
+                var patient = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/patient/" + uuid, {
+                    method: "GET",
+                    params: {v: "full"},
+                    withCredentials: true
+                });
+                return patient;
+            };
+
             $scope.getAppointmentsForDate = function (viewDate) {
                 $stateParams.viewDate = viewDate;
                 $scope.selectedAppointment = undefined;
@@ -49,6 +58,20 @@ angular.module('bahmni.appointments')
                     spinner.forPromise(appointmentsService.getAllAppointments(params).then(function (response) {
                         $scope.appointments = response.data;
                         $scope.filteredAppointments = appointmentsFilter($scope.appointments, $stateParams.filterParams);
+                        
+                          //Adding Sex And Gender to appointment objects
+                          $scope.filteredAppointments.forEach(appointment => {
+                            getPatient(appointment.patient.uuid).then(client => {
+                                                   
+                                Object.assign(appointment,{'age': client.data.person.age})
+                                Object.assign(appointment,{'gender': client.data.person.gender})
+                                
+
+                            });
+                            
+                            
+                        })
+                        
                         $rootScope.appointmentsData = $scope.filteredAppointments;
                     }));
                 } else {
