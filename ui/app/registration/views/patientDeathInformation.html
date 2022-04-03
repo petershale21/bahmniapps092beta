@@ -5,7 +5,8 @@
                 <label class="till-text">{{ ::'REGISTRATION_LABEL_DATE_DEATH' | translate}}</label>
             </div>
             <div class="field-value">
-                <input type="date" ng-model="patient.deathDate" ng-change="selectIsDead()" max="{{::today}}"/>
+   
+                <input type="date" onkeypress="return false" ng-model="patient.deathDate" ng-change="selectIsDead()" max="{{::today}}"/>
             </div>
         </div>
         <div class="col col2">

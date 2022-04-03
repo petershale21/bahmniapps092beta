@@ -93,9 +93,29 @@ angular.module('bahmni.clinical')
             spinner.forPromise(importPromise);
         };
 
+        var toTitleCase = function (str) {
+            str = str.toLowerCase().split(' ');
+            for (var i = 0; i < str.length; i++) {
+              str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1); 
+            }
+            return str.join(' ');
+        }
+
+        var transformObs = function(obsResults) {
+            _.each(obsResults, function(obs) {
+                obs.encounterDate = moment(obs.encounterDate, "YYYY-MM-DDTHH:mm:ss.SSSZZ").format('DD MMM YYYY');
+                obs.observationName = toTitleCase(obs.observationName);
+                if(obs.observationName.toLowerCase().includes("date")) {
+                    obs.observationValue = moment(obs.observationValue, "YYYY-MM-DDTHH:mm:ss.SSSZZ").format('DD MMM YYYY');
+                }
+            });
+        };
+
         $scope.retriveAndViewObs = function () {
             var importPromise = sharedHealthRecordService.retriveAndViewObs(patientContext.patient.identifier).then(function (response) {
-                $scope.restResults = response;
+                var obsResults = response.filter(obs => !(obs.observationName.includes("(Text)") || obs.observationName.includes("Trigger")));
+                transformObs(obsResults);
+                $scope.restResults = obsResults;
                 $scope.noResultsMessage = $scope.restResults.length === 0 ? 'No patient records found for patient in HIE' : null;
             });
             spinner.forPromise(importPromise);

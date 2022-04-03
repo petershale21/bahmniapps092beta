@@ -32,6 +32,10 @@ angular.module('bahmni.common.conceptSet')
                     observation.hidden = true;
                 };
 
+                scope.isNotMandadory = function(observation){
+                    console.log(observation)
+                }
+
                 scope.isClone = function (observation, parentObservation) {
                     if (parentObservation && parentObservation.groupMembers) {
                         var index = parentObservation.groupMembers.indexOf(observation);
