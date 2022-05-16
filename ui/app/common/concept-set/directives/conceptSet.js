@@ -382,116 +382,112 @@ angular.module('bahmni.common.conceptSet')
                                     }
                                 });
                             }
-
-                            if(obs.concept.name == autofillfield.field && obs.concept.dataType == "Coded" && autofillfield.fieldValue.isAutoFill){
-                                let Answer = null;
-                                
-                                if(!$scope.AutopopulateHeight && obs.concept.name ==="HEIGHT" )
-                                    return;
-
+                            if(obs.concept.name == autofillfield.field && autofillfield.fieldValue.isAutoFill && 
+                                (obs.concept.dataType == "Coded")){
                                 observationsService.fetch($scope.patient.uuid, obs.concept.name).then(function (response) {
+
+                                    if(!$scope.AutopopulateHeight && obs.concept.name ==="HEIGHT" )
+                                        return;
+
                                     var index = autofillfield.fieldValue.scopedEncounter.toString().toLowerCase().replace(/\s/g,'');
-                                    var formValue_ = response.data[0].value;
-                                    if(!_.isEmpty(response.data && response.data[0])){
-                                    obs.possibleAnswers.forEach(function (answer){
-                                        if(formValue_)
-                                            if( index === "currentvisit" && response.data[0] && response.data[0].visitStartDateTime){
-                                                if(response.data[0].visitStartDateTime )
-                                                
-                                                    var formValue = response.data[0].value;
-    
-                                                    if(formValue != null && Answer == null){
-                                                        
-                                                        if ($scope.patient) {
-                                                             visitService.search({patient: $scope.patient.uuid, includeInactive: false
-                                                            }).then(function (visitsResponse) {
-                                                                var visitUuid = getPatientlatestVisit(visitsResponse);
-                                                                if (visitUuid) {
-                                                                     visitService.getVisitSummary(visitUuid).then(function (response_) {
+                                 //fix error for auto fill of coded concepts - Litsitso Masoebe && Kgomotjo Seipobi   
+                                    if(!_.isEmpty(response.data)){
+                                        for (var answer of Object.keys(obs.possibleAnswers)) {
+                                        if( index === "currentvisit" && response.data[0] && response.data[0].visitStartDateTime){
+                                            if(response.data[0].visitStartDateTime )
 
-                                                                        if(response_.data.stopDateTime == null && 
-                                                                            isAutoFillEncouterForCurrentVisit(new Date(response.data[0].visitStartDateTime), response_)){    
-                                                                            
-                                                                            if(formValue && Answer == null){
+                                          
+                                                var formValue_ = response.data[0].value;
 
-                                                                                Answer = answer;
-                        
-                                                                                if($rootScope.retrospectiveEntry){
+                                                if(formValue_ != null && obs.value == null){
+
+                                                    if ($scope.patient) {
+
+                                                        visitService.search({patient: $scope.patient.uuid, includeInactive: false
+                                                        }).then(function (visitsResponse) {
+
+                                                            var visitUuid = getPatientlatestVisit(visitsResponse);
+
+                                                            if (visitUuid) {
+                                                                 visitService.getVisitSummary(visitUuid).then(function (response_) {
+                                                                    if(response_.data.stopDateTime == null && 
+                                                                        isAutoFillEncouterForCurrentVisit(new Date(response.data[0].visitStartDateTime), response_))
+                                                                        {
+                                                                                                   
+                                                                            if($rootScope.retrospectiveEntry){
                                                                                     
-                                                                                    if(autofillfield.fieldValue.isFilledOnRetrospectiveMode){
-                                                                                        obs.value = Answer;
+                                                                                if(autofillfield.fieldValue.isFilledOnRetrospectiveMode){
 
-                                                                                        $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
-                                                                                    }
-                                                                                }
-                                                                                else if(!$rootScope.retrospectiveEntry){
-                                                                                    obs.value = Answer;
-                                                                                    
+                                                                                    obs.value = response.data[0].value;
+
                                                                                     $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
                                                                                 }
                                                                             }
+                                                                            else if(!$rootScope.retrospectiveEntry){
+                                                                                obs.value = response.data[0].value;
+                                                                                
+                                                                                $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
+                                                                            }
                                                                         }
                                                                         else if(autofillfield.fieldValue.enableDefaultValue){
-                                                                            Answer = answer;
-                                                                           
-                                                                            obs.value = Answer;
+                                                                            obs.value = response.data[0].value;
 
                                                                             $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
                                                                         }
-                                                                    });
-                                                                }
-                                                            });
-                                                           
-                                                        }
-                                                    }
-                                            }
-                                            if(index === "latestvisit" && response.data[0] && response.data[0].visitStartDateTime){
-                                                var formValue = response.data[0].value;
-                                                    if(formValue && Answer == null){
-
-                                                        Answer = answer;
-
-                                                        if($rootScope.retrospectiveEntry){
-
-                                                            if(autofillfield.fieldValue.isFilledOnRetrospectiveMode){
-                                                                obs.value = Answer;
-                                                            
-                                                                $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
+                                                                });
                                                             }
-                                                        }
-                                                        else if(!$rootScope.retrospectiveEntry){
-                                                            obs.value = Answer;
+                                                        });
+                                                    }
+                                                }
+                                        }
+                                        if(index === "latestvisit" && response.data[0] && response.data[0].visitStartDateTime){
+                                            var formValue = response.data[0].value;
+                                            if(formValue && obs.value == null){
+
+                                                if(formValue && obs.value == null){
+
+                                                    if($rootScope.retrospectiveEntry){
+    
+                                                        if(autofillfield.fieldValue.isFilledOnRetrospectiveMode){
+                                                            obs.value = response.data[0].value; 
 
                                                             $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
                                                         }
                                                     }
-                                                
-                                            }
-                                            if(index ==="firstvisit" && response.data[response.data.length-1] && response.data[response.data.length-1].visitStartDateTime) {
-                                                var formValue = response.data[response.data.length-1].value;
-                                                if(formValue && Answer == null){
-
-                                                            Answer = answer;
-
-                                                            if($rootScope.retrospectiveEntry){
-                                                                
-                                                                if(autofillfield.fieldValue.isFilledOnRetrospectiveMode){
-                                                                    obs.value = Answer;
-                                                                    $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
-                                                                }
-                                                            }
-                                                            else if(!$rootScope.retrospectiveEntry){
-                                                                obs.value = Answer;
-                                                              
-                                                                $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
-                                                            }
-                                                        }
-                                                    
+                                                    else if(!$rootScope.retrospectiveEntry){
+                                                        obs.value = response.data[0].value;
+                                                        
+                                                        $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
+                                                    }
                                                 }
-                                            });
+                                            }
+                                        
                                         }
-                                    });
+                                        if(index ==="firstvisit" && response.data[response.data.length-1] && response.data[response.data.length-1].visitStartDateTime) {
+                                            var formValue = response.data[response.data.length-1].value;
+                                            if(formValue && obs.value == null){
+
+                                                if($rootScope.retrospectiveEntry){
+
+                                                    if(autofillfield.fieldValue.isFilledOnRetrospectiveMode){
+                                                        obs.value = response.data[0].value;
+                                                        
+                                                        $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
+                                                    }
+                                                }
+                                                else if(!$rootScope.retrospectiveEntry){
+                                                    obs.value = response.data[0].value;
+                                                    
+                                                    $scope.AutoFilledFields.push({conceptName : obs.concept.name, enableEdit: autofillfield.fieldValue.enableEditAfterAutoFill});
+                                                }
+                                            }
+                                        }
+
+                                    }
                                 }
+                                });
+                            
+                            }
                             
                         });
                     });
