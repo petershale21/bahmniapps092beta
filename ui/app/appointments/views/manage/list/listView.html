@@ -54,8 +54,9 @@
           <td class="table-mid-width">
             {{::appointment.patient.name | titleCase}}
           </td>
-          <td>{{::appointment.startDateTime | bahmniDate}}</td>
-          <td>{{::appointment.startDateTime | bahmniTime}}</td>
+          <!-- Adding Age and Sex -->
+          <td>{{::appointment.age}}</td>
+          <td>{{::appointment.gender}}</td>
           <td>{{::appointment.endDateTime | bahmniTime}}</td>
           <td class="table-mid-width">{{::appointment.provider.name}}</td>
           <td ng-show="::enableSpecialities">
