@@ -14,6 +14,16 @@ angular.module('bahmni.common.appFramework')
             var loadConfig = function (url) {
                 return loadConfigService.loadConfig(url, appDescriptor.contextPath);
             };
+            // Getting Patient Data from from API - nkepanem & phendukah
+            this.getPatient = function (uuid) {
+                var patient = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/patient/" + uuid, {
+                    method: "GET",
+                    params: {v: "full"},
+                    withCredentials: true
+                });
+                return patient;
+            };
+           
 
             var loadTemplate = function (appDescriptor) {
                 var deferrable = $q.defer();
