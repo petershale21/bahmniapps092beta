@@ -18,9 +18,9 @@ angular.module('bahmni.appointments')
             });
             $scope.tableInfo = [{heading: 'APPOINTMENT_PATIENT_ID', sortInfo: 'patient.identifier', enable: true},
                 {heading: 'APPOINTMENT_PATIENT_NAME', sortInfo: 'patient.name', class: true, enable: true},
-                {heading: 'APPOINTMENT_DATE', sortInfo: 'date', enable: true},
                 {heading: 'APPOINTMENT_PATIENT_AGE', sortInfo: 'age', enable: true},
-                {heading: 'APPOINTMENT_PATIENT_SEX', sortInfo: 'sex', enable: true},
+                {heading: 'APPOINTMENT_PATIENT_SEX', sortInfo: 'gender', enable: true},
+                {heading: 'APPOINTMENT_PATIENT_CONTACTS', sortInfo: 'contacts', enable: true},
                 {heading: 'APPOINTMENT_PROVIDER', sortInfo: 'provider.name', class: true, enable: true},
                 {heading: 'APPOINTMENT_SERVICE_SPECIALITY_KEY', sortInfo: 'service.speciality.name', enable: $scope.enableSpecialities},
                 {heading: 'APPOINTMENT_SERVICE', sortInfo: 'service.name', class: true, enable: true},
@@ -36,12 +36,12 @@ angular.module('bahmni.appointments')
                 $scope.isFilterOpen = $stateParams.isFilterOpen;
             };
             //Getting Extra Patient Atributes for Appointment List View
-            var getPatientAtribute = function(patientAttributeType, patientObj){
+            $scope.getPatientAtribute = function(patientAttributeType, patientObj){
                 
                 patientObj.attributes.forEach(attribute =>{
                    //console.log(attribute.attributeType.display.concat(": ", attribute.value))
-                   if(attribute.attributeType.display == patientAttributeType){ 
-                       return attribute.value;
+                   if(attribute.attributeType.display == patientAttributeType){    
+                    return attribute.value;
                    }
                   
                 })
@@ -64,16 +64,25 @@ angular.module('bahmni.appointments')
                         //Adding Sex And Gender to appointment objects
                         $scope.filteredAppointments.forEach(appointment => {
                             appService.getPatient(appointment.patient.uuid).then(client => {
-                        
+                                //var contact = getPatientAtribute( ,client.data.person);
+                                var contact;
                                 Object.assign(appointment,{'age': client.data.person.age})
                                 Object.assign(appointment,{'gender': client.data.person.gender})
-                                Object.assign(appointment,{'contacts': getPatientAtribute("primaryContact" ,client.data.person)})
-                        
-                        
+                                
+
+                                client.data.person.attributes.forEach(attribute =>{
+                                    //console.log(attribute.attributeType.display.concat(": ", attribute.value))
+                                    if(attribute.attributeType.display == "primaryContact"){    
+                                     contact = attribute.value;
+                                    }
+                                   
+                                 })
+                                Object.assign(appointment,{'contacts': contact })
                                });
                         
-                        
+                              
                             })
+                            
 
                         
                         $rootScope.appointmentsData = $scope.filteredAppointments;
