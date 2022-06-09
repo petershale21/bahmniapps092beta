@@ -21,6 +21,7 @@ angular.module('bahmni.appointments')
                 {heading: 'APPOINTMENT_PATIENT_AGE', sortInfo: 'age', enable: true},
                 {heading: 'APPOINTMENT_PATIENT_SEX', sortInfo: 'gender', enable: true},
                 {heading: 'APPOINTMENT_PATIENT_CONTACTS', sortInfo: 'contacts', enable: true},
+                {heading: 'APPOINTMENT_PATIENT_VILLAGE', sortInfo: 'contacts', enable: true},
                 {heading: 'APPOINTMENT_PROVIDER', sortInfo: 'provider.name', class: true, enable: true},
                 {heading: 'APPOINTMENT_SERVICE_SPECIALITY_KEY', sortInfo: 'service.speciality.name', enable: $scope.enableSpecialities},
                 {heading: 'APPOINTMENT_SERVICE', sortInfo: 'service.name', class: true, enable: true},
@@ -63,21 +64,27 @@ angular.module('bahmni.appointments')
                         $scope.filteredAppointments = appointmentsFilter($scope.appointments, $stateParams.filterParams);
                         //Adding Sex And Gender to appointment objects
                         $scope.filteredAppointments.forEach(appointment => {
-                            appService.getPatient(appointment.patient.uuid).then(client => {
-                                //var contact = getPatientAtribute( ,client.data.person);
+                            appService.getPatient(appointment.patient.uuid).then(client => {                                
                                 var contact;
-                                Object.assign(appointment,{'age': client.data.person.age})
-                                Object.assign(appointment,{'gender': client.data.person.gender})
+                         
                                 
-
+                                console.log(client.data.person.addresses[0].cityVillage)
+                               
                                 client.data.person.attributes.forEach(attribute =>{
                                     //console.log(attribute.attributeType.display.concat(": ", attribute.value))
                                     if(attribute.attributeType.display == "primaryContact"){    
                                      contact = attribute.value;
                                     }
                                    
-                                 })
+                                })
+
+
                                 Object.assign(appointment,{'contacts': contact })
+                                Object.assign(appointment,{'village': client.data.person.addresses[0].cityVillage })
+                                Object.assign(appointment,{'age': client.data.person.age})
+                                Object.assign(appointment,{'gender': client.data.person.gender})
+
+                                
                                });
                         
                               
