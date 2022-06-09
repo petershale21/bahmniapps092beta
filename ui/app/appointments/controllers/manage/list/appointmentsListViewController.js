@@ -35,6 +35,18 @@ angular.module('bahmni.appointments')
                 $scope.startDate = $stateParams.viewDate || moment().startOf('day').toDate();
                 $scope.isFilterOpen = $stateParams.isFilterOpen;
             };
+            //Getting Extra Patient Atributes for Appointment List View
+            var getPatientAtribute = function(patientAttributeType, patientObj){
+                
+                patientObj.attributes.forEach(attribute =>{
+                   //console.log(attribute.attributeType.display.concat(": ", attribute.value))
+                   if(attribute.attributeType.display == patientAttributeType){ 
+                       return attribute.value;
+                   }
+                  
+                })
+
+            };
 
             $scope.getAppointmentsForDate = function (viewDate) {
                 $stateParams.viewDate = viewDate;
@@ -55,6 +67,7 @@ angular.module('bahmni.appointments')
                         
                                 Object.assign(appointment,{'age': client.data.person.age})
                                 Object.assign(appointment,{'gender': client.data.person.gender})
+                                Object.assign(appointment,{'contacts': getPatientAtribute("primaryContact" ,client.data.person)})
                         
                         
                                });
