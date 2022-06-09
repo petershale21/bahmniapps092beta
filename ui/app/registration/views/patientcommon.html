@@ -1,21 +1,6 @@
   <div ng-controller="PatientCommonController">
     <div class="box-container box-container-patient-info patient-common-info-container">
         <section>
-            <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
-                <div class="field-attribute">
-                    <label for="patientName">{{::patientConfiguration.local()['labelForNameField']}}</label>
-                </div>
-                <div class="field-value" id="patientNameLocal">
-                    <input type="text" id="givenNameLocal" ng-model="patient.givenNameLocal" pattern-validate
-                           placeholder="{{::patientConfiguration.local()['placeholderForGivenName']}}" focus-me="true">
-                    <input ng-show="::showMiddleName" type="text" id="middleNameLocal"
-                           ng-model="patient.middleNameLocal"
-                           pattern-validate
-                           placeholder="{{::patientConfiguration.local()['placeholderForMiddleName']}}">
-                    <input type="text" ng-show="::showLastName" id="familyNameLocal" ng-model="patient.familyNameLocal" pattern-validate
-                           placeholder="{{::patientConfiguration.local()['placeholderForFamilyName']}}">
-                </div>
-            </article>
             <article class="form-field patient-name-wrapper">
                 <div class="field-attribute">
                     <label for="patientName">{{ ::'REGISTRATION_LABEL_PATIENT_NAME' | translate}}<span class="asterick">*</span></label>
@@ -35,7 +20,8 @@
                   <input data-ng-switch-default
                          type="text" id="givenName" ng-model="patient.givenName" non-blank pattern-validate
                          placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
-                         title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}">
+                         title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}"
+                         focus-me="true">
               </span>
 
               <span data-ng-switch="::isAutoComplete('givenName')"
@@ -98,6 +84,21 @@
                 <div class="field-value showOn-small-screen" ng-show="::showCasteSameAsLastName()">
                     <input type="checkbox" id="casteSameAsLastNameCheck" ng-model="patient.sameAsLastName"
                            ng-change="setCasteAsLastName()">
+                </div>
+            </article>
+            <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
+                <div class="field-attribute">
+                    <label for="patientName">{{::patientConfiguration.local()['labelForNameField']}}</label>
+                </div>
+                <div class="field-value" id="patientNameLocal">
+                    <input type="text" id="givenNameLocal" ng-model="patient.givenNameLocal" pattern-validate
+                           placeholder="{{::patientConfiguration.local()['placeholderForGivenName']}}" >
+                    <input ng-show="::showMiddleName" type="text" id="middleNameLocal"
+                           ng-model="patient.middleNameLocal"
+                           pattern-validate
+                           placeholder="{{::patientConfiguration.local()['placeholderForMiddleName']}}">
+                    <input type="text" ng-show="::showLastName" id="familyNameLocal" ng-model="patient.familyNameLocal" pattern-validate
+                           placeholder="{{::patientConfiguration.local()['placeholderForFamilyName']}}">
                 </div>
             </article>
         </section>
