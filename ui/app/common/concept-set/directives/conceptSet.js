@@ -743,6 +743,25 @@ angular.module('bahmni.common.conceptSet')
                                     }
                                  } catch (error) { }
                             });}
+                    //Making Place of Delivery Not Mandatory on ANC Form nkepanem
+                    $scope.$watch(function(){
+                        if($scope.conceptSetName === "ANC, ANC Program"){
+                            
+                            try {
+                                $scope.observations.forEach((obs)=>{
+                                    obs.groupMembers.forEach(member =>{
+                                        if(member.label == 'LOR'){                                            
+                                            member.groupMembers[2].groupMembers[1].conceptUIConfig.required = false;
+                                        }
+                                    })
+                            });
+                            } catch (error) {
+                                
+                            }
+                        }
+
+
+                    })
 
                     // TODO : Hack to include functionality for pre-populating ART Regimens - Teboho
                     // Will refactor accordingly
