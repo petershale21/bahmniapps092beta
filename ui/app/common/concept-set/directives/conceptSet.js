@@ -722,14 +722,14 @@ angular.module('bahmni.common.conceptSet')
                                                      if(element.groupMembers[4].value != undefined){
                                                          edd=element.groupMembers[4].value;
                                                          var dt = new Date(edd);
-                                                         dt.setMonth( dt.getMonth() + 9);
-                                                         var day= '' + dt.getDate();
+                                                         dt.setDate( dt.getDate() + 280);   //add 280 days to get EDD from LNMP
+                                                         var day= '' + dt.getDate();           
                                                          var month='' + (dt.getMonth()+1);
                                                          var year='' + dt.getFullYear();
-                                                         if (month.length < 2) {
+                                                         if (month.length < 2) {            //insert a zero to precede months with a single digit
                                                             month = '0' + month;
                                                          }
-                                                         if (day.length < 2){
+                                                         if (day.length < 2){               //insert a zero to precede days with a single digit
                                                             day = '0' + day;
                                                          }
                                                         
