@@ -99,6 +99,7 @@
   "APPOINTMENT_CREATE_AVAL": "Available",
   "APPOINTMENT_CREATE_OUTOF": "out of",
   "APPOINTMENT_PATIENT_ID": "Patient ID",
+  "APPOINTMENT_FILE_NUMBER": "File Number",
   "APPOINTMENT_PATIENT_NAME": "Patient Name",
   "APPOINTMENT_CHECKIN_TIME_KEY": "Check in time",
   "APPOINTMENT_SERVICE_TYPE_FULL": "Service Appointment Type",

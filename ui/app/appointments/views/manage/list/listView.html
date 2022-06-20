@@ -51,6 +51,7 @@
           ng-class="{'selected' : isSelected(appointment)}"
         >
           <td>{{::appointment.patient.hivIdentifier}}</td>
+          <td>{{::appointment.fileNumber}}</td>
           <td class="table-mid-width">
             {{::appointment.patient.name | titleCase}}
           </td>
