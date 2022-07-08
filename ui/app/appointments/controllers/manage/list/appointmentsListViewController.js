@@ -2,9 +2,9 @@
 
 angular.module('bahmni.appointments')
     .controller('AppointmentsListViewController', ['$scope', '$state', '$rootScope', '$translate', '$stateParams', 'spinner',
-        'appointmentsService', 'appService', 'appointmentsFilter', 'printer', 'checkinPopUp', 'confirmBox', 'ngDialog', 'messagingService',
+        'appointmentsService', 'appService', 'appointmentsFilter', 'printer', 'checkinPopUp', 'confirmBox', 'ngDialog', 'messagingService', 'patientService',
         function ($scope, $state, $rootScope, $translate, $stateParams, spinner, appointmentsService, appService,
-                  appointmentsFilter, printer, checkinPopUp, confirmBox, ngDialog, messagingService) {
+                  appointmentsFilter, printer, checkinPopUp, confirmBox, ngDialog, messagingService, patientService) {
             $scope.enableSpecialities = appService.getAppDescriptor().getConfigValue('enableSpecialities');
             $scope.enableServiceTypes = appService.getAppDescriptor().getConfigValue('enableServiceTypes');
             $scope.allowedActions = appService.getAppDescriptor().getConfigValue('allowedActions') || [];
@@ -17,6 +17,7 @@ angular.module('bahmni.appointments')
                 $scope.isFilterOpen = args.filterViewStatus;
             });
             $scope.tableInfo = [{heading: 'APPOINTMENT_PATIENT_ID', sortInfo: 'patient.identifier', enable: true},
+                {heading: 'APPOINTMENT_FILE_NUMBER', sortInfo: 'patient.identifier', enable: true},
                 {heading: 'APPOINTMENT_PATIENT_NAME', sortInfo: 'patient.name', class: true, enable: true},
                 {heading: 'APPOINTMENT_PATIENT_AGE', sortInfo: 'age', enable: true},
                 {heading: 'APPOINTMENT_PATIENT_SEX', sortInfo: 'gender', enable: true},
@@ -93,6 +94,17 @@ angular.module('bahmni.appointments')
 
                         
                         $rootScope.appointmentsData = $scope.filteredAppointments;
+                       
+                        $scope.filteredAppointments.forEach(appointment => {
+                            patientService.getPatient(appointment.patient.uuid).then(patientAppointment => {
+                                patientAppointment.data.identifiers.forEach(extraId => {
+                                    if (extraId.identifierType.display == 'File Number') {
+                                        Object.assign(appointment, { 'fileNumber': extraId.identifier })
+                                    }
+                                });
+                            });
+
+                        });
                     }));
                 } else {
                     $scope.filteredAppointments = appointmentsFilter($state.params.appointmentsData, $stateParams.filterParams);
