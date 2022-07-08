@@ -18,9 +18,10 @@ angular.module('bahmni.appointments')
             });
             $scope.tableInfo = [{heading: 'APPOINTMENT_PATIENT_ID', sortInfo: 'patient.identifier', enable: true},
                 {heading: 'APPOINTMENT_PATIENT_NAME', sortInfo: 'patient.name', class: true, enable: true},
-                {heading: 'APPOINTMENT_DATE', sortInfo: 'date', enable: true},
                 {heading: 'APPOINTMENT_PATIENT_AGE', sortInfo: 'age', enable: true},
-                {heading: 'APPOINTMENT_PATIENT_SEX', sortInfo: 'sex', enable: true},
+                {heading: 'APPOINTMENT_PATIENT_SEX', sortInfo: 'gender', enable: true},
+                {heading: 'APPOINTMENT_PATIENT_CONTACTS', sortInfo: 'contacts', enable: true},
+                {heading: 'APPOINTMENT_PATIENT_VILLAGE', sortInfo: 'contacts', enable: true},
                 {heading: 'APPOINTMENT_PROVIDER', sortInfo: 'provider.name', class: true, enable: true},
                 {heading: 'APPOINTMENT_SERVICE_SPECIALITY_KEY', sortInfo: 'service.speciality.name', enable: $scope.enableSpecialities},
                 {heading: 'APPOINTMENT_SERVICE', sortInfo: 'service.name', class: true, enable: true},
@@ -34,6 +35,18 @@ angular.module('bahmni.appointments')
                 $scope.searchedPatient = $stateParams.isSearchEnabled && $stateParams.patient;
                 $scope.startDate = $stateParams.viewDate || moment().startOf('day').toDate();
                 $scope.isFilterOpen = $stateParams.isFilterOpen;
+            };
+            //Getting Extra Patient Atributes for Appointment List View
+            $scope.getPatientAtribute = function(patientAttributeType, patientObj){
+                
+                patientObj.attributes.forEach(attribute =>{
+                   //console.log(attribute.attributeType.display.concat(": ", attribute.value))
+                   if(attribute.attributeType.display == patientAttributeType){    
+                    return attribute.value;
+                   }
+                  
+                })
+
             };
 
             $scope.getAppointmentsForDate = function (viewDate) {
@@ -51,16 +64,32 @@ angular.module('bahmni.appointments')
                         $scope.filteredAppointments = appointmentsFilter($scope.appointments, $stateParams.filterParams);
                         //Adding Sex And Gender to appointment objects
                         $scope.filteredAppointments.forEach(appointment => {
-                            appService.getPatient(appointment.patient.uuid).then(client => {
-                        
+                            appService.getPatient(appointment.patient.uuid).then(client => {                                
+                                var contact;
+                         
+                                
+                                console.log(client.data.person.addresses[0].cityVillage)
+                               
+                                client.data.person.attributes.forEach(attribute =>{
+                                    //console.log(attribute.attributeType.display.concat(": ", attribute.value))
+                                    if(attribute.attributeType.display == "primaryContact"){    
+                                     contact = attribute.value;
+                                    }
+                                   
+                                })
+
+
+                                Object.assign(appointment,{'contacts': contact })
+                                Object.assign(appointment,{'village': client.data.person.addresses[0].cityVillage })
                                 Object.assign(appointment,{'age': client.data.person.age})
                                 Object.assign(appointment,{'gender': client.data.person.gender})
-                        
-                        
+
+                                
                                });
                         
-                        
+                              
                             })
+                            
 
                         
                         $rootScope.appointmentsData = $scope.filteredAppointments;
