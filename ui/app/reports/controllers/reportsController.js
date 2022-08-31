@@ -8,6 +8,8 @@ angular.module('bahmni.reports')
             autoUpload: true
         });
 
+        $scope.searchToken = "";
+
         $scope.uploader.onSuccessItem = function (fileItem, response) {
             fileItem.report.reportTemplateLocation = response;
         };
@@ -89,6 +91,19 @@ angular.module('bahmni.reports')
             }
         };
 
+        $scope.searchReport = function (searchToken) {
+            $scope.searchToken = searchToken;
+                _.forEach($rootScope.reportsRequiringDateRange, function (report) {
+                    var hiddenReports = 0;
+                    if (report.name.match(new RegExp($scope.searchToken, "i")) === null) {
+                        report.hidden = true;
+                        hiddenReports++;
+                    } else {
+                        report.hidden = false;
+                    }                   
+                });                         
+        };
+        
         var initializeFormats = function () {
             var supportedFormats = appService.getAppDescriptor().getConfigValue("supportedFormats") || _.keys(reportService.getAvailableFormats());
             supportedFormats = _.map(supportedFormats, function (format) {
