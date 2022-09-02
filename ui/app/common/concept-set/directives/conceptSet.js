@@ -1075,6 +1075,26 @@ angular.module('bahmni.common.conceptSet')
                     }
                 });
 
+                  // Hide TPT Completion Date - Thabiso NThako
+               $scope.$watch(function(){
+                try{
+                    if($scope.conceptSetName === "HIV Treatment and Care Progress Template"){
+                            $scope.observations.forEach((obs)=>{
+                                obs.groupMembers.forEach(thisConcepts =>{
+                                    if(thisConcepts.label === "Patient Register"){
+                                        if(thisConcepts.groupMembers[27]._value.name === "Yes" && thisConcepts.groupMembers[2]._value !== " "){
+                                           thisConcepts.groupMembers[28].hide = true;
+                                        }else{
+                                           thisConcepts.groupMembers[28].hide = false;
+                                    } 
+                                }
+                            });
+                        });
+                    }
+                }catch(error){}
+
+            });
+        };
                 $scope.$on('$destroy', function () {
                     deregisterObservationUpdated();
                     deregisterAddMore();
