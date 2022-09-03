@@ -1094,7 +1094,7 @@ angular.module('bahmni.common.conceptSet')
                 }catch(error){}
 
             });
-        };
+        
                 $scope.$on('$destroy', function () {
                     deregisterObservationUpdated();
                     deregisterAddMore();
