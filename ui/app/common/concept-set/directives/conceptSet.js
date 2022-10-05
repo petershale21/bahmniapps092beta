@@ -711,7 +711,7 @@ angular.module('bahmni.common.conceptSet')
                     appService.setActive(false);
 
                             // Hack to autocalculate estimated date of delivery (EDD) once last menstrual period entered --- Pheko
-                            var edd;
+                            var edd; // NB: This is not EDD, It is LNMP
                             if($scope.conceptSetName=="ANC, ANC Program"){
                                 $scope.$watch(function() { 
                                 try {
@@ -750,8 +750,33 @@ angular.module('bahmni.common.conceptSet')
                             try {
                                 $scope.observations.forEach((obs)=>{
                                     obs.groupMembers.forEach(member =>{
+                                        console.log(member)
                                         if(member.label == 'LOR'){                                            
                                             member.groupMembers[2].groupMembers[1].conceptUIConfig.required = false;
+                                        }
+                                    })
+                            });
+                            } catch (error) {
+                                
+                            }
+                        }
+
+
+                    })
+                    //Gestational Age nkepanem
+                    $scope.$watch(function(){
+                        if($scope.conceptSetName === "ANC, ANC Program"){
+                            
+                            try {
+                                $scope.observations.forEach((obs)=>{
+                                    obs.groupMembers.forEach(member =>{
+                                        if(member.label == 'LOR'){    
+
+                                           var today = new Date();
+                                           var lastMenstrualDate = new Date(edd)
+                                           var gestationalAge = Math.floor((today - lastMenstrualDate) / (7 * 24 * 60 * 60 * 1000))
+                                           member.groupMembers[0].groupMembers[6].value = gestationalAge
+                                           
                                         }
                                     })
                             });
