@@ -4,6 +4,14 @@
         <h2 class="section-title">{{::'REPORTS_TITLE_KEY' | translate}}</h2>
         <table class="alt-row form">
             <thead>
+                <th>
+                    <form class="clearfix" style="background: white;">
+                        <input type="text" ng-model="searchToken" ng-change="searchReport(searchToken)" autofocus="autofocus"
+                            placeholder="{{::'REPORTS_SEARCH_PLACEHOLDER' | translate }}" class="fr" style="margin: 10px;
+                           height: 19px;
+                           width: -webkit-fill-available;" />
+                    </form>
+                </th>
             <tr>
                 <th>{{::'REPORTS_NAME_HEADER_KEY' | translate}}</th>
                 <th class="reports-start-date">{{::'REPORTS_START_DATE_HEADER_KEY ' |translate}}
@@ -32,7 +40,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr ng-repeat="report in ::reportsRequiringDateRange">
+            <tr ng-repeat="report in ::reportsRequiringDateRange" ng-hide="report.hidden">
                 <td>{{:: report.name }}</td>
                 <td class="reports-start-date">
                     <input date-converter class="form-field start-date" type="date" max="{{report.stopDate | date:'yyyy-MM-dd'}}"
