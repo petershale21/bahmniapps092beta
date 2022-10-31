@@ -750,7 +750,6 @@ angular.module('bahmni.common.conceptSet')
                             try {
                                 $scope.observations.forEach((obs)=>{
                                     obs.groupMembers.forEach(member =>{
-                                        console.log(member)
                                         if(member.label == 'LOR'){                                            
                                             member.groupMembers[2].groupMembers[1].conceptUIConfig.required = false;
                                         }
@@ -764,6 +763,7 @@ angular.module('bahmni.common.conceptSet')
 
                     })
                     //Gestational Age nkepanem
+                    /*
                     $scope.$watch(function(){
                         if($scope.conceptSetName === "ANC, ANC Program"){
                             
@@ -781,12 +781,13 @@ angular.module('bahmni.common.conceptSet')
                                     })
                             });
                             } catch (error) {
-                                
+                                console.log("Crash and Burn")
                             }
                         }
 
 
-                    })
+                    }) 
+                    */
 
                     // TODO : Hack to include functionality for pre-populating ART Regimens - Teboho
                     // Will refactor accordingly
