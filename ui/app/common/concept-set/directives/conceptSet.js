@@ -772,11 +772,14 @@ angular.module('bahmni.common.conceptSet')
                                     obs.groupMembers.forEach(member =>{
                                         if(member.label == 'LOR'){    
 
-                                           var today = new Date();
-                                           var lastMenstrualDate = new Date(edd)
-                                           var gestationalAge = Math.floor((today - lastMenstrualDate) / (7 * 24 * 60 * 60 * 1000))
-                                           member.groupMembers[0].groupMembers[6].value = gestationalAge
-                                           
+                                            if(edd == null){
+                                                console.log("Do not need LMP since its a subsequent visit")
+                                            }else{
+                                                var today = new Date();
+                                                var lastMenstrualDate = new Date(edd);
+                                                var gestationalAge = Math.floor((today - lastMenstrualDate) / (7 * 24 * 60 * 60 * 1000));
+                                                member.groupMembers[0].groupMembers[6].value = gestationalAge;
+                                            }
                                         }
                                     })
                             });
