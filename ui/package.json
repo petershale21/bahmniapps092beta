@@ -65,5 +65,8 @@
   "readmeFilename": "README.md",
   "bugs": {
     "url": "https://github.com/Bhamni/opd/issues"
+  },
+  "dependencies": {
+    "grunt-cli": "^1.4.3"
   }
 }
