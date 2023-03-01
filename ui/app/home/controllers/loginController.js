@@ -1,14 +1,24 @@
 'use strict';
 
 angular.module('bahmni.home')
-    .controller('LoginController', ['$rootScope', '$scope', '$window', '$location', 'sessionService', 'initialData', 'spinner', '$q', '$stateParams', '$bahmniCookieStore', 'localeService', '$translate', 'userService', 'auditLogService',
-        function ($rootScope, $scope, $window, $location, sessionService, initialData, spinner, $q, $stateParams, $bahmniCookieStore, localeService, $translate, userService, auditLogService) {
+    .controller('LoginController', ['$rootScope', '$scope', '$window', '$location', 'sessionService', 'initialData', 'spinner', '$q', '$stateParams', '$bahmniCookieStore', 'localeService', '$translate', 'userService', 'auditLogService', '$http',
+        function ($rootScope, $scope, $window, $location, sessionService, initialData, spinner, $q, $stateParams, $bahmniCookieStore, localeService, $translate, userService, auditLogService, $http) {
             var redirectUrl = $location.search()['from'];
             var landingPagePath = "/dashboard";
             var loginPagePath = "/login";
             $scope.locations = initialData.locations;
             $scope.loginInfo = {};
             var localeLanguages = [];
+
+            var versionPath = "version.json";
+            console.log(versionPath);
+
+            $http.get(versionPath)
+                .success(function(result){
+                    console.log(result);
+                    $scope.result = result;
+                }
+                );
 
             var getLocalTimeZone = function () {
                 var currentLocalTime = new Date().toString();
@@ -121,6 +131,7 @@ angular.module('bahmni.home')
                 $scope.errorMessageTranslateKey = null;
                 var deferrable = $q.defer();
 
+                
                 var ensureNoSessionIdInRoot = function () {
                     // See https://bahmni.mingle.thoughtworks.com/projects/bahmni_emr/cards/2934
                     // The cookie should ideally not be set at root, and is interfering with
