@@ -3,15 +3,17 @@
     <section class="section-grid" ng-if="::reportsRequiringDateRange.length > 0">
         <h2 class="section-title">{{::'REPORTS_TITLE_KEY' | translate}}</h2>
         <table class="alt-row form">
+            <tr>
+                <form class="clearfix" style="background: white;">
+                    <input type="text" ng-model="searchToken" ng-change="searchReport(searchToken)" autofocus="autofocus"
+                        placeholder="{{::'REPORTS_SEARCH_PLACEHOLDER' | translate }}" class="fr" style="margin: 10px;
+                        height: 19px;
+                        width: -webkit-fill-available;
+                        padding-left: 10.5px;" />
+                </form>
+            </tr>
             <thead>
-                <th>
-                    <form class="clearfix" style="background: white;">
-                        <input type="text" ng-model="searchToken" ng-change="searchReport(searchToken)" autofocus="autofocus"
-                            placeholder="{{::'REPORTS_SEARCH_PLACEHOLDER' | translate }}" class="fr" style="margin: 10px;
-                           height: 19px;
-                           width: -webkit-fill-available;" />
-                    </form>
-                </th>
+                
             <tr>
                 <th>{{::'REPORTS_NAME_HEADER_KEY' | translate}}</th>
                 <th class="reports-start-date">{{::'REPORTS_START_DATE_HEADER_KEY ' |translate}}
