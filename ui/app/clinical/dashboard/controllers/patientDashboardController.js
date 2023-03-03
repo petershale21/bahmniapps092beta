@@ -56,6 +56,53 @@ angular.module('bahmni.clinical')
                                         "HIVTC, Treatment switched date"],
                                         "latest")]);
                             };
+            var getPregnancyStatus = function() {
+                return observationsService.fetch($scope.patient.uuid, "ANC, Estimated Date of Delivery", "latest")
+                    .then(function(result) {
+                    // Return the result of the fetch() method call
+                    return result;
+                    })
+                    .catch(function(error) {
+                    // Handle the error
+                    console.error('Error:', error);
+                    // Rethrow the error to propagate it up the promise chain
+                    throw error;
+                    });
+              };
+
+            
+             getPregnancyStatus().then(function (result){
+                
+                var rawEDD;
+                try {
+                    rawEDD = result.data[0].valueAsString
+                  }
+                  catch(err) {
+                    //Nothing
+                  }
+                if(rawEDD){
+                    var edd = Bahmni.Common.Util.DateUtil.parseServerDateToDate(rawEDD);
+                    var today = Bahmni.Common.Util.DateUtil.now();
+                
+                    getARTStartDate().then(function (result) {
+                        if (result[0].data.length > 0 || result[1].data.length > 0) {
+                            var lastDateSpecimenCollected = _.find(result[1].data, function (observation) {
+                                return observation.concept.name === "HIVTC, Viral Load Blood drawn date";
+                            });
+                            var lastBloodDrawDate = Bahmni.Common.Util.DateUtil.parseServerDateToDate(lastDateSpecimenCollected.value);
+                             //Determining if the client is still pregnant.
+                            if(Bahmni.Common.Util.DateUtil.isBeforeDate(today,edd)){
+                                console.log(lastBloodDrawDate);
+                            }
+                        } 
+                    })
+                   
+                } 
+                
+                
+            })
+           
+            
             var getCurrentTab = function () {
                 var currentTabKey = $location.search().currentTab;
                 var currentTab = $state.current.dashboard;
@@ -68,6 +115,7 @@ angular.module('bahmni.clinical')
             };
 
             var determineReferenceDate = function (artStartDate, treatmentSubstitutionDate, treatmentSwitchDate) {
+                                
                                 var referenceObject = { referenceDate: "", referenceState: "" };
                                 if (artStartDate && !treatmentSubstitutionDate && !treatmentSwitchDate) {
                                     referenceObject.referenceDate = artStartDate;
