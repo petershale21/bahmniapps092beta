@@ -68,7 +68,7 @@ angular.module('bahmni.clinical')
                     // Rethrow the error to propagate it up the promise chain
                     throw error;
                     });
-              };
+        };
 
             
              getPregnancyStatus().then(function (result){
@@ -92,7 +92,14 @@ angular.module('bahmni.clinical')
                             var lastBloodDrawDate = Bahmni.Common.Util.DateUtil.parseServerDateToDate(lastDateSpecimenCollected.value);
                              //Determining if the client is still pregnant.
                             if(Bahmni.Common.Util.DateUtil.isBeforeDate(today,edd)){
-                                console.log(lastBloodDrawDate);
+
+                                var diffInDays = Bahmni.Common.Util.DateUtil.diffInDays(lastBloodDrawDate, today);
+                                // console.log(lastBloodDrawDate, today, diffInDays)
+                                if (diffInDays > 90){
+                                    console.log('show reminder')
+                                    messagingService.showMessage('reminder', "Patient is due for ANC trimonthly Viral Load blood draw");
+                                }
+
                             }
                         } 
                     })
