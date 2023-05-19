@@ -1152,12 +1152,12 @@ angular.module('bahmni.common.conceptSet')
             });
             
             /*
-            New art patient o e kha ha a sa na le 6 months on treatment,then if e le less than 1000 copies(results)active patient o sa tla kha yearly
-            Bana 0 - 20 after every 6 months
+            New art patient will draw bloo after 6 months on treatment initiation, then if patient has less than 1000 copies(results)active patient he/she patient will draw bllod after a year
+            children 0 - 20 after every 6 months
             Pregnant and breast feeding after every 3 months
 
 
-            Ha a le unsuppressed after 3 months or after 3 Enhanced Adherence Couslling tsona li etsoa every month  ***
+            If unsuppressed after 3 months or after 3 Enhanced Adherence Counselling blood is drawn every month ***
             */
             
             $scope.$watch(function() {
@@ -1174,7 +1174,6 @@ angular.module('bahmni.common.conceptSet')
                                     try {
                                         var monthsSinceInitiation = (currentDate.getFullYear() - artInitiationDate.getFullYear()) * 12 + (currentDate.getMonth() - artInitiationDate.getMonth());
                                         var monthBloodDrawn = (currentDate.getFullYear() - BloodDrawDate.getFullYear()) * 12 + (currentDate.getMonth() - BloodDrawDate.getMonth());
-                                        
                                     } catch (error){
                                         console.log("Art initiation form has not been filled for client");
                                     }
@@ -1196,7 +1195,12 @@ angular.module('bahmni.common.conceptSet')
                                         }
                                     }else{                                        
                                         //Check validity of new ART patient
+                                        console.log(monthsSinceInitiation);
 
+                                        if(monthsSinceInitiation == null)
+                                            console.log("art initiation form not captured");
+                                        else
+                                            console.log("is there");
                                     }
                                 }
                             }
