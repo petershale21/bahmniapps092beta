@@ -1103,6 +1103,108 @@ angular.module('bahmni.common.conceptSet')
                     }
                 });
 
+            //Thabiso Nthako - Autofill Viral Load results when they are still valid
+            $scope.ViralLoadMonitoring = {
+                ArtStartDate:"",
+                DateBloodDrawn:"",
+                newInitiate:"",
+                activePatient:"",
+                VlMonitoring:"",
+                PregnantAndbreastfeedingWomen:"",
+                copies:"",
+                DateVlResultsReceived:"",
+                DateVlResultGivenToPatient:"",
+                comments:""
+            }
+
+            var getConceptValues = function () {
+                return $q.all([
+                    observationsService.fetch($scope.patient.uuid, [
+                        "HIVTC, ART start date"
+                    ],"latest"),observationsService.fetch($scope.patient.uuid, [
+                        "HIVTC, Viral Load Blood drawn date"
+                    ],"latest"),observationsService.fetch($scope.patient.uuid, [
+                        "HIVTC, Action to Record Viral Load Results" 
+                    ],"latest"),observationsService.fetch($scope.patient.uuid, [
+                        "Comments on VL Monitoring"
+                    ],"latest"),observationsService.fetch($scope.patient.uuid, [
+                        "HIVTC, Viral load blood results return date"
+                    ],"latest"),observationsService.fetch($scope.patient.uuid, [
+                        "Date VL Result given to patient"
+                    ],"latest"),observationsService.fetch($scope.patient.uuid, [
+                        "HIVTC, Viral Load"
+                    ],"latest"),observationsService.fetch($scope.patient.uuid, [
+                        "HIVTC, VL Pregnancy Status"
+                    ],"latest")
+                ]);
+            };
+            getConceptValues().then(function (result) {
+                console.log(result);
+                try{
+                    $scope.ViralLoadMonitoring.ArtStartDate = result[0].data[0].value;
+                    $scope.ViralLoadMonitoring.DateBloodDrawn = result[1].data[0].value;
+                    $scope.ViralLoadMonitoring.VlMonitoring = result[2].data[0].value;
+                    $scope.ViralLoadMonitoring.comments = result[3].data[0].value;
+                    $scope.ViralLoadMonitoring.DateVlResultsReceived = result[4].data[0].value;
+                    $scope.ViralLoadMonitoring.DateVlResultGivenToPatient = result[5].data[0].value;
+                    $scope.ViralLoadMonitoring.copies = result[6].data[0].value;
+                }catch(error){}
+            });
+            
+            /*
+            New art patient o e kha ha a sa na le 6 months on treatment,then if e le less than 1000 copies(results)active patient o sa tla kha yearly
+            Bana 0 - 20 after every 6 months
+            Pregnant and breast feeding after every 3 months
+
+
+            Ha a le unsuppressed after 3 months or after 3 Enhanced Adherence Couslling tsona li etsoa every month  ***
+            */
+            
+            $scope.$watch(function() {
+                try {
+                    if($scope.observations[0].label != undefined){ 
+                        $scope.observations[0].groupMembers.forEach((element) => {
+                            if(element.label === "Viral Load Monitoring"){
+                                //Check viralload for children
+                                if($scope.patient.age === 0 || $scope.patient.age <= 20){
+                                    var currentDate = new Date(); 
+                                    var artInitiationDate =  new Date($scope.ViralLoadMonitoring.ArtStartDate); 
+                                    var BloodDrawDate = new Date($scope.ViralLoadMonitoring.DateBloodDrawn);
+                                    
+                                    try {
+                                        var monthsSinceInitiation = (currentDate.getFullYear() - artInitiationDate.getFullYear()) * 12 + (currentDate.getMonth() - artInitiationDate.getMonth());
+                                        var monthBloodDrawn = (currentDate.getFullYear() - BloodDrawDate.getFullYear()) * 12 + (currentDate.getMonth() - BloodDrawDate.getMonth());
+                                        
+                                    } catch (error){
+                                        console.log("Art initiation form has not been filled for client");
+                                    }
+
+                                    // Calculate the difference in months
+                                    if($scope.ViralLoadMonitoring.DateBloodDrawn.length === 0){
+                                        
+                                        if(monthsSinceInitiation > 6){
+                                        //  messagingService.showMessage('reminder', "Patient is due for 6 monthly Viral Load blood draw, since Initiate");
+                                            console.log("Child has to draw since his/her ART initiation date");
+                                        }
+                                        }else{   
+                                            // As long as viral load is valid, show all concepts filled
+                                            if(monthBloodDrawn <= 6){                                                
+                                                element.groupMembers[2].value = $scope.ViralLoadMonitoring.DateBloodDrawn;
+                                            }else{
+                                                element.groupMembers[2].value = null;
+                                            }     
+                                        }
+                                    }else{                                        
+                                        //Check validity of new ART patient
+
+                                    }
+                                }
+                            }
+                        );
+                    }
+                } catch (error) {}
+            });
+            
                 $scope.$on('$destroy', function () {
                     deregisterObservationUpdated();
                     deregisterAddMore();
