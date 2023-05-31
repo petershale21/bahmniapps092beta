@@ -1111,6 +1111,7 @@ angular.module('bahmni.common.conceptSet')
                 copies:"",
                 DateVlResultsReceived:"",
                 DateVlResultGivenToPatient:"",
+                Pregnant: "",
                 Vlcomments:""
             }
 
@@ -1131,59 +1132,64 @@ angular.module('bahmni.common.conceptSet')
                     ],"latest"),observationsService.fetch($scope.patient.uuid, [
                         "HIVTC, Viral Load"
                     ],"latest"),observationsService.fetch($scope.patient.uuid, [
+                        "HTC, Pregnancy Status"
+                    ],"latest"),observationsService.fetch($scope.patient.uuid, [
                         "HIVTC, VL Pregnancy Status"
                     ],"latest")
                 ]);
             };
             getConceptValues().then(function (result) {
-                    if(result[0].data.length != 0){
-                        $scope.ViralLoadMonitoring.ArtStartDate = result[0].data[0].value;
-                    }else{
-                        messagingService.showMessage('reminder', "HIV Treatment and Care - Intake form has not been filled");
+                if(result[0].data.length != 0){
+                    $scope.ViralLoadMonitoring.ArtStartDate = result[0].data[0].value;
+                }else{
+                    messagingService.showMessage('reminder', "HIV Treatment and Care - Intake form has not been filled");
+                }
+                
+                if(result[1].data.length != 0){
+                    $scope.ViralLoadMonitoring.DateBloodDrawn = result[1].data[0].value;
+                }
+
+                if(result[2].data.length != 0){
+                    result[2].data[0].value.set = true;
+                    $scope.ViralLoadMonitoring.VlMonitoring = result[2].data[0].value.set;
+                }
+                    
+                if(result[3].data.length != 0)
+                    $scope.ViralLoadMonitoring.Vlcomments = result[3].data[0].value;
+                
+                if(result[4].data.length != 0)
+                    $scope.ViralLoadMonitoring.DateVlResultsReceived = result[4].data[0].value;
+                
+                if(result[5].data.length != 0)
+                    $scope.ViralLoadMonitoring.DateVlResultGivenToPatient = result[5].data[0].value;
+                
+                if(result[6].data.length != 0)
+                    $scope.ViralLoadMonitoring.copies = result[6].data[0].value;
+                
+                if(result[7].data.length != 0){
+                    if(result[7].data[0].valueAsString === "Pregnant"){
+                        $scope.ViralLoadMonitoring.Pregnant = "YES";
                     }
-                    
-                    if(result[1].data.length != 0)
-                        $scope.ViralLoadMonitoring.DateBloodDrawn = result[1].data[0].value;
-                   
-                    if(result[3].data.length != 0)
-                        $scope.ViralLoadMonitoring.Vlcomments = result[3].data[0].value;
-                    
-                    if(result[4].data.length != 0)
-                        $scope.ViralLoadMonitoring.DateVlResultsReceived = result[4].data[0].value;
-                    
-                   if(result[5].data.length != 0)
-                        $scope.ViralLoadMonitoring.DateVlResultGivenToPatient = result[5].data[0].value;
-                    
-                   if(result[6].data.length != 0)
-                        $scope.ViralLoadMonitoring.copies = result[6].data[0].value;
+                }
+
+                if(result[8].data.length != 0)
+                    if(result[8].data[0].valueAsString === "YES"){
+                        $scope.ViralLoadMonitoring.Pregnant = result[8].data[0].valueAsString;
+                }
+
+                console.log(result);
+
             });
-            
-            /*
-            New art patient will draw blood after 6 months on treatment initiation, then if patient has less than 1000 copies(results)active patient he/she patient will draw bllod after a year
-            children 0 - 20 after every 6 months
-            Pregnant and breast feeding after every 3 months
-
-
-            If unsuppressed after 3 months(copies) or after 3 Enhanced Adherence Counselling blood is drawn every month ***
-            */
             
             $scope.$watch(function() {
                 try {
-                    
                     if($scope.observations[0].label != undefined){ 
                         $scope.observations[0].groupMembers.forEach((element) => {
                             if(element.label === "Viral Load Monitoring"){
-                                console.log($scope);
+                               
                                 var currentDate = new Date(); 
                                 var artInitiationDate =  new Date($scope.ViralLoadMonitoring.ArtStartDate); 
                                 var BloodDrawDate = new Date($scope.ViralLoadMonitoring.DateBloodDrawn);                              
-
-                                console.log("Art Initiate date : " + $scope.ViralLoadMonitoring.ArtStartDate );
-                                console.log("Date blood drawn : " + $scope.ViralLoadMonitoring.DateBloodDrawn); 
-                                console.log( "Viral load Comments : " + $scope.ViralLoadMonitoring.Vlcomments );
-                                console.log( "Viral load Date Results Received : " + $scope.ViralLoadMonitoring.DateVlResultsReceived );
-                                console.log("Date Results Given to patient : " + $scope.ViralLoadMonitoring.DateVlResultGivenToPatient );
-                                console.log("Copies : " + $scope.ViralLoadMonitoring.copies);
 
                                 try {
                                     var monthsSinceInitiation = (currentDate.getFullYear() - artInitiationDate.getFullYear()) * 12 + (currentDate.getMonth() - artInitiationDate.getMonth());
@@ -1191,6 +1197,9 @@ angular.module('bahmni.common.conceptSet')
                                 } catch (error){
                                     console.log("Art initiation form has not been filled for client OR blood has not yet been drawn");
                                 } 
+
+                                console.log("monthsSinceInitiation : " + monthsSinceInitiation);
+                                console.log("monthsBLooddrawn : " + monthBloodDrawn);
 
                                 //Check viralload for children
                                 if($scope.patient.age === 0 || $scope.patient.age <= 20){ 
@@ -1207,15 +1216,17 @@ angular.module('bahmni.common.conceptSet')
                                             element.groupMembers[8].value = $scope.ViralLoadMonitoring.DateVlResultsReceived;
                                             element.groupMembers[9].value = $scope.ViralLoadMonitoring.DateVlResultGivenToPatient;
                                             element.groupMembers[10].value = $scope.ViralLoadMonitoring.Vlcomments;
-                                        }else{
-                                            console.log("ENABLE VIRAL LOAD RESULTS TO BE ENTERED FOR CHILDREN");   
+                                        }else{                                            
+                                            console.log("Child Viral is not valid")
                                         }     
                                     }
                                 }else{      
                                     if(monthsSinceInitiation == null){
                                         console.log("art initiation form not captured");
                                     }else{
-                                        if(monthsSinceInitiation <= 6){
+                                        // Since months after ART initiation
+                                        if(monthsSinceInitiation <= 6 && $scope.ViralLoadMonitoring.Pregnant != "YES"){
+                                            console.log("WITHIN FIRST SIX MONTHS OF INITIATION AND NOT PREG");
                                             element.groupMembers[2].value = $scope.ViralLoadMonitoring.DateBloodDrawn;
                                             element.groupMembers[7].value = $scope.ViralLoadMonitoring.copies;
                                             element.groupMembers[8].value = $scope.ViralLoadMonitoring.DateVlResultsReceived;
@@ -1224,13 +1235,27 @@ angular.module('bahmni.common.conceptSet')
                                         }else{
                                             // For active patient
                                             if(monthBloodDrawn > 6 && monthBloodDrawn <= 12){
+                                                console.log("ACTIVE BETWEEN SIX and TWELTH MONTHS");
                                                 element.groupMembers[2].value = $scope.ViralLoadMonitoring.DateBloodDrawn;
                                                 element.groupMembers[7].value = $scope.ViralLoadMonitoring.copies;
                                                 element.groupMembers[8].value = $scope.ViralLoadMonitoring.DateVlResultsReceived;
                                                 element.groupMembers[9].value = $scope.ViralLoadMonitoring.DateVlResultGivenToPatient;
                                                 element.groupMembers[10].value = $scope.ViralLoadMonitoring.Vlcomments;
                                             }else{
-                                                console.log("ENABLE VIRAL LOAD RESULTS TO BE ENTERED ACTIVE PATIENT");
+                                                console.log("OVER TWELTH MONTHS");                                                
+                                            }
+                                            // Pregnant Patient
+                                            if($scope.ViralLoadMonitoring.Pregnant == "YES"){
+                                                if(monthBloodDrawn <= 3){
+                                                    console.log("Pregnant and viral load still active");
+                                                    element.groupMembers[2].value = $scope.ViralLoadMonitoring.DateBloodDrawn;
+                                                    element.groupMembers[7].value = $scope.ViralLoadMonitoring.copies;
+                                                    element.groupMembers[8].value = $scope.ViralLoadMonitoring.DateVlResultsReceived;
+                                                    element.groupMembers[9].value = $scope.ViralLoadMonitoring.DateVlResultGivenToPatient;    
+                                                    element.groupMembers[10].value = $scope.ViralLoadMonitoring.Vlcomments;
+                                                }else{
+                                                    console.log("PREGNANT AND STILL VALID");
+                                                }
                                             }
                                         }                                        
                                     }
