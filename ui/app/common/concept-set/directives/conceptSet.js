@@ -1142,7 +1142,7 @@ angular.module('bahmni.common.conceptSet')
                 if(result[0].data.length != 0){
                     $scope.ViralLoadMonitoring.ArtStartDate = result[0].data[0].value;
                 }else{
-                    messagingService.showMessage('reminder', "HIV Treatment and Care - Intake form has not been filled");
+                    //messagingService.showMessage('reminder', "HIV Treatment and Care - Intake form has not been filled");
                 }
                 
                 if(result[1].data.length != 0){
