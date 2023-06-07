@@ -1102,7 +1102,46 @@ angular.module('bahmni.common.conceptSet')
                         runFormConditionForObs(true, formName, formCondition, conceptName, flattenedObs);
                     }
                 });
+ 
+                // Thabiso Nthako - Alert when HIV Treatment and Care form has never been filled
+                var getConceptValues = function () {
+                    return $q.all([
+                        observationsService.fetch($scope.patient.uuid, [
+                            "HIVTC, ART start date"
+                        ],"latest"), 
+                        observationsService.fetch($scope.patient.uuid, [
+                            "ART, Follow-up date"
+                        ],"latest") 
+                    ]);
+                };
 
+                getConceptValues().then(function (result) {
+
+                    var ArtStartDate = " ";
+                    var ArtFollowUpDate = " ";
+                    var LocationService = " ";
+
+                    if(result[0].data.length > 0){ 
+                        ArtStartDate = result[0].data[0].value;
+                    }
+                    
+                    if(result[1].data.length > 0){ 
+                        ArtFollowUpDate = result[1].data[0].value;
+                    }
+                    
+                    LocationService = $rootScope.currentUser.currentLocation;
+
+                    if(ArtStartDate == " "){
+                        if(ArtFollowUpDate != " "){ 
+                            if(LocationService == "ART/TB Clinic"){
+                                if($scope.conceptSetName === "HIV Treatment and Care Progress Template"){
+                                    messagingService.showMessage('reminder', "HIV Treatment and Care - Intake form has not been filled");
+                                }
+                            }
+                        }
+                    }
+                });
+                
                 $scope.$on('$destroy', function () {
                     deregisterObservationUpdated();
                     deregisterAddMore();
