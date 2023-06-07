@@ -1121,14 +1121,10 @@ angular.module('bahmni.common.conceptSet')
                     var ArtFollowUpDate = " ";
                     var LocationService = " ";
 
-                    if(result[0].data.length > 0){ 
-                        ArtStartDate = result[0].data[0].value;
-                    }
-                    
-                    if(result[1].data.length > 0){ 
-                        ArtFollowUpDate = result[1].data[0].value;
-                    }
-                    
+                    if(result[0].data.length > 0)  ArtStartDate = result[0].data[0].value;
+                                        
+                    if(result[1].data.length > 0)  ArtFollowUpDate = result[1].data[0].value;
+                                        
                     LocationService = $rootScope.currentUser.currentLocation;
 
                     if(ArtStartDate == " "){
