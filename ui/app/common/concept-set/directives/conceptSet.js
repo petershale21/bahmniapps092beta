@@ -1129,7 +1129,7 @@ angular.module('bahmni.common.conceptSet')
 
                     if(ArtStartDate == " "){
                         if(ArtFollowUpDate != " "){ 
-                            if(LocationService == "ART/TB Clinic"){
+                            if(LocationService == "ART/TB Clinic" || LocationService == "MCH Clinic"){
                                 if($scope.conceptSetName === "HIV Treatment and Care Progress Template"){
                                     messagingService.showMessage('reminder', "HIV Treatment and Care - Intake form has not been filled");
                                 }
