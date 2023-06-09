@@ -710,39 +710,40 @@ angular.module('bahmni.common.conceptSet')
                     //flgs checking ifthe scope is active and is a filled is set to autofill -- Phenduka
                     appService.setActive(false);
 
+                            /* This code was commented (09-Jun-23) because the method is easier to do in bahmni config but it was not removed in case some reference to it will be needed*/
                             // Hack to autocalculate estimated date of delivery (EDD) once last menstrual period entered --- Pheko
-                            var edd; // NB: This is not EDD, It is LNMP
-                            if($scope.conceptSetName=="ANC, ANC Program"){
-                                $scope.$watch(function() { 
-                                try {
-                                    if($scope.observations[0].label != undefined){ 
-                                        $scope.observations[0].groupMembers.forEach((element) => {
-                                             element.groupMembers.forEach((element) => {
-                                                 if(element.label== "Obstetric History"){
-                                                     if(element.groupMembers[4].value != undefined){
-                                                         edd=element.groupMembers[4].value;
-                                                         var dt = new Date(edd);
-                                                         dt.setDate( dt.getDate() + 280);   //add 280 days to get EDD from LNMP
-                                                         var day= '' + dt.getDate();           
-                                                         var month='' + (dt.getMonth()+1);
-                                                         var year='' + dt.getFullYear();
-                                                         if (month.length < 2) {            //insert a zero to precede months with a single digit
-                                                            month = '0' + month;
-                                                         }
-                                                         if (day.length < 2){               //insert a zero to precede days with a single digit
-                                                            day = '0' + day;
-                                                         }
+                            // var edd; // NB: This is not EDD, It is LNMP
+                            // if($scope.conceptSetName=="ANC, ANC Program"){
+                            //     $scope.$watch(function() { 
+                            //     try {
+                            //         if($scope.observations[0].label != undefined){ 
+                            //             $scope.observations[0].groupMembers.forEach((element) => {
+                            //                  element.groupMembers.forEach((element) => {
+                            //                      if(element.label== "Obstetric History"){
+                            //                          if(element.groupMembers[4].value != undefined){
+                            //                              edd=element.groupMembers[4].value;
+                            //                              var dt = new Date(edd);
+                            //                              dt.setDate( dt.getDate() + 280);   //add 280 days to get EDD from LNMP
+                            //                              var day= '' + dt.getDate();           
+                            //                              var month='' + (dt.getMonth()+1);
+                            //                              var year='' + dt.getFullYear();
+                            //                              if (month.length < 2) {            //insert a zero to precede months with a single digit
+                            //                                 month = '0' + month;
+                            //                              }
+                            //                              if (day.length < 2){               //insert a zero to precede days with a single digit
+                            //                                 day = '0' + day;
+                            //                              }
                                                         
-                                                         var finaldate= year+"-"+month+"-"+day;
-                                                         element.groupMembers[5].value=finaldate;
-                                                     }
-                                                }
+                            //                              var finaldate= year+"-"+month+"-"+day;
+                            //                              element.groupMembers[5].value=finaldate;
+                            //                          }
+                            //                     }
                                                  
-                                             });
-                                        });
-                                    }
-                                 } catch (error) { }
-                            });}
+                            //                  });
+                            //             });
+                            //         }
+                            //      } catch (error) { }
+                            // });}
                     //Making Place of Delivery Not Mandatory on ANC Form nkepanem
                     $scope.$watch(function(){
                         if($scope.conceptSetName === "ANC, ANC Program"){
