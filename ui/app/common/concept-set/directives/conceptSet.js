@@ -1111,20 +1111,48 @@ angular.module('bahmni.common.conceptSet')
                         ],"latest"), 
                         observationsService.fetch($scope.patient.uuid, [
                             "ART, Follow-up date"
+                        ],"latest"),
+                        observationsService.fetch($scope.patient.uuid, [
+                            "TB Transfer in"
+                        ],"latest"),                        
+                        observationsService.fetch($scope.patient.uuid, [
+                            "TB Treatment initiation"
+                        ],"latest"),                        
+                        observationsService.fetch($scope.patient.uuid, [
+                            "HIVTC, TB Treatment start date"
+                        ],"latest") ,                        
+                        observationsService.fetch($scope.patient.uuid, [
+                            "Phase of TB Treatment"
                         ],"latest") 
                     ]);
                 };
-
+               
                 getConceptValues().then(function (result) {
 
+                    console.log(result);
+                    
                     var ArtStartDate = " ";
                     var ArtFollowUpDate = " ";
-                    var LocationService = " ";
+                    var LocationService = " "; 
+
+                    var TBlinkage = " ";
+                    var TBTreatmentiInit = " ";
+                    var TBstartDate = "";
+                    var TBPhaseTreatment = " ";
+
 
                     if(result[0].data.length > 0)  ArtStartDate = result[0].data[0].value;
                                         
                     if(result[1].data.length > 0)  ArtFollowUpDate = result[1].data[0].value;
                                         
+                    if(result[2].data.length > 0) TBlinkage = result[2].data[0].valueAsString;
+
+                    if(result[3].data.length > 0) TBTreatmentiInit = result[3].data[0].valueAsString;
+                    
+                    if(result[4].data.length > 0) TBstartDate = result[4].data[0].valueAsString;
+
+                    if(result[5].data.length > 0) TBPhaseTreatment = result[5].data[0].valueAsString;
+
                     LocationService = $rootScope.currentUser.currentLocation;
 
                     if(ArtStartDate == " "){
@@ -1134,6 +1162,14 @@ angular.module('bahmni.common.conceptSet')
                             }
                         }
                     }
+
+                    if(TBPhaseTreatment != " "){
+                        if(TBlinkage == "" || TBTreatmentiInit == " " || TBstartDate == " "){
+                            if($scope.conceptSetName === "Tuberculosis Followup Template")
+                                messagingService.showMessage('reminder', "Tuberculosis Intake - Template form has not been filled");
+                        }
+                    }
+
                 });
                 
                 $scope.$on('$destroy', function () {
