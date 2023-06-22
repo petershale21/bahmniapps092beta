@@ -1103,7 +1103,7 @@ angular.module('bahmni.common.conceptSet')
                     }
                 });
  
-                // Thabiso Nthako - Alert when HIV Treatment and Care form has never been filled
+                // Thabiso Nthako - Alert when HIV Treatment and Care form,TB Intake form and HIV Treatment and Care Intake - Counselor has never been filled
                 var getConceptValues = function () {
                     return $q.all([
                         observationsService.fetch($scope.patient.uuid, [
@@ -1135,23 +1135,23 @@ angular.module('bahmni.common.conceptSet')
                     var ArtFollowUpDate = " ";
                     var LocationService = " "; 
 
-                    var TBlinkage = " ";
-                    var TBTreatmentiInit = " ";
-                    var TBstartDate = "";
-                    var TBPhaseTreatment = " ";
+                    var TBlinkage = false;
+                    var TBTreatmentiInit = false;
+                    var TBstartDate = false;
+                    var TBPhaseTreatment = false;
 
 
                     if(result[0].data.length > 0)  ArtStartDate = result[0].data[0].value;
                                         
                     if(result[1].data.length > 0)  ArtFollowUpDate = result[1].data[0].value;
                                         
-                    if(result[2].data.length > 0) TBlinkage = result[2].data[0].valueAsString;
+                    if(result[2].data.length > 0) TBlinkage = true;
 
-                    if(result[3].data.length > 0) TBTreatmentiInit = result[3].data[0].valueAsString;
+                    if(result[3].data.length > 0) TBTreatmentiInit = true;
                     
-                    if(result[4].data.length > 0) TBstartDate = result[4].data[0].valueAsString;
+                    if(result[4].data.length > 0) TBstartDate = true;
 
-                    if(result[5].data.length > 0) TBPhaseTreatment = result[5].data[0].valueAsString;
+                    if(result[5].data.length > 0) TBPhaseTreatment = true;
 
                     LocationService = $rootScope.currentUser.currentLocation;
 
@@ -1162,14 +1162,22 @@ angular.module('bahmni.common.conceptSet')
                             }
                         }
                     }
+                    
+                    console.log(TBlinkage);
+                    console.log(TBTreatmentiInit);
 
-                    if(TBPhaseTreatment != " "){
-                        if(TBlinkage == "" || TBTreatmentiInit == " " || TBstartDate == " "){
-                            if($scope.conceptSetName === "Tuberculosis Followup Template")
+                    console.log(TBstartDate);
+
+                    console.log(TBPhaseTreatment);
+
+
+                    if(TBPhaseTreatment){                   
+                        if($scope.conceptSetName === "Tuberculosis Followup Template"){
+                            if(!TBlinkage && !TBTreatmentiInit && !TBstartDate){
                                 messagingService.showMessage('reminder', "Tuberculosis Intake - Template form has not been filled");
                         }
                     }
-
+                    }
                 });
                 
                 $scope.$on('$destroy', function () {
