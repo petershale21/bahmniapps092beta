@@ -277,5 +277,9 @@ Bahmni.Common.Util.DateUtil = {
     },
     isBeforeTime: function (time, otherTime) {
         return moment(time, 'hh:mm a').format('YYYY-MM-DD');
+    },
+    isWeekend: function (date) {
+        var date = moment(date),day = date.day();
+        return (day === 6) || (day === 0);
     }
 };
