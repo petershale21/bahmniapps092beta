@@ -2,8 +2,8 @@
 
 angular.module('bahmni.registration')
     .controller('SearchPatientController', ['$rootScope', '$scope', '$location', '$window', 'spinner', 'patientService', 'appService',
-        'messagingService', '$translate', '$filter',
-        function ($rootScope, $scope, $location, $window, spinner, patientService, appService, messagingService, $translate, $filter) {
+        'messagingService', '$translate', '$filter', '$http',
+        function ($rootScope, $scope, $location, $window, spinner, patientService, appService, messagingService, $translate, $filter, $http) {
             $scope.results = [];
             var naturalOrderBy = window.naturalOrderBy;
             $scope.direction = ['asc'];
@@ -15,6 +15,7 @@ angular.module('bahmni.registration')
 
             $scope.searchDomains = {
                 local: "Local",
+                cag: "CAG",
                 national: "National"
             };
 
@@ -34,6 +35,10 @@ angular.module('bahmni.registration')
             $scope.showLocalId = function () {
                 return $scope.option.selected == "local" ? true : false;
             };
+
+            $scope.showCAGName = function () {
+                return $scope.option.selected == "cag" ? true : false;
+            }
 
             $scope.extraIdentifierTypes = _.filter($rootScope.patientConfiguration.identifierTypes, function (identifierType) {
                 return !identifierType.primary;
@@ -61,8 +66,8 @@ angular.module('bahmni.registration')
                     $scope.searchParameters.addressFieldValue.trim().length > 0 ||
                     $scope.searchParameters.customAttribute.trim().length > 0 ||
                     $scope.searchParameters.programAttributeFieldValue.trim().length > 0 ||
-                    $scope.searchParameters.nationalId.trim().length > 0
-
+                    $scope.searchParameters.nationalId.trim().length > 0 ||
+                    $scope.searchParameters.cagName.trim().length > 0
             };
 
             $scope.sortPatient = function (param) {
@@ -99,6 +104,7 @@ angular.module('bahmni.registration')
                 $scope.searchParameters.personSearchResultsConfig = searchParameters.personSearchResultsConfig || '';
                 $scope.searchParameters.nationalId = searchParameters.nationalId || '';
                 $scope.searchParameters.registrationNumber = searchParameters.registrationNumber || "";
+                $scope.searchParameters.cagName = searchParameters.cagName || "";
 
                 if (hasSearchParameters()) {
                     if ($scope.option.selected == "local") {
@@ -127,7 +133,8 @@ angular.module('bahmni.registration')
                             searching = false;
                         });
                         return searchPromise;
-                    } else if ($scope.option.selected == "national") {
+                    }
+                    else if ($scope.option.selected == "national") {
                         $scope.searchParameters.gender = searchParameters.gender == "male" ? "M" : "F";
                         searching = true;
                         var searchPromise = patientService.searchHIE(
@@ -248,6 +255,11 @@ angular.module('bahmni.registration')
                 $scope.patientIdentifierSearchConfig.show = allSearchConfigs.searchByPatientIdentifier === undefined ? true : allSearchConfigs.searchByPatientIdentifier;
             };
 
+            var setCAGNameSearchConfig = function () {
+                $scope.CAGNameSearchConfig = {};
+                $scope.CAGNameSearchConfig.show == allSearchConfigs.searchByCAGName === undefined ? true : allSearchConfigs.searchByCAGName;
+            }
+
             var setAddressSearchConfig = function () {
                 $scope.addressSearchConfig = allSearchConfigs.address || {};
                 $scope.addressSearchConfig.show = !_.isEmpty($scope.addressSearchConfig) && !_.isEmpty($scope.addressSearchConfig.field);
@@ -307,6 +319,7 @@ angular.module('bahmni.registration')
                 $scope.searchParameters = {};
                 $scope.searchActions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.patient.search.result.action");
                 setPatientIdentifierSearchConfig();
+                setCAGNameSearchConfig();
                 setAddressSearchConfig();
                 setCustomAttributesSearchConfig();
                 setProgramAttributesSearchConfig();
@@ -491,6 +504,10 @@ angular.module('bahmni.registration')
                 return angular.isDefined($scope.hieresults) && $scope.hieresults.length > 0;
             };
 
+            // $scope.cagResultsPresent = function () {
+            //     $scope.searchByCAGName();
+            // }
+
             $scope.editPatientUrl = function (url, options) {
                 var temp = url;
                 for (var key in options) {
@@ -517,6 +534,24 @@ angular.module('bahmni.registration')
                     });
                 }
             };
+            $scope.cagResults=[];
+            $scope.searchByCAGName = function (){
+                var apiUrl = 'https://192.168.56.53/openmrs/ws/rest/v1/cag?v=full';
+
+                        // Define a function to make the API request and log the response
+                        // function makeApiRequest() {
+                          $http.get(apiUrl)
+                            .then(function(response) {
+                              // Handle the successful response here
+                              console.log('API Response:', response.data);
+                              $scope.cagResults = response.data.results;
+                            })
+                            .catch(function(error) {
+                              // Handle any errors that occurred during the request
+                              console.error('API Error:', error);
+                            });
+                        // }
+            }
 
             $scope.forPatient = function (patient) {
                 $scope.selectedPatient = patient;

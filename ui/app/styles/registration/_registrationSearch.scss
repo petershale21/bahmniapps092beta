@@ -40,6 +40,35 @@
         padding: 0 10px !important;
       }
     }
+    .search-seperator-cag{
+      width: 30.5%;
+      margin: 0 1.04167%;
+      float: left;
+      @media (max-width: 767px) {
+        @include column(12);
+        border-right : 0;
+        border-bottom:2px dotted $lightGray;
+        display: block;
+        padding-bottom: 10px;
+      }
+      .search-patient-id{
+        width: 100%;
+        .reg-srch-btn{
+          margin-top: 4px;
+        }
+      }
+      input[type="text"]{
+        margin-right:5px;
+        padding: 5px 10px;
+        min-width: 40%;
+      }
+      select{
+        width:80px;
+        min-width:80px;
+        height: 32px;
+        padding: 0 10px !important;
+      }
+    }
     .search-seperator-r{
       width: 67%;
       margin: 0;

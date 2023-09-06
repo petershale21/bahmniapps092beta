@@ -1,7 +1,7 @@
 <section class="reg-search-wrapper">
 
     <section class="primary-section-grid">
-        <h2 class="section-title">Location</h2>
+        <h2 class="section-title">Filter</h2>
         <form class="select-file-form">
             <fieldset class="select-file-type" style="padding:2px;">
                 <ul ng-repeat="(key, searchDomain) in searchDomains" style="float: left; ">
@@ -17,8 +17,8 @@
 
     <section class="reg-search">
         <section class="reg-search">
-            <article class="search-seperator-l" ng-if="::patientIdentifierSearchConfig.show">
-                <form name="searchByIdForm" ng-submit="searchById()" class="simple-form-ui clearfix">
+            <article ng-class="{'search-seperator-l': !showCAGName(), 'search-seperator-cag': showCAGName()}" ng-if="::patientIdentifierSearchConfig.show">
+                <form name="searchByIdForm" ng-submit="searchById()" class="simple-form-ui clearfix" ng-show="!showCAGName()">
                     <label for="registrationNumber"><strong>{{ ::'REGISTRATION_LABEL_PATIENT_ID' |
                             translate}}</strong></label>
                     <div class="search-patient-id fl">
@@ -36,9 +36,25 @@
                     </div>
 
                 </form>
+
+                <form name="searchByCAGForm" ng-submit="searchByCAGName()" class="simple-form-ui clearfix" ng-show="showCAGName()">
+                    <label for="cagName"><strong>{{ ::'REGISTRATION_LABEL_CAG_NAME' | translate}}</strong></label>
+                    <div class="search-patient-id fl">
+
+                        <input tabindex="2" class="fl" type="text" id="cagName"
+                            ng-model="searchParameters.cagName" focus-me="true"
+                            placeholder="{{ ::'REGISTRATION_LABEL_CAG_NAME_PLACEHOLDER' | translate}}">
+                        <div class="reg-srch-btn fl">
+                            <button tabindex="3" type="submit" ng-disabled="!searchParameters.cagName">{{
+                                ::'REGISTRATION_LABEL_SEARCH' | translate}}</button>
+                        </div>
+                    </div>
+
+                </form>
+               
             </article>
 
-            <article class="search-seperator-r">
+            <article class="search-seperator-r"  ng-show="!showCAGName()">
                 <form name="searchByNameForm" ng-submit="searchPatients()" class="simple-form-ui">
 
                     <article class="fl">
@@ -220,6 +236,52 @@
         </div>
 
         <!-- LOCAL SEARCH LIST -->
+
+        <!-- CAG SEARCH LIST -->
+
+        <div infinite-scroll="nextPage()" infinite-scroll-immediate-check="false"
+            infinite-scroll-disabled="noMoreResultsPresent" class="registraition-search-results-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th ng-click="sortPatient('identifier'); orderByField='identifier'">
+                            <strong>CAG ID</strong>
+                        </th>
+                        <th ng-click="sortPatient('identifier'); orderByField='identifier'">
+                            <strong>CAG Name</strong>
+                        </th>
+                        <th ng-click="sortPatient('identifier'); orderByField='identifier'">
+                            <strong>CAG Description</strong>
+                        </th>
+                        <th ng-click="sortPatient('identifier'); orderByField='identifier'">
+                            <strong>Constituency</strong>
+                        </th>
+                    </tr>
+                </thead> 
+                <tbody>
+                    <tr ng-repeat="result in cagResults">
+                        <td>
+                            <a href="">CAG-{{result.id}}</a>
+                        </td>
+                        <td>
+                            {{result.name}}
+                        </td>
+                        <td>
+                            {{result.description}}
+                        </td>
+                        <td>
+                            {{result.constituency}}
+                        </td>
+
+                        
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CAG SEARCH LIST -->
+
+
         <div id="loader" ng-show="loadingMoreResults()"></div>
 
         <div class="note-container no-more-results" ng-if="noMoreResultsPresent">
