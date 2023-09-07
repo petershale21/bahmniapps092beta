@@ -39,7 +39,7 @@ angular
                 url: '/patient/new',
                 views: {
                     'layout': {templateUrl: 'views/layout.html', controller: 'CreatePatientController'},
-                    'content@newpatient': {templateUrl: 'views/newpatient.html'}
+                    'content@newpatient': {templateUrl: 'views/indexpatient.html'}
                 },
                 resolve: {
                     initialize: function (initialization) {

@@ -120,5 +120,9 @@
   "PROGRAM_DELETE_REASON_PLACEHOLDER": "Reason to delete the program",
   "DELETE_LABEL": "Delete",
   "EDIT_LABEL": "Edit",
-  "REGISTRATION_LABEL_RELATIONSHIP_EXISTS": "Given relationship already exists"
+  "REGISTRATION_LABEL_RELATIONSHIP_EXISTS": "Given relationship already exists",
+  "REGISTRATION_LABEL_NEW_CAG" : "NEW CAG",
+  "REGISTRATION_LABEL_PATIENT_ENTERCAGNAME" :"Enter CAG Name",
+  "REGISTRATION_LABEL_CAG_ENTER_NAME" : "Enter CAG name."
+ 
 }
