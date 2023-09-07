@@ -129,7 +129,7 @@
 
         <!-- HIE SEARCH LIST -->
         <div ng-if="hieresultsPresent()" class="registraition-search-results-container">
-            <table class="table">
+            <table class="table" ng-show="!showCAGName()">
                 <thead>
                     <tr>
                         <th><strong>Patient Identifier</strong></th>
@@ -175,7 +175,7 @@
 
         <div ng-if="resultsPresent()" infinite-scroll="nextPage()" infinite-scroll-immediate-check="false"
             infinite-scroll-disabled="noMoreResultsPresent" class="registraition-search-results-container">
-            <table class="table">
+            <table class="table"  ng-show="!showCAGName()">
                 <thead>
                     <tr>
                         <th ng-click="sortPatient('identifier'); orderByField='identifier'"><strong>{{
@@ -240,7 +240,7 @@
         <!-- CAG SEARCH LIST -->
 
         <div infinite-scroll="nextPage()" infinite-scroll-immediate-check="false"
-            infinite-scroll-disabled="noMoreResultsPresent" class="registraition-search-results-container">
+            infinite-scroll-disabled="noMoreResultsPresent" class="registraition-search-results-container"  ng-show="showCAGName() && cagResults.length!==0">
             <table class="table">
                 <thead>
                     <tr>
@@ -259,9 +259,9 @@
                     </tr>
                 </thead> 
                 <tbody>
-                    <tr ng-repeat="result in cagResults">
+                    <tr ng-repeat="result in cagResults | filter: searchParameters.cagName">
                         <td>
-                            <a href="">CAG-{{result.id}}</a>
+                            <a href="" ng-click="viewCAG(result.uuid)">CAG-{{result.id}}</a>
                         </td>
                         <td>
                             {{result.name}}

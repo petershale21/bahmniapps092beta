@@ -23,7 +23,15 @@ angular.module('bahmni.common.appFramework')
                 });
                 return patient;
             };
-           
+           // Getting CAG dat from API - senekanet and shalet
+           this.getCAG = function (uuid) {
+               var cag = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/" + uuid, {
+                   method: "GET",
+                   params: {v: "full"},
+                   withCredentials: true
+               });
+               return cag;
+           };
 
             var loadTemplate = function (appDescriptor) {
                 var deferrable = $q.defer();
@@ -245,7 +253,7 @@ angular.module('bahmni.common.appFramework')
 
             // **************Function to be used to set and get flags****************
             let Regimen = '';
-            let isActiveSet = false; 
+            let isActiveSet = false;
             let isDeactivated = false;
             let Followupdate = '';
             let isOderhasBeenSaved = null;
@@ -314,7 +322,7 @@ angular.module('bahmni.common.appFramework')
             {
                 return savedFormName ;
             }
-            
+
             this.setIsFieldAutoFilled   = function (_isFieldAutoFilled ){
                 isFieldAutoFilled  = _isFieldAutoFilled ;
             }
@@ -322,7 +330,7 @@ angular.module('bahmni.common.appFramework')
             {
                 return isFieldAutoFilled ;
             }
-            
+
             //-------------------------------AHD Meds Flags------------------------------------
             let _AHD_Regimen = '';
             this.set_AHD_Regimen  = function (_ahd_regimen){
@@ -332,5 +340,5 @@ angular.module('bahmni.common.appFramework')
             {
                 return _AHD_Regimen;
             }
-            
+
         }]);
