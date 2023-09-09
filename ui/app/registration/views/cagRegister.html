@@ -1,0 +1,33 @@
+<div ng-include src="'views/header.html'" class="reg-header-wrapper header-wrapper"></div>
+<div class="reg-body-wrapper">
+    <div class="simple-form-ui new-patient">
+        <form name="myForm" class="form-horizontal well" single-submit="create()">
+            <div class="box-container box-container-default">
+                <legend class="registraion_legend first-registraion_legend">
+                    <span class="mylegend"><strong>{{::'REGISTRATION_LABEL_CAG_ID' | translate}} : {{cag.uuid}}</strong></span>
+                </legend>
+                <!-- <section class="clearfix">
+                    <div class="photo-container-wrapper" ng-if="!disablePhotoCapture">
+                        <span class="pull-right photo-container">
+                            <img class="patient-image" ng-src="{{patient.image}}" fallback-src="../images/blank-user.gif">
+                            <div ng-model="patient.image" capture-photo="" class="capture-photo-btn"></div>
+                        </span>
+                    </div>
+                </section>
+                <section> -->
+                    <article class="form-field existing-patient">
+                        <div class="field-attribute">
+                            <label class="control-label" for="CAGID">CAG Name
+                            </label>
+                        </div>
+                        <div class="field-value">
+                            <input type="text" id="registrationNumber" ng-model="cag.name">
+                        </div>
+                    </article>
+                </section>
+            </div>
+            <!-- <div ng-include="'views/cagcommon.html'"></div> -->
+        </form>
+        <br>
+    </div>
+</div>

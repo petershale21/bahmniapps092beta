@@ -538,36 +538,23 @@ angular.module('bahmni.registration')
             $scope.searchByCAGName = function (){
                 var apiUrl = 'https://192.168.33.10/openmrs/ws/rest/v1/cag?v=full';
 
-                        // Define a function to make the API request and log the response
-                        // function makeApiRequest() {
-                          $http.get(apiUrl)
-                            .then(function(response) {
-                              // Handle the successful response here
-                              console.log('API Response:', response.data);
-                              $scope.cagResults = response.data.results;
-                            })
-                            .catch(function(error) {
-                              // Handle any errors that occurred during the request
-                              console.error('API Error:', error);
-                            });
-                        // }
-            }
-            $scope.viewCAG = function(uuid){
-                var apiUrl = 'https://192.168.33.10/openmrs/ws/rest/v1/cag/'+uuid;
-
-                // Define a function to make the API request and log the response
+            // Define a function to make the API request and log the response
+            // function makeApiRequest() {
                 $http.get(apiUrl)
                 .then(function(response) {
-                // Handle the successful response here
+                    // Handle the successful response here
                     console.log('API Response:', response.data);
-                //   $scope.cagResults = response.data.results;
+                    $scope.cagResults = response.data.results;
                 })
                 .catch(function(error) {
-                // Handle any errors that occurred during the request
+                    // Handle any errors that occurred during the request
                     console.error('API Error:', error);
                 });
+            // }
+            }
+            $scope.viewCAG = function(cagUuid){
                 // $scope.CAGdoExtensionAction(apiUrl,uuid);
-                $location.path(cag/'+uuid');
+                $location.url('/cag/'+cagUuid);
             }
 
             
@@ -585,29 +572,6 @@ angular.module('bahmni.registration')
                         var firstChar = forwardTo.charAt(0);
                         var prefix = firstChar === "/" ? "#" : "#/";
                         var hiddenFrame = $("#printPatientFrame")[0];
-                        hiddenFrame.src = prefix + forwardTo;
-                        hiddenFrame.contentWindow.print();
-                    } else {
-                        $location.url(forwardTo);
-                    }
-                } else {
-                    $location.url(forwardTo);
-                }
-            };
-
-            $scope.cagforPatient = function (cag) {
-                $scope.selectedCag = cag;
-                return $scope;
-            };
-
-            $scope.cagdoExtensionAction = function (extension) {
-                var forwardTo = appService.getAppDescriptor().formatUrl(extension.url, { 'cagUuid': $scope.selectedCag.uuid });
-                if (extension.label === 'Print') {
-                    var params = identifyParams(forwardTo);
-                    if (params.launch === 'dialog') {
-                        var firstChar = forwardTo.charAt(0);
-                        var prefix = firstChar === "/" ? "#" : "#/";
-                        // var hiddenFrame = $("#printPatientFrame")[0];
                         hiddenFrame.src = prefix + forwardTo;
                         hiddenFrame.contentWindow.print();
                     } else {

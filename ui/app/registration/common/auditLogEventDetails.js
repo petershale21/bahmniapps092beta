@@ -1,5 +1,6 @@
 Bahmni.Registration.StateNameEvenTypeMap = {
     "search": "VIEWED_REGISTRATION_PATIENT_SEARCH",
+    "cag": "VIEWED_REGISTRATION_CAG_SEARCH",
     "newpatient": "VIEWED_NEW_PATIENT_PAGE",
     "newpatient.save": "REGISTER_NEW_PATIENT",
     "patient.edit": "EDIT_PATIENT_DETAILS",

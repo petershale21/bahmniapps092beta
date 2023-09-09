@@ -81,6 +81,17 @@ angular
                     'layout': {templateUrl: 'views/layout.html'},
                     'content@patient.printSticker': {templateUrl: 'views/notimplemented.html'}
                 }
+            })
+            .state('cag', {
+                url: '/cag/:cagUuid',
+                views: {
+                    'layout': {templateUrl: 'views/cagRegister.html', controller: 'CagRegisterController'}
+                },
+                resolve: {
+                    initialize: function (initialization) {
+                        return initialization();
+                    }
+                }
             });
         $bahmniTranslateProvider.init({app: 'registration', shouldMerge: true});
     }]).run(['$rootScope', '$templateCache', '$bahmniCookieStore', 'locationService', 'messagingService', 'auditLogService',
