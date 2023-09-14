@@ -17,9 +17,13 @@
                                 </div>
                                 <ul class="template-icons">
                                     <li ng-repeat="template in filterTemplates()">
-                                        <button id="{{getNormalized(template.label)}}" ng-disabled = "((template.isAdded || template.alwaysShow) && !template.allowAddMore)" ng-click="addTemplate(template)">
-                                            {{::template.label}}
-                                        </button>
+                                        <div  ng-repeat="formsnotformen in FormsNotForMen">
+                                            <div ng-if="template.label.toString() == formsnotformen">
+                                                <button  id="{{getNormalized(template.label)}}" ng-disabled = "((template.isAdded || template.alwaysShow) && !template.allowAddMore)" ng-click="addTemplate(template)">
+                                                    {{::template.label}}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </li>
                                 </ul>
                             </div>
