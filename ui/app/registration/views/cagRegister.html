@@ -3,18 +3,19 @@
     <div class="simple-form-ui new-patient">
         <form name="myForm" class="form-horizontal well" single-submit="create()">
             <div class="box-container box-container-default">
-                <legend class="registraion_legend first-registraion_legend">
-                    <span class="mylegend"><strong>{{::'REGISTRATION_LABEL_CAG_ID' | translate}} : {{cag.uuid}}</strong></span>
-                </legend>
-                <!-- <section class="clearfix">
-                    <div class="photo-container-wrapper" ng-if="!disablePhotoCapture">
-                        <span class="pull-right photo-container">
-                            <img class="patient-image" ng-src="{{patient.image}}" fallback-src="../images/blank-user.gif">
-                            <div ng-model="patient.image" capture-photo="" class="capture-photo-btn"></div>
-                        </span>
-                    </div>
-                </section>
-                <section> -->
+                <section>
+                    <legend class="registraion_legend first-registraion_legend">
+                        <span class="mylegend"><strong>{{::'REGISTRATION_LABEL_CAG_ID' | translate}} : {{cag.uuid}}</strong></span>
+                    </legend>
+                    <!-- <section class="clearfix">
+                        <div class="photo-container-wrapper" ng-if="!disablePhotoCapture">
+                            <span class="pull-right photo-container">
+                                <img class="patient-image" ng-src="{{patient.image}}" fallback-src="../images/blank-user.gif">
+                                <div ng-model="patient.image" capture-photo="" class="capture-photo-btn"></div>
+                            </span>
+                        </div>
+                    </section>
+                    <section> -->
                     <article class="form-field existing-patient">
                         <div class="field-attribute">
                             <label class="control-label" for="CAGID">CAG Name
@@ -24,7 +25,28 @@
                             <input type="text" id="registrationNumber" ng-model="cag.name">
                         </div>
                     </article>
+                    <article class="form-field patient-name-wrapper" >
+                        <div class="field-attribute">
+                            <label for="patientName">CAG description</label>
+                        </div>
+                        <div class="field-value" id="patientNameLocal">
+                            <textarea type="text" id="givenNameLocal" ng-model="cag.description" pattern-validate
+                                placeholder="CAG description" />
+                        </div>
+                    </article>
                 </section>
+                <legend class="registraion_legend">
+                    <span class="mylegend"> {{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}</span>
+                </legend>
+        
+                <section address-fields data-address-levels="::addressLevels" data-address="cag.address"
+                         field-validation="::fieldValidation"
+                         strict-autocomplete-from-level="::addressHierarchyConfigs.strictAutocompleteFromLevel"
+                         ng-if="::!addressHierarchyConfigs.showAddressFieldsTopDown"></section>
+        
+                <section top-down-address-fields data-address-levels="::addressLevels" data-address="cag.address"
+                         field-validation="::fieldValidation" ng-if="::addressHierarchyConfigs.showAddressFieldsTopDown"
+                         strict-autocomplete-from-level="::addressHierarchyConfigs.strictAutocompleteFromLevel"></section>
             </div>
             <!-- <div ng-include="'views/cagcommon.html'"></div> -->
         </form>
