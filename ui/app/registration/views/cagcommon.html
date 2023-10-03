@@ -1,4 +1,4 @@
-<div ng-controller="CAGCommonController">
+<div ng-controller="cagCommonController">
     <div class="box-container box-container-patient-info patient-common-info-container">
         <section>
             <article class="form-field patient-name-wrapper">
@@ -24,7 +24,7 @@
                          focus-me="true">
               </span>
 
-              <span data-ng-switch="::isAutoComplete('givenName')"
+              <!-- <span data-ng-switch="::isAutoComplete('givenName')"
                     ng-if="::!patientConfiguration.local()['showNameField']">
                   <input data-ng-switch-when="true"
                          type="text" id="givenName" ng-model="$parent.patient.givenName" non-blank pattern-validate
@@ -37,7 +37,7 @@
                          type="text" id="givenName" ng-model="patient.givenName" non-blank pattern-validate
                          placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
                          title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}" focus-me="true">
-              </span>
+                  </span> -->
 
                     <!--<span class="input-label-inline caste-lastname" ng-show="showCasteSameAsLastName()">
                         <input type="checkbox" id="casteSameAsLastNameCheck" ng-model="patient.sameAsLastName"
@@ -45,7 +45,7 @@
                         <label id="casteSameAsLastNameCheckLabel" for="casteSameAsLastNameCheck">{{ 'REGISTRATION_LABEL_CASTE_SAME_LAST_NAME' | translate}}</label>
                     </span>-->
                 </div>
-                <div class="field-value showOn-desktop" ng-show="::showCasteSameAsLastName()">
+                <!-- <div class="field-value showOn-desktop" ng-show="::showCasteSameAsLastName()">
                     <input type="checkbox" id="casteSameAsLastNameCheck" ng-model="patient.sameAsLastName"
                            ng-change="setCasteAsLastName()">
                 </div>
@@ -56,7 +56,7 @@
                 <div class="field-value showOn-small-screen" ng-show="::showCasteSameAsLastName()">
                     <input type="checkbox" id="casteSameAsLastNameCheck" ng-model="patient.sameAsLastName"
                            ng-change="setCasteAsLastName()">
-                </div>
+                </div> -->
             </article>
             <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
                 <div class="field-attribute">

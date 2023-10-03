@@ -92,6 +92,17 @@ angular
                         return initialization();
                     }
                 }
+            }).state('newcag', {
+                url: '/cag/new',
+                views: {
+                    'layout': {templateUrl: 'views/layout.html', controller: 'CreatePatientController'},
+                    'content@newcag.': {templateUrl: 'views/indexpatient.html'}
+                },
+                resolve: {
+                    initialize: function (initialization) {
+                        return initialization();
+                    }
+                }
             });
         $bahmniTranslateProvider.init({app: 'registration', shouldMerge: true});
     }]).run(['$rootScope', '$templateCache', '$bahmniCookieStore', 'locationService', 'messagingService', 'auditLogService',

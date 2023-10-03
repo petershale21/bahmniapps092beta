@@ -6,13 +6,13 @@ angular.module('bahmni.registration')
         function ($rootScope, $scope, $location, $window, spinner, patientService, appService, messagingService, $translate, $filter, $http, $stateParams) {
             
             var uuid = $stateParams.cagUuid;
-            var apiUrl = 'https://192.168.33.10/openmrs/ws/rest/v1/cag/'+uuid;
+            var apiUrl = 'https://192.168.56.100/openmrs/ws/rest/v1/cag/'+uuid;
 
             $scope.addressHierarchyConfigs = appService.getAppDescriptor().getConfigValue("addressHierarchy");
             console.log($scope.addressLevels);
             var init = function () {
                 // $scope.cag = patient.create();
-                prepopulateDefaultsInFields();
+                // prepopulateDefaultsInFields();
                 // expandSectionsWithDefaultValue();
                 // $scope.patientLoaded = true;
             };

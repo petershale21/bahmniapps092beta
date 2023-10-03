@@ -536,7 +536,7 @@ angular.module('bahmni.registration')
             };
             $scope.cagResults=[];
             $scope.searchByCAGName = function (){
-                var apiUrl = 'https://192.168.33.10/openmrs/ws/rest/v1/cag?v=full';
+                var apiUrl = 'https://192.168.56.100/openmrs/ws/rest/v1/cag?v=full';
 
             // Define a function to make the API request and log the response
             // function makeApiRequest() {
