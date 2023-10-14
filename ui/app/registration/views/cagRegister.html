@@ -50,9 +50,9 @@
                         </div>
                         <div class="field-value" style="position: relative; display: inline-block;">
                             <input type="text"  ng-model="village"  ng-change="searchAddress('cityVillage', village)">
-                            <ul ng-show="addressResults.length!==0" class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all " style="position: absolute; top: 100%; left: 0%; right: 0%; display: block;padding: 0%;border-width: 0px;z-index: 1; box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.2);">
-                                <li ng-repeat="address in addressResults" style="padding: 1px;" class="ui-menu-item" role="presentation" ng-click="selectAddress(address)">
-                                    <a class="ui-corner-all" tabindex="-1"></a>{{ address.name }}
+                            <ul ng-show="addressResults.length!==0" class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all " style="position: absolute; max-width: 400px; top: 100%; left: 0%; right: 0%; display: block;padding: 0%;border-width: 0px;z-index: 1; box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.2);">
+                                <li ng-repeat="address in addressResults" style="padding: 1px; " class="ui-menu-item" role="presentation" ng-click="selectAddress(address)">
+                                    <a class="ui-corner-all" tabindex="-1"></a>{{ address.name}}, {{address.parent.name}}
                                 </li>
                             </ul>
                         </div>
@@ -85,23 +85,54 @@
                 </section>
                 
                 <legend class="registraion_legend">
-                    <span class="mylegend"> Add Patients to CAG<!--{{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}--></span>
+                    <span class="mylegend"> CAG Members List<!--{{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}--></span>
                     </legend>
-                <section style="margin-right: 2pc;">
-        
-                    <div id="CAGS">
-                        <input type="text" ng-model="newField" placeholder="search Patient">
-                        <!-- <button ng-click="addNewField()">Add</button> -->
-                            <i ng-click="addNewField()" class="fa fa-plus" aria-hidden="true" style="color: green; font-size:28px;"></i>
-                          
-                          
-                        <div ng-repeat="field in cag.cagPatientList">
-                          <input type="text" ng-model="field.display" placeholder="search Patient" disabled>
-                          <i ng-click="removeField($index)" class="fa fa-times" aria-hidden="true" style="color: red; font-size:28px;"></i>
+                <section class="relationships-container form">
+                    
+                    <div class="box-container box-container-default history-relationship">
+                        <div class="row" ng-repeat="patientx in cag.cagPatientList track by $index" ng-hide="cag.cagPatientList.length==0">
+                            <div class="col col1">
+                                <span>{{patientx.display}}</span>
+                                <span ng-if="patientx.display"><a ng-click="openPatientDashboardInNewTab(patientx)"><i class="fa fa-external-link"></i></a></span>
+                            </div>
+                            <div class="col col2">
+                                <span>Cag Member {{$index+1}}</span>
+                            </div>
+                            <div class="col col3">
+                                <!-- <strong class="till-text">{{ ::'REGISTRATION_LABEL_TILL' | translate}}</strong>
+                                <span>{{relationship.endDate | bahmniDate}}</span> -->
+                            </div>
+                            <div class="col col4">
+                                <button type="button" class="small-btn row-remover" ng-confirm-click="removeFromCAG($index)" id="relationRemoveBtn">
+                                    <span class="fa fa-remove"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row" ng-show="cag.cagPatientList.length==0">
+                                <span>No members added...</span>
+                            
                         </div>
                     </div>
+                    
                 </section>
-                
+                <section class="form-field-inline">
+                    <article class="form-field row">
+                        <div class="field-attribute col2">
+                            <label for="newField">
+                                Add Patient to Cag List
+                             </label>
+                        </div>
+                        <div class="field-value col4" style="position: relative; display: inline-block;">
+                            <input type="text"  ng-model="newPatient" placeholder="search Patient" ng-change="searchPatient(newPatient)">
+                            <ul ng-show="patientResults.length!==0" class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all" style="position: relative; margin-top: 30px; max-width: 400px; top: 100%; left: 0%; right: 0%; display: block;padding: 0%;border-width: 0px;z-index: 1; box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.2);">
+                                <li ng-repeat="patient in patientResults" style="padding: 1px; " class="ui-menu-item" role="presentation" ng-click="selectPatient(patient)">
+                                    <a class="ui-corner-all" tabindex="-1">{{ patient.display}}</a>
+                                </li>
+                            </ul>
+                            <i ng-click="addPatientToCag(patientTobeAdded,cag.cagPatientList.length)" class="fa fa-plus field-value" aria-hidden="true" style="color: green; font-size:28px;"></i>
+                        </div>
+                    </article>
+                </section>
                 <p><br></p>
                 <p><br></p>
             </div>
