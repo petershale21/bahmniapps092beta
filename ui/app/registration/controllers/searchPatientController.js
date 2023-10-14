@@ -536,13 +536,14 @@ angular.module('bahmni.registration')
             };
             $scope.cagResults=[];
             $scope.searchByCAGName = function (){
-                var apiUrl = 'https://192.168.56.100/openmrs/ws/rest/v1/cag?v=full';
+                var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag?v=full';
 
             // Define a function to make the API request and log the response
             // function makeApiRequest() {
                 $http.get(apiUrl)
                 .then(function(response) {
                     // Handle the successful response here
+                    console.log(Bahmni.Registration.Constants.baseOpenMRSRESTURL);
                     console.log('API Response:', response.data);
                     $scope.cagResults = response.data.results;
                 })
