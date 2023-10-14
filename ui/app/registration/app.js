@@ -39,7 +39,7 @@ angular
                 url: '/patient/new',
                 views: {
                     'layout': {templateUrl: 'views/layout.html', controller: 'CreatePatientController'},
-                    'content@newpatient': {templateUrl: 'views/indexpatient.html'}
+                    'content@newpatient': {templateUrl: 'views/newpatient.html'}
                 },
                 resolve: {
                     initialize: function (initialization) {
@@ -95,8 +95,8 @@ angular
             }).state('newcag', {
                 url: '/cag/new',
                 views: {
-                    'layout': {templateUrl: 'views/layout.html', controller: 'CreatePatientController'},
-                    'content@newcag.': {templateUrl: 'views/indexpatient.html'}
+                    'layout': {templateUrl: 'views/layout.html', controller: 'CagRegisterController'},
+                    'content@newcag.': {templateUrl: 'views/cagRegister.html'}
                 },
                 resolve: {
                     initialize: function (initialization) {
