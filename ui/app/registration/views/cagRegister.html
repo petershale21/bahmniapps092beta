@@ -1,7 +1,7 @@
 <div ng-include src="'views/header.html'" class="reg-header-wrapper header-wrapper"></div>
 <div class="reg-body-wrapper">
     <div class="simple-form-ui new-patient">
-        <form name="myForm" class="form-horizontal well" single-submit="create()">
+        <form name="myForm" class="form-horizontal well" single-submit="save()">
             <div class="box-container box-container-default">
                 <section>
                     <legend class="registraion_legend first-registraion_legend">
@@ -22,7 +22,7 @@
                             </label>
                         </div>
                         <div class="field-value">
-                            <input type="text" id="registrationNumber" ng-model="cag.name">
+                            <input type="text" id="registrationNumber" ng-model="cag.name" style="width: 300px;" required>
                         </div>
                     </article>
                     <article class="form-field patient-name-wrapper" >
@@ -48,11 +48,11 @@
                                Village
                             </label>
                         </div>
-                        <div class="field-value" style="position: relative; display: inline-block;">
-                            <input type="text"  ng-model="village"  ng-change="searchAddress('cityVillage', village)">
-                            <ul ng-show="addressResults.length!==0" class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all " style="position: absolute; max-width: 400px; top: 100%; left: 0%; right: 0%; display: block;padding: 0%;border-width: 0px;z-index: 1; box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.2);">
+                        <div class="field-value col col4" style="position: absolute; display: inline-block;">
+                            <input type="text"  ng-model="village"  ng-change="searchAddress('cityVillage', village)" ng-focus="showResults=0" ng-blur="clearAddressResults()">
+                            <ul ng-show="addressResults.length!==0" class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all " style="position: relative; margin-top: 30px; max-width: 400px; top: 100%; left: 0%; right: 0%; display: block;padding: 0%;border-width: 0px;z-index: 1; box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.2);">
                                 <li ng-repeat="address in addressResults" style="padding: 1px; " class="ui-menu-item" role="presentation" ng-click="selectAddress(address)">
-                                    <a class="ui-corner-all" tabindex="-1"></a>{{ address.name}}, {{address.parent.name}}
+                                    <a class="ui-corner-all">{{ address.name}}, {{address.parent.name}}</a>
                                 </li>
                             </ul>
                         </div>
@@ -67,7 +67,7 @@
                             <input type="text"  ng-model="constituency">
                         </div>
                     </article>
-                    <!-- <article class="form-field" >
+                    <article class="form-field" >
                         <div class="field-attribute">
                             <label for="cityVillage">
                                District
@@ -81,7 +81,7 @@
                                 </li>
                             </ul>
                         </div>
-                    </article> -->
+                    </article>
                 </section>
                 
                 <legend class="registraion_legend">
@@ -89,9 +89,9 @@
                     </legend>
                 <section class="relationships-container form">
                     
-                    <div class="box-container box-container-default history-relationship">
+                    <div class="box-container box-container-default history-relationship" style="padding: 0px 100px;">
                         <div class="row" ng-repeat="patientx in cag.cagPatientList track by $index" ng-hide="cag.cagPatientList.length==0">
-                            <div class="col col1">
+                            <div class="col col2">
                                 <span>{{patientx.display}}</span>
                                 <span ng-if="patientx.display"><a ng-click="openPatientDashboardInNewTab(patientx)"><i class="fa fa-external-link"></i></a></span>
                             </div>
@@ -116,27 +116,37 @@
                     
                 </section>
                 <section class="form-field-inline">
-                    <article class="form-field row">
-                        <div class="field-attribute col2">
+                    <article class="form-field">
+                        <div class="field-attribute col col2">
                             <label for="newField">
                                 Add Patient to Cag List
                              </label>
                         </div>
-                        <div class="field-value col4" style="position: relative; display: inline-block;">
-                            <input type="text"  ng-model="newPatient" placeholder="search Patient" ng-change="searchPatient(newPatient)">
+                        <div class="field-value col col4" style="position: absolute; display: inline-block;">
+                            <input type="text"  ng-model="newPatient" placeholder="search Patient" ng-change="searchPatient(newPatient)" ng-blur="clearPatientResults()" style="width: 300px;">
                             <ul ng-show="patientResults.length!==0" class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all" style="position: relative; margin-top: 30px; max-width: 400px; top: 100%; left: 0%; right: 0%; display: block;padding: 0%;border-width: 0px;z-index: 1; box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.2);">
                                 <li ng-repeat="patient in patientResults" style="padding: 1px; " class="ui-menu-item" role="presentation" ng-click="selectPatient(patient)">
                                     <a class="ui-corner-all" tabindex="-1">{{ patient.display}}</a>
                                 </li>
                             </ul>
-                            <i ng-click="addPatientToCag(patientTobeAdded,cag.cagPatientList.length)" class="fa fa-plus field-value" aria-hidden="true" style="color: green; font-size:28px;"></i>
+                            
                         </div>
+                        
                     </article>
+                    <div class="form-field">
+                        <i ng-click="addPatientToCag(patientTobeAdded,cag.cagPatientList.length)" class="fa fa-plus field-value" aria-hidden="true" style="color: green; font-size:28px;"></i>
+                    </div>
                 </section>
+                
+                <p><br></p>
+                <p><br></p>
                 <p><br></p>
                 <p><br></p>
             </div>
-            <!-- <div ng-include="'views/cagcommon.html'"></div> -->
+            <div class="submit-btn-container clearfix">
+                <button type="submit" class="right submit-btn" ng-click="save()" ng-show="uuid===''"
+        accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_SAVE' | translate"></button>
+            </div>
         </form>
         <br>
     </div>

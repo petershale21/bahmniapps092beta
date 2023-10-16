@@ -2,10 +2,11 @@
 
 angular.module('bahmni.registration')
     .controller('CagRegisterController',['$rootScope', '$scope', '$location', '$window', 'spinner','ngDialog', 'patientAttributeService', 'appService',
-    'messagingService', '$translate', '$filter', '$http', '$stateParams','addressHierarchyService', 'patientService',
-        function ($rootScope, $scope, $location, $window, spinner, ngDialog, patientAttributeService, appService, messagingService, $translate, $filter, $http, $stateParams,addressHierarchyService,patientService) {
+    'messagingService', '$translate', '$filter', '$http', '$stateParams','addressHierarchyService', 'patientService', '$timeout',
+        function ($rootScope, $scope, $location, $window, spinner, ngDialog, patientAttributeService, appService, messagingService, $translate, $filter, $http, $stateParams,addressHierarchyService,patientService,$timeout) {
             $scope.patientlist=[];
             // $scope.cagMembers=[];
+            $scope.uuid = "";
             $scope.cag = [];
             $scope.cag.cagPatientList=[];
             $scope.searchAddress = function(fieldName, query){
@@ -21,11 +22,45 @@ angular.module('bahmni.registration')
                     console.error('Error during address hierarchy search:', error);
                 });
             }
-    
+            $scope.showResults=0;
             $scope.selectAddress = function(selectedAddress){
+                console.log(selectedAddress)
                 $scope.village=selectedAddress.name;
                 $scope.constituency=selectedAddress.parent.name;
+                $scope.district=selectedAddress.parent.parent.name;
                 $scope.addressResults = [];
+            }
+
+            $scope.save = function(){
+                $scope.cagData={
+                    'name': $scope.cag.name,
+                    'description': $scope.cag.description,
+                    'constituency': $scope.constituency,
+                    'village': $scope.village,
+                    'district': $scope.district
+                }
+                var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag';
+                $http({
+                    url: apiUrl,
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    data: angular.toJson($scope.cagData,true)
+                  }).then(function(response){
+                    // alert(response.data);
+                    if(response.status==201){
+                        $location.url('/cag/'+response.data.uuid);
+                    }
+                  })
+            }
+            
+            $scope.clearAddressResults = function() {
+                $timeout(function() {$scope.addressResults = [];}, 200);
+            };
+
+            $scope.clearPatientResults = function () {
+                $timeout(function() {$scope.patientResults = [];}, 200);
             }
 
             $scope.searchPatient = function(fieldPatient){
@@ -92,6 +127,7 @@ angular.module('bahmni.registration')
                     $scope.cag = response.data;
                     $scope.village=$scope.cag.village;
                     $scope.constituency=$scope.cag.constituency;
+                    $scope.district=$scope.cag.district;
                 })
                 .catch(function(error) {
                     // Handle any errors that occurred during the request
@@ -103,10 +139,10 @@ angular.module('bahmni.registration')
 
             }
             else{
-                var uuid = $stateParams.cagUuid;
+                $scope.uuid = $stateParams.cagUuid;
                 console.log("state: "+$stateParams.cagUuid);
                 console.log($location.path());
-                var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag/'+uuid;
+                var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag/'+$scope.uuid;
                 $scope.fetchCag(apiUrl);
             }
 
