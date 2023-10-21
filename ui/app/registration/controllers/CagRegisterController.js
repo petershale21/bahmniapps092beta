@@ -4,8 +4,12 @@ angular.module('bahmni.registration')
     .controller('CagRegisterController',['$rootScope', '$scope', '$location', '$window', 'spinner','ngDialog', 'patientAttributeService', 'appService',
     'messagingService', '$translate', '$filter', '$http', '$stateParams','addressHierarchyService', 'patientService', '$timeout',
         function ($rootScope, $scope, $location, $window, spinner, ngDialog, patientAttributeService, appService, messagingService, $translate, $filter, $http, $stateParams,addressHierarchyService,patientService,$timeout) {
+            $scope.isSubmitting = false;
             $scope.patientlist=[];
             // $scope.cagMembers=[];
+            $scope.district="";
+            $scope.constituency="";
+            $scope.village="";
             $scope.uuid = "";
             $scope.cag = [];
             $scope.cag.cagPatientList=[];
@@ -32,35 +36,49 @@ angular.module('bahmni.registration')
             }
 
             $scope.save = function(){
+                $scope.isSubmitting = true;
                 $scope.cagData={
-                    'name': $scope.cag.name,
-                    'description': $scope.cag.description,
-                    'constituency': $scope.constituency,
-                    'village': $scope.village,
-                    'district': $scope.district
+                    "name": $scope.cag.name,
+                    "description": $scope.cag.description,
+                    "constituency": $scope.constituency,
+                    "village": $scope.village,
+                    "district": $scope.district+""
                 }
+                console.log(($scope.cagData));
                 var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag';
+                if($location.path!="/cag/new"){
+                    apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag/'+$scope.uuid;
+                    console.log(apiUrl);
+                }
+
                 $http({
                     url: apiUrl,
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json'
                     },
-                    data: angular.toJson($scope.cagData,true)
-                  }).then(function(response){
-                    // alert(response.data);
-                    if(response.status==201){
+                    data: angular.toJson($scope.cagData)
+                }).then(function(response){
+                    console.log(response);
+                    if(response.status==200 || response.status==201){
                         $location.url('/cag/'+response.data.uuid);
+                        messagingService.showMessage('info', 'Saved');
                     }
-                  })
+                    $scope.isSubmitting = false;
+                })
+                
             }
+
             
             $scope.clearAddressResults = function() {
-                $timeout(function() {$scope.addressResults = [];}, 200);
+                $timeout(function() {
+                    if($scope.village!='' && $scope.district!='' && $scope.constituency!='')
+                    $scope.addressResults = [];
+                }, 500);
             };
 
             $scope.clearPatientResults = function () {
-                $timeout(function() {$scope.patientResults = [];}, 200);
+                $timeout(function() {$scope.patientResults = [];}, 500);
             }
 
             $scope.searchPatient = function(fieldPatient){
@@ -103,20 +121,50 @@ angular.module('bahmni.registration')
                 return '#/patient/' + patientUuid;
             };
 
-            $scope.removeFromCAG = function(index) {
-                $scope.cag.cagPatientList.splice(index, 1);
-            }
-
             $scope.addPatientToCag = function(patientTobeAdded, cagListLength){
                 console.log(cagListLength);
                 if(JSON.stringify($scope.patientTobeAdded) != '{}' && $scope.searchCagList(patientTobeAdded.uuid,cagListLength)==0){
-                    $scope.cag.cagPatientList.push($scope.patientTobeAdded);
-                    $scope.patientTobeAdded = {};
-                    $scope.newPatient = '';
+                    var data={
+                        "cagUuid": $scope.uuid,
+                        "uuid": patientTobeAdded.uuid
+                    }
+                    apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
+                    $http({
+                        url: apiUrl,
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json'
+                        },
+                        data: angular.toJson(data)
+                    }).then(function(response){
+                        console.log(response);
+                        if(response.status==200 || response.status==201){
+                            $scope.cag.cagPatientList.push($scope.patientTobeAdded);
+                            $scope.patientTobeAdded = {};
+                            $scope.newPatient = '';
+                            messagingService.showMessage('info', 'Patient has been added to CAG');
+                        }
+                        $scope.isSubmitting = false;
+                    })
+                    
                 }
                 else{
-                    alert('No selected Patient...');
+                    alert('No selected Patient Or patient already on list...');
                 }
+            }
+
+            $scope.deletePatientFromCag = function(patientTobeRemoved, patientindex){
+                
+                apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+patientTobeRemoved.uuid;
+                $http.delete(apiUrl)
+                .then(function(response){
+                    console.log(response);
+                    if(response.status==204){
+                        $scope.cag.cagPatientList.splice(patientindex, 1);
+                        messagingService.showMessage('info', 'Patient has been removed from CAG');
+                    }
+                    $scope.isSubmitting = false;
+                })
             }
             
             $scope.fetchCag = function(url) {
@@ -135,10 +183,7 @@ angular.module('bahmni.registration')
                 });
             }
             
-            if($location.path()=='/cag/new'){
-
-            }
-            else{
+            if($location.path()!='/cag/new'){
                 $scope.uuid = $stateParams.cagUuid;
                 console.log("state: "+$stateParams.cagUuid);
                 console.log($location.path());

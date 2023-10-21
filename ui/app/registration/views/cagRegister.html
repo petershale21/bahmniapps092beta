@@ -1,7 +1,7 @@
 <div ng-include src="'views/header.html'" class="reg-header-wrapper header-wrapper"></div>
 <div class="reg-body-wrapper">
     <div class="simple-form-ui new-patient">
-        <form name="myForm" class="form-horizontal well" single-submit="save()">
+        <form name="myForm" class="form-horizontal well" ng-submit="save($event)">
             <div class="box-container box-container-default">
                 <section>
                     <legend class="registraion_legend first-registraion_legend">
@@ -74,20 +74,15 @@
                             </label>
                         </div>
                         <div class="field-value">
-                            <input type="text"  ng-model="district"  ng-change="searchAddress('cityVillage', district)">
-                            <ul ng-show="addressResults3.length!==0" class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all " style="position: relative; margin-top: 30px; top: 100%; left: 0%; right: 0%; display: block;padding: 0%;border-width: 0px;">
-                                <li ng-repeat="address in addressResults3" style="padding: 1px;" class="ui-menu-item" role="presentation" ng-click="selectCountry(address)">
-                                    <a class="ui-corner-all" tabindex="-1"></a>{{ address.name }}
-                                </li>
-                            </ul>
+                            <input type="text"  ng-model="district" >
                         </div>
                     </article>
                 </section>
                 
-                <legend class="registraion_legend">
+                <legend class="registraion_legend"  ng-hide="uuid===''">
                     <span class="mylegend"> CAG Members List<!--{{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}--></span>
                     </legend>
-                <section class="relationships-container form">
+                <section class="relationships-container form"  ng-hide="uuid===''">
                     
                     <div class="box-container box-container-default history-relationship" style="padding: 0px 100px;">
                         <div class="row" ng-repeat="patientx in cag.cagPatientList track by $index" ng-hide="cag.cagPatientList.length==0">
@@ -103,7 +98,7 @@
                                 <span>{{relationship.endDate | bahmniDate}}</span> -->
                             </div>
                             <div class="col col4">
-                                <button type="button" class="small-btn row-remover" ng-confirm-click="removeFromCAG($index)" id="relationRemoveBtn">
+                                <button type="button" class="small-btn row-remover" ng-confirm-click="deletePatientFromCag(patientx,$index)" id="relationRemoveBtn">
                                     <span class="fa fa-remove"></span>
                                 </button>
                             </div>
@@ -115,7 +110,7 @@
                     </div>
                     
                 </section>
-                <section class="form-field-inline">
+                <section class="form-field-inline" ng-hide="uuid===''">
                     <article class="form-field">
                         <div class="field-attribute col col2">
                             <label for="newField">
@@ -144,8 +139,8 @@
                 <p><br></p>
             </div>
             <div class="submit-btn-container clearfix">
-                <button type="submit" class="right submit-btn" ng-click="save()" ng-show="uuid===''"
-        accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_SAVE' | translate"></button>
+                <button type="submit" class="right submit-btn"
+                accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_SAVE' | translate"></button>
             </div>
         </form>
         <br>
