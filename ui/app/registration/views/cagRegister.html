@@ -84,24 +84,43 @@
                     </legend>
                 <section class="relationships-container form"  ng-hide="uuid===''">
                     
-                    <div class="box-container box-container-default history-relationship" style="padding: 0px 100px;">
-                        <div class="row" ng-repeat="patientx in cag.cagPatientList track by $index" ng-hide="cag.cagPatientList.length==0">
+                    <div class="box-container box-container-default history-relationship" >
+                        <div class="row" ng-repeat="patientx in cag.cagPatientList track by $index" ng-hide="cag.cagPatientList.length==0" style="padding: 14px 0px 14px 100px;">
                             <div class="col col2">
                                 <span>{{patientx.display}}</span>
                                 <span ng-if="patientx.display"><a ng-click="openPatientDashboardInNewTab(patientx)"><i class="fa fa-external-link"></i></a></span>
                             </div>
-                            <div class="col col2">
+                            <!-- <div class="col col4">
                                 <span>Cag Member {{$index+1}}</span>
-                            </div>
+                            </div> -->
                             <div class="col col3">
                                 <!-- <strong class="till-text">{{ ::'REGISTRATION_LABEL_TILL' | translate}}</strong>
                                 <span>{{relationship.endDate | bahmniDate}}</span> -->
                             </div>
+                            
+                           
+                            <div class="col col4" style="
+                            margin-left: -23pc;
+                        ">
+                                <button type="button" id='startVisitButton' ng-click="startVisit(patientUuid)" 
+                                    style=" color: white; 
+                                            border-color:green; 
+                                            width: 300px;
+                                            height: 2pc;
+                                            margin: 0px 0px 0px 0px;
+                                            background:linear-gradient(to bottom, #A1D030, #88af28)">
+                                    Start Visit!
+                                  </button>
+                            </div>
+                            
                             <div class="col col4">
                                 <button type="button" class="small-btn row-remover" ng-confirm-click="deletePatientFromCag(patientx,$index)" id="relationRemoveBtn">
                                     <span class="fa fa-remove"></span>
                                 </button>
                             </div>
+                            
+                            
+
                         </div>
                         <div class="row" ng-show="cag.cagPatientList.length==0">
                                 <span>No members added...</span>
@@ -114,7 +133,7 @@
                     <article class="form-field">
                         <div class="field-attribute col col2">
                             <label for="newField">
-                                Add Patient to Cag List
+                                    <b>Patient to Cag List </b>
                              </label>
                         </div>
                         <div class="field-value col col4" style="position: absolute; display: inline-block;">
