@@ -2,8 +2,8 @@
 
 angular.module('bahmni.registration')
     .controller('CagRegisterController',['$rootScope', '$scope', '$location', '$window', 'spinner','ngDialog', 'patientAttributeService', 'appService',
-    'messagingService', '$translate', '$filter', '$http', '$stateParams','addressHierarchyService', 'patientService', '$timeout',
-        function ($rootScope, $scope, $location, $window, spinner, ngDialog, patientAttributeService, appService, messagingService, $translate, $filter, $http, $stateParams,addressHierarchyService,patientService,$timeout) {
+    'messagingService', '$translate', '$filter', '$http', '$stateParams','addressHierarchyService', 'patientService', '$timeout', '$bahmniCookieStore',
+        function ($rootScope, $scope, $location, $window, spinner, ngDialog, patientAttributeService, appService, messagingService, $translate, $filter, $http, $stateParams, addressHierarchyService, patientService, $timeout, $bahmniCookieStore) {
             $scope.isSubmitting = false;
             $scope.patientlist=[];
             // $scope.cagMembers=[];
@@ -13,6 +13,14 @@ angular.module('bahmni.registration')
             $scope.uuid = "";
             $scope.cag = [];
             $scope.cag.cagPatientList=[];
+
+            var loginLocationUuid = $bahmniCookieStore.get(Bahmni.Common.Constants.locationCookieName);
+            console.log("Location" ,loginLocationUuid);
+            var visitLocationUuid = $rootScope.visitLocation;
+            var defaultVisitType = $rootScope.regEncounterConfiguration.getDefaultVisitType(loginLocationUuid);
+            console.log(visitLocationUuid);
+            
+
             $scope.searchAddress = function(fieldName, query){
                 var parentUuid = null;
                 addressHierarchyService.search(fieldName, query, parentUuid)
@@ -122,12 +130,14 @@ angular.module('bahmni.registration')
             };
 
             $scope.addPatientToCag = function(patientTobeAdded, cagListLength){
-                console.log(cagListLength);
+                console.log(patientTobeAdded);
+                if(cagListLength==undefined) cagListLength=0;
                 if(JSON.stringify($scope.patientTobeAdded) != '{}' && $scope.searchCagList(patientTobeAdded.uuid,cagListLength)==0){
                     var data={
-                        "cagUuid": $scope.uuid,
-                        "uuid": patientTobeAdded.uuid
+                        "cagUuid": $scope.uuid+"",
+                        "uuid": patientTobeAdded.uuid+""
                     }
+                    console.log(data);
                     apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
                     $http({
                         url: apiUrl,
@@ -137,12 +147,14 @@ angular.module('bahmni.registration')
                         },
                         data: angular.toJson(data)
                     }).then(function(response){
-                        console.log(response);
-                        if(response.status==200 || response.status==201){
+                        if((response.status==200 || response.status==201) && $scope.cag.cagPatientList!=null){
                             $scope.cag.cagPatientList.push($scope.patientTobeAdded);
                             $scope.patientTobeAdded = {};
                             $scope.newPatient = '';
                             messagingService.showMessage('info', 'Patient has been added to CAG');
+                        }
+                        else{
+                            messagingService.showMessage('error', response.error.message);
                         }
                         $scope.isSubmitting = false;
                     })
@@ -154,7 +166,7 @@ angular.module('bahmni.registration')
             }
 
             $scope.deletePatientFromCag = function(patientTobeRemoved, patientindex){
-                
+                console.log(patientindex);
                 apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+patientTobeRemoved.uuid;
                 $http.delete(apiUrl)
                 .then(function(response){
@@ -162,6 +174,9 @@ angular.module('bahmni.registration')
                     if(response.status==204){
                         $scope.cag.cagPatientList.splice(patientindex, 1);
                         messagingService.showMessage('info', 'Patient has been removed from CAG');
+                    }
+                    else{
+                        messagingService.showMessage('error', 'Errror while removing patient from CAG');
                     }
                     $scope.isSubmitting = false;
                 })
