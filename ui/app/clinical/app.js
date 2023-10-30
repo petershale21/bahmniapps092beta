@@ -160,6 +160,20 @@ angular.module('consultation')
                     }
                 }
             })
+                .state('patient.dashboard.show.cag', {
+                    url: '/concept-set-group/cag',
+                    params: {
+                        cachebuster: null,
+                        lastOpenedTemplate: null
+                    },
+                    views: {
+                        'consultation-content': {
+                            templateUrl: 'consultation/views/cagConceptSet.html',
+                            controller: 'cagConceptSetPageController'
+                                
+                        }
+                    }
+                })
             .state('patient.dashboard.show.observations', {
                 url: '/concept-set-group/:conceptSetGroupName',
                 params: {
@@ -172,8 +186,8 @@ angular.module('consultation')
                         controller: 'ConceptSetPageController'
                         	
                     }
-                                    }
-                                })
+            }
+            })
                                 .state('patient.dashboard.show.sharedhealthrecord', {
                                     url: '/shared-health-record/search',
                                     params: {
