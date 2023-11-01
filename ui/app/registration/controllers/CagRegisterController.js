@@ -15,13 +15,13 @@ angular.module('bahmni.registration')
             $scope.cag.cagPatientList=[];
             $scope.patientThis;// = "5a6f70be-19c2-442e-adf4-89e184abd039";
 
-            console.log(cagService.search());
             var loginLocationUuid = $bahmniCookieStore.get(Bahmni.Common.Constants.locationCookieName);
             console.log("Location" ,loginLocationUuid);
             var visitLocationUuid = $rootScope.visitLocation;
             var defaultVisitType = $rootScope.regEncounterConfiguration.getDefaultVisitType(loginLocationUuid);
             $scope.Height;
         
+            console.log(cagService.run());
             $scope.searchAddress = function(fieldName, query){
                 var parentUuid = null;
                 addressHierarchyService.search(fieldName, query, parentUuid)
