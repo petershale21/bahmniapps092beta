@@ -2,8 +2,8 @@
 
 angular.module('bahmni.registration')
     .controller('CagRegisterController',['$rootScope', '$scope', '$location', '$window', 'spinner','ngDialog', 'patientAttributeService', 'appService',
-    'messagingService', '$translate', '$filter', '$http', '$stateParams','addressHierarchyService', 'patientService', '$timeout', '$bahmniCookieStore',
-        function ($rootScope, $scope, $location, $window, spinner, ngDialog, patientAttributeService, appService, messagingService, $translate, $filter, $http, $stateParams, addressHierarchyService, patientService, $timeout, $bahmniCookieStore) {
+    'messagingService', '$translate', '$filter', '$http', '$stateParams','addressHierarchyService', 'patientService', '$timeout', '$bahmniCookieStore','$q','observationsService','cagService',
+        function ($rootScope, $scope, $location, $window, spinner, ngDialog, patientAttributeService, appService, messagingService, $translate, $filter, $http, $stateParams, addressHierarchyService, patientService, $timeout, $bahmniCookieStore,$q,observationsService,cagService) {
             $scope.isSubmitting = false;
             $scope.patientlist=[];
             // $scope.cagMembers=[];
@@ -13,14 +13,15 @@ angular.module('bahmni.registration')
             $scope.uuid = "";
             $scope.cag = [];
             $scope.cag.cagPatientList=[];
+            $scope.patientThis;// = "5a6f70be-19c2-442e-adf4-89e184abd039";
 
+            console.log(cagService.search());
             var loginLocationUuid = $bahmniCookieStore.get(Bahmni.Common.Constants.locationCookieName);
             console.log("Location" ,loginLocationUuid);
             var visitLocationUuid = $rootScope.visitLocation;
             var defaultVisitType = $rootScope.regEncounterConfiguration.getDefaultVisitType(loginLocationUuid);
-            console.log(visitLocationUuid);
-            
-
+            $scope.Height;
+        
             $scope.searchAddress = function(fieldName, query){
                 var parentUuid = null;
                 addressHierarchyService.search(fieldName, query, parentUuid)
@@ -139,6 +140,7 @@ angular.module('bahmni.registration')
                     }
                     console.log(data);
                     apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
+
                     $http({
                         url: apiUrl,
                         method: 'POST',
@@ -182,6 +184,109 @@ angular.module('bahmni.registration')
                 })
             }
             
+            var getConceptValues = function () {
+                return $q.all([
+                    observationsService.fetch("580d4b70-9593-481a-9fe6-3a721fb56184", [
+                        "HEIGHT"
+                    ],"latest")
+                ]);
+            };
+           console.log(getConceptValues());
+
+            getConceptValues().then(function (result) {
+                var heightConcept = _.find(result[0].data, function (observation) {
+                    return observation.concept.name === "Height";
+                });
+                console.log(heightConcept);
+                console.log(result);
+                try {
+                    $scope.Height = result[0].data[0].value;
+                } catch (error) {
+                    
+                }
+            });
+
+            $scope.startVisit = function(cagMember, cagListLength){
+                $scope.patientThis = "5a6f70be-19c2-442e-adf4-89e184abd039";
+                // Generate the current date and time
+                console.log($scope);
+                console.log($rootScope);
+                const currentDate = new Date();
+                const dateStarted = currentDate.toISOString().slice(0, 19).replace("T", " ");
+                const cagUuid = $scope.uuid;
+                const patientUuid = cagMember.uuid;
+                const locationUuid = "8d6c993e-c2cc-11de-8d13-0010c6dffd0f";
+                const encounterType = "81888515-3f10-11e4-adec-0800271c1b75";
+                const encounterDatetime = "2023-10-12 03:32:46";
+                const conceptUuid = "9b1fa8e6-8209-4fcd-abd2-142887fc83e0";
+                const valueCoded = "a3e3fdfe-e03c-401d-a3fd-1c2553fefe53";
+                const valueCodedName = "HTC, Patient";
+                const valueNumeric  = 140;//$scope.Height;
+                console.log($scope.Height);
+                const absenteesObj = {
+                    "429a3773-d45f-41de-a07e-bec53a6bff22": "Went to Bloemfontein"
+                };
+                //const locationName = "Unknown Location";
+
+                // Build the JSON data
+                const data = {
+                    "cag": {
+                        "uuid": cagUuid
+                    },
+                    "dateStarted": dateStarted,
+                    "attenderVisit": {
+                        "patient": {
+                            "uuid": patientUuid
+                        },
+                        "location": {
+                            "uuid": locationUuid
+                        },
+                        "encounters": [
+                            {
+                                "encounterType": encounterType,
+                                "encounterDatetime": encounterDatetime,
+                                "patient": {
+                                    "uuid": patientUuid
+                                },
+                                "location": {
+                                    "uuid": locationUuid
+                                },
+                                "obs": [
+                                    {
+                                        "concept": {
+                                            "uuid": conceptUuid
+                                        },
+                                        "valueCoded": valueCoded,
+                                        "valueCodedName": valueCodedName
+                                    },
+                                    {
+                                        "concept": {
+                                            "uuid": "5090AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                        },
+                                        "valueNumeric": valueNumeric
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "absentees": absenteesObj,
+                    "locationName": "ART/TB Clinic"
+                };
+                
+                console.log(data);
+                apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit/';
+                $http({
+                    url: apiUrl,
+                    method: 'POST',
+                    headers: {
+                    'Content-Type': 'application/json'
+                    },
+                    data: angular.toJson(data)
+                }).then(function(response){
+                    messagingService.showMessage('info', 'Visit Opened ! !');
+                })
+            }
+
             $scope.fetchCag = function(url) {
                 $http.get(apiUrl)
                 .then(function(response) {
