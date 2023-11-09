@@ -129,8 +129,11 @@ angular.module('bahmni.registration')
             var getPatientRegistrationUrl = function (patientUuid) {
                 return '#/patient/' + patientUuid;
             };
-            $scope.show = function(){
-                console.log($scope.cag.cagPatientList);
+            $scope.show = function(x,y){
+                if(x==true){
+                    $scope.cag.cagPatientList[y].absenteeReason="";
+                    console.log($scope.cag.cagPatientList[y]);
+                }
             }
 
             $scope.addPatientToCag = function(patientTobeAdded, cagListLength){

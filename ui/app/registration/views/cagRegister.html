@@ -197,7 +197,7 @@
                                     <div class="toggle-item">
                                         <div class="toggle-checkbox" style="padding: 0%;">
                                                 <label class="switch">
-                                                    <input type="checkbox" ng-model="patientx.presentMember" ng-click="show()" ng-checked="patientx.presentMember==true">
+                                                    <input type="checkbox" ng-model="patientx.presentMember" ng-click="show(patientx.presentMember,$index)" ng-checked="patientx.presentMember==true">
                                                     <span class="slider round"></span>
                                                 </label>
                                         </div>
