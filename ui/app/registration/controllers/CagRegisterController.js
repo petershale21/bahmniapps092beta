@@ -129,6 +129,9 @@ angular.module('bahmni.registration')
             var getPatientRegistrationUrl = function (patientUuid) {
                 return '#/patient/' + patientUuid;
             };
+            $scope.show = function(){
+                console.log($scope.cag.cagPatientList);
+            }
 
             $scope.addPatientToCag = function(patientTobeAdded, cagListLength){
                 console.log(patientTobeAdded);
@@ -150,7 +153,10 @@ angular.module('bahmni.registration')
                         data: angular.toJson(data)
                     }).then(function(response){
                         if((response.status==200 || response.status==201) && $scope.cag.cagPatientList!=null){
-                            $scope.cag.cagPatientList.push($scope.patientTobeAdded);
+                            patientTobeAdded["presentMember"] = true;
+                            patientTobeAdded["absenteeReason"] = "";
+                            $scope.cag.cagPatientList.push(patientTobeAdded);
+                            console.log($scope.cag.cagPatientList);
                             $scope.patientTobeAdded = {};
                             $scope.newPatient = '';
                             messagingService.showMessage('info', 'Patient has been added to CAG');
@@ -183,7 +189,7 @@ angular.module('bahmni.registration')
                     $scope.isSubmitting = false;
                 })
             }
-            
+            $scope.presentMember=true;
             var getConceptValues = function () {
                 return $q.all([
                     observationsService.fetch("580d4b70-9593-481a-9fe6-3a721fb56184", [
@@ -287,11 +293,19 @@ angular.module('bahmni.registration')
                 })
             }
 
+
+            
+
             $scope.fetchCag = function(url) {
                 $http.get(apiUrl)
                 .then(function(response) {
                     // Handle the successful response here
+                    for(let i=0; i<response.data.cagPatientList.length; i++){
+                        response.data.cagPatientList[i]["presentMember"] = true;
+                        response.data.cagPatientList[i]["absenteeReason"] = "";
+                    }
                     console.log('API Response:', response);
+                    
                     $scope.cag = response.data;
                     $scope.village=$scope.cag.village;
                     $scope.constituency=$scope.cag.constituency;
