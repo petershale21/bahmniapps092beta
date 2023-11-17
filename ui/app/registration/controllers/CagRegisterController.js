@@ -237,7 +237,7 @@ angular.module('bahmni.registration')
                     }
                     else{
                         if(cagMember.uuid==$scope.cag.cagPatientList[i].uuid){
-                            visitObjArray = [{
+                            var presentObj = {
                                 "patient": {
                                     "uuid": cagMember.uuid
                                 },
@@ -371,7 +371,8 @@ angular.module('bahmni.registration')
                                         ]
                                     }
                                 ]
-                            }];
+                            };
+                            visitObjArray.push(presentObj);
                         }
                         else{
                             const buddieObj = {
@@ -463,17 +464,18 @@ angular.module('bahmni.registration')
             $scope.fetchCag = function(url) {
                 $http.get(apiUrl)
                 .then(function(response) {
-                    // Handle the successful response here
-                    for(let i=0; i<response.data.cagPatientList.length; i++){
-                        response.data.cagPatientList[i]["presentMember"] = true;
-                        response.data.cagPatientList[i]["absenteeReason"] = "";
-                    }
                     console.log('API Response:', response);
-                    
-                    $scope.cag = response.data;
-                    $scope.village=$scope.cag.village;
-                    $scope.constituency=$scope.cag.constituency;
-                    $scope.district=$scope.cag.district;
+                    // Handle the successful response here
+                    if(response.data.cagPatientList!=null){
+                        for(let i=0; i<response.data.cagPatientList.length; i++){
+                            response.data.cagPatientList[i]["presentMember"] = true;
+                            response.data.cagPatientList[i]["absenteeReason"] = "";
+                        }
+                        $scope.cag = response.data;
+                        $scope.village=$scope.cag.village;
+                        $scope.constituency=$scope.cag.constituency;
+                        $scope.district=$scope.cag.district;
+                    }
                 })
                 .catch(function(error) {
                     // Handle any errors that occurred during the request
@@ -485,12 +487,9 @@ angular.module('bahmni.registration')
                 $scope.uuid = $stateParams.cagUuid;
                 console.log("state: "+$stateParams.cagUuid);
                 console.log($location.path());
-                var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag/'+$scope.uuid;
+                var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag/'+$scope.uuid+"?v=full";
                 $scope.fetchCag(apiUrl);
             }
-
-
-            
             
         }
     ]);

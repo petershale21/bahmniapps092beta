@@ -261,7 +261,7 @@
                 <tbody>
                     <tr ng-repeat="result in cagResults | filter: searchParameters.cagName">
                         <td>
-                            <a href="" ng-click="viewCAG(result.uuid)">CAG-{{result.id}}</a>
+                            <a href="" ng-click="viewCAG(result.uuid)">CAG-{{$index}}</a>
                         </td>
                         <td>
                             {{result.name}}
