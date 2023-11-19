@@ -4,11 +4,11 @@ angular.module('bahmni.clinical').controller('ConsultationController',
     ['$scope', '$rootScope', '$state', '$location', '$translate', 'clinicalAppConfigService', 'diagnosisService', 'urlHelper', 'contextChangeHandler',
         'spinner', 'encounterService', 'messagingService', 'sessionService', 'retrospectiveEntryService', 'patientContext', '$q',
         'patientVisitHistoryService', '$stateParams', '$window', 'visitHistory', 'clinicalDashboardConfig', 'appService',
-        'ngDialog', '$filter', 'configurations', 'visitConfig', 'conditionsService', 'configurationService', 'auditLogService', 'patientService',
+        'ngDialog', '$filter', 'configurations', 'visitConfig', 'conditionsService', 'configurationService', 'auditLogService', 'patientService','observationsService','$timeout',
         function ($scope, $rootScope, $state, $location, $translate, clinicalAppConfigService, diagnosisService, urlHelper, contextChangeHandler,
             spinner, encounterService, messagingService, sessionService, retrospectiveEntryService, patientContext, $q,
             patientVisitHistoryService, $stateParams, $window, visitHistory, clinicalDashboardConfig, appService,
-            ngDialog, $filter, configurations, visitConfig, conditionsService, configurationService, auditLogService, patientService) {
+            ngDialog, $filter, configurations, visitConfig, conditionsService, configurationService, auditLogService, patientService,observationsService,$timeout) {
             var DateUtil = Bahmni.Common.Util.DateUtil;
             var getPreviousActiveCondition = Bahmni.Common.Domain.Conditions.getPreviousActiveCondition;
             $scope.togglePrintList = false;
@@ -19,7 +19,12 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             };
             $scope.showComment = true;
             $scope.showSaveAndContinueButton = true;
-
+            $scope.isCagMember = true;
+            $scope.availableCagId = [];
+            $scope.availableCagDetails = [];
+            $scope.cagPatient = [];
+            $scope.cagPatientObsertions = [];
+            $scope.runCagEncounterPostOnce = 0;
             $scope.visitHistory = visitHistory;
             $scope.consultationBoardLink = clinicalAppConfigService.getConsultationBoardLink();
             $scope.showControlPanel = false;
@@ -157,6 +162,76 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     $scope.currentBoard.isSelectedTab = true;
                 }
             };
+            // $scope.getCagPatient = function(){ 
+
+            //     var patientUuid =  $scope.patient.uuid; 
+                
+            //     appService.getCagPatient(patientUuid)
+            //     .then(function(response){
+            //         if(response.status == 200){
+            //             $scope.isCagMember = true;
+            //             console.log("cag Patient data :",response);
+            //             $scope.availableCagId = response.data.cagId;
+            //             console.log("CAG Id : ",$scope.availableCagId);
+            //             var allCags = appService.getAllCags();        
+            //             allCags.then(function(response){
+            //                 if(response.status == 200){
+            //                     $scope.availableCagDetails = response.data.results;
+            //                     console.log("all cags : ",$scope.availableCagDetails);
+            //                     $scope.availableCagDetails.forEach(function(cag){
+
+            //                     if($scope.availableCagId == cag.id){
+            //                         console.log("current cag uuid : ",cag.uuid,cag.id);
+            //                         var getCagBelongingToPatient = appService.getCAG(cag.uuid);
+            //                         getCagBelongingToPatient.then(function(res){
+                                         
+            //                             if(res.status == 200){
+            //                             console.log("Final Cag patient details : ",res);
+            //                             console.log(res.data.cagPatientList);
+            //                         }else{
+            //                             console.log("An error occured please check you query");
+            //                         }
+            //                         }).catch(function(error){
+            //                             console.error("Error : ",error);
+            //                         });
+            //                     }                                                                      
+            //                 });
+            //                 }else{
+            //                     console.log("Resource was not found");
+            //                 }
+            //             }).catch(function(error){
+            //                 console.error("Error : ",error);
+            //             });
+            //         }else{
+            //             console.log("Patient is not in any cag");
+            //         }
+            //     }).catch(function(error){
+            //         console.error("Error : ",error);
+            //     });
+            // }
+            /**
+             * == look at "encounterService"? and observationService to get the latest encounter and
+             * obs for the current patient and apply them to all other members. E.g Start with the first 6 concepts in the consultation form
+             * on the save function instantiate the process of getting all the objectivs and assign them to the json obj of the cag.
+             */
+            
+            // observationsService.fetch($scope.patient.uuid, [
+            //     "Type of client",
+            //     "Appointment scheduled",
+            //     "ART, Follow-up date",
+            //     "HIVTC, ARV drugs supply duration",
+            //     "ARV drugs No. of days dispensed"
+            // ], "latest", 1, null, null, null, null)
+            // .then(function (res){
+            //     console.log("Patient Observations: ",res);
+            //     _.each(res,function(obs){
+            //         console.log(res.data);
+            //         _.each(res.data,function(obsValue){
+            //             console.log( obsValue.conceptNameToDisplay,obsValue.valueAsString)
+            //         });
+
+            //     })
+            // }).catch(function(error){console.log(error)});
 
             var initialize = function () {
                 var appExtensions = clinicalAppConfigService.getAllConsultationBoards();
@@ -497,11 +572,20 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     $scope.$parent.$parent.$broadcast("event:errorsOnForm");
                     return $q.when({});
                 }
-                return spinner.forPromise($q.all([preSavePromise(), encounterService.getEncounterType($state.params.programUuid, sessionService.getLoginLocationUuid())]).then(function (results) {
+                return spinner.forPromise($q.all([preSavePromise(), encounterService.getEncounterType($state.params.programUuid, sessionService.getLoginLocationUuid())])
+                .then(function (results) {
+                    console.log("Results : ",results);
                     var encounterData = results[0];
                     encounterData.encounterTypeUuid = results[1].uuid;
                     var params = angular.copy($state.params);
                     params.cachebuster = Math.random();
+
+                    $scope.visitUuid =  results[0].visitUuid;
+                    $scope.visitType = results[0].visitType;
+                    $scope.encounterDateTime = results[0].encounterDateTime; 
+                    $scope.encounterTypeUuid = results[0].encounterTypeUuid; 
+                    $scope.locationUuid = results[0].locationUuid; 
+
                     return encounterService.create(encounterData)
                         .then(function (saveResponse) {
                             var messageParams = { encounterUuid: saveResponse.data.encounterUuid, encounterType: saveResponse.data.encounterType };
@@ -512,6 +596,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                             consultation.lastvisited = $scope.lastvisited;
                             return consultation;
                         }).then(function (savedConsultation) {
+                            console.log("savedConsultation : ",savedConsultation);
                             return spinner.forPromise(diagnosisService.populateDiagnosisInformation($scope.patient.uuid, savedConsultation)
                                 .then(function (consultationWithDiagnosis) {
                                     return saveConditions().then(function (savedConditions) {
@@ -531,12 +616,127 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                         });
                                     });
                                 }));
-                        }).catch(function (error) {
-                            var message = Bahmni.Clinical.Error.translate(error) || "{{'CLINICAL_SAVE_FAILURE_MESSAGE_KEY' | translate}}";
-                            messagingService.showMessage('error', message);
-                        });
-                }));
-            };
+                        }).then(function(){
+                            // Manupulate data to be posted to the cag Encounter
+                            /**
+                             * 1st create an object associated with the main patient.
+                             * 2nd assign observations attained from the current patient especially for common observation for all ART Follow Up
+                             * Inject the $timeout service. To await all other observations to be store in other to call the post to cag encounter with the currrent patient
+                             * observation .
+                             * This funtion should not return a object since we are going to post to the end point
+                             */
+                            // StartTimeOut
+                            $timeout(function(){                                
 
+                            var patientUuid =  $scope.patient.uuid; 
+                                    
+                            appService.getCagPatient(patientUuid)
+                            .then(function(response){
+                                if(response.status == 200 ){
+                                    $scope.isCagMember = true;
+                                    console.log("cag Patient data :",response);
+                                    $scope.availableCagId = response.data.cagId;
+                                    console.log("CAG Id : ",$scope.availableCagId);
+                                    var allCags = appService.getAllCags();        
+                                    allCags.then(function(response){
+                                        if(response.status == 200){
+                                            $scope.availableCagDetails = response.data.results;
+                                            console.log("all cags : ",$scope.availableCagDetails);
+                                            $scope.availableCagDetails.forEach(function(cag){
+            
+                                            if($scope.availableCagId == cag.id){
+                                                console.log("current cag uuid : ",cag.uuid,cag.id);
+                                                $scope.cagUuid = cag.uuid;
+                                                var getCagBelongingToPatient = appService.getCAG(cag.uuid);
+                                                getCagBelongingToPatient.then(function(res){
+                                                        
+                                                    if(res.status == 200){
+                                                    console.log("Final Cag patient details : ",res);
+                                                    console.log("CagPatient List ",res.data.cagPatientList);
+                                                    // Get the latest observations for the current patient in order to create an object 
+                                                        observationsService.fetch($scope.patient.uuid, [
+                                                            "Type of client",
+                                                            "Appointment scheduled",
+                                                            "ART, Follow-up date",
+                                                            "HIVTC, ARV drugs supply duration",
+                                                            "ARV drugs No. of days dispensed"
+                                                        ], "latest", 1, null, null, null, null)
+                                                        .then(function (res){                                                                     
+                                                            console.log("Patient Observations : ",res);
+                                                            $scope.data = res.data;
+                                                            $scope.data.forEach(function(response){
+                                                            //console.log("Values : ",response.conceptNameToDisplay, response.valueAsString);
+                                                            console.log(response);
+                                                            $scope.cagEncounterDefaultData = setDefaultCagEncounterValues($scope.cagUuid, $scope.visitUuid, $scope.encounterDateTime, $scope.encounterTypeUuid, $scope.locationUuid, $scope.patient.uuid );
+                                                            
+                                                                if($scope.runCagEncounterPostOnce == 0){
+                                                                    console.log("once") 
+                                                                    /**
+                                                                     * we want to get the observations for the current use and create the first object
+                                                                     * for the obs: [ob1,obj2]
+                                                                     */
+                                                                    $scope.runCagEncounterPostOnce=+1;
+                                                                }else{
+
+                                                                    // next we need to update the cagEncounter with the other member list [?????]
+                                                                    console.log("twoo")
+                                                                    $scope.runCagEncounterPostOnce=+1;
+                                                                }
+                                                            });                                                                    
+                                                
+                                                        }).catch(function(error){console.log(error)});
+                                                }else{
+                                                    console.error();("An error occured please check you query");
+                                                }
+                                                }).catch(function(error){
+                                                    console.error("Error : ",error);
+                                                });
+                                            }                                                                      
+                                        });
+                                        }else{
+                                            console.log("Resource was not found");
+                                        }
+                                    }).catch(function(error){
+                                        console.error("Error : ",error);
+                                    });
+                                }else{
+                                    console.log("Patient is not in any cag");
+                                }
+                            }
+                            ).catch(function(error){
+                                console.log("Error : ",error);
+                            });                            
+                            // EndTimeOut
+                        },2000);
+                    }).catch(function (error) {
+                        var message = Bahmni.Clinical.Error.translate(error) || "{{'CLINICAL_SAVE_FAILURE_MESSAGE_KEY' | translate}}";
+                        messagingService.showMessage('error', message);
+                    });
+                }));
+            }; 
+
+            var setDefaultCagEncounterValues = function(cagUuid, cagVisitUuid, cagEncounterDate, nextCagEncounterDate, locationUuid, attenderUuid){
+                
+                const cagData = 
+                    {
+                        cag: {
+                            uuid: cagUuid
+                        },
+                        cagVisit: {
+                            uuid: cagVisitUuid
+                        },
+                        cagEncounterDatetTime: cagEncounterDate,// "2023-11-12 18:40:16",
+                        nextEncounterDate: nextCagEncounterDate,// "2023-12-12 23:59:59",
+                        location: {
+                            uuid: locationUuid //"8d6c993e-c2cc-11de-8d13-0010c6dffd0f"
+                        },
+                        attender: {
+                            uuid: attenderUuid //"af4726dd-ba5b-456c-b30e-d30ef3893242"
+                        },
+                    };
+            
+                return cagData;
+                
+            }
             initialize();
         }]);

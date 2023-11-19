@@ -25,13 +25,40 @@ angular.module('bahmni.common.appFramework')
             };
            // Getting CAG dat from API - senekanet and shalet
            this.getCAG = function (uuid) {
-               var cag = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/" + uuid, {
-                   method: "GET",
-                   params: {v: "full"},
-                   withCredentials: true
-               });
+                var cag = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/" + uuid, {
+                method: "GET", 
+                headers: {
+                    'Content-Type': 'application/json'
+                  },
+                withCredentials: true
+            });
                return cag;
            };
+
+           this.getAllCags = function () {
+            var cags = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/", {
+                method: "GET",
+                params: {v: "full"},
+                headers: {
+                    'Content-Type': 'application/json'
+                  },
+                withCredentials: true
+            });
+            return cags;
+        };
+
+            this.getCagPatient = function(patientUuid){
+                var cagPatient = $http.get(
+                    Bahmni.Common.Constants.openmrsUrl + '/ws/rest/v1/cagPatient/'+patientUuid,
+                    {
+                        method : "GET",
+                        params: {v: "full"},
+                        withCredentials: true
+                    }
+                );   
+                
+                return cagPatient;
+            }
 
             var loadTemplate = function (appDescriptor) {
                 var deferrable = $q.defer();

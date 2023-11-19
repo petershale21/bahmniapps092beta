@@ -156,7 +156,7 @@ angular.module('bahmni.registration')
                             messagingService.showMessage('info', 'Patient has been added to CAG');
                         }
                         else{
-                            messagingService.showMessage('error', response.error.message);
+                            messagingService.showMessage('error', response.error);
                         }
                         $scope.isSubmitting = false;
                     })
