@@ -142,8 +142,12 @@ angular.module('bahmni.registration')
                 if(cagListLength==undefined) cagListLength=0;
                 if(JSON.stringify($scope.patientTobeAdded) != '{}' && $scope.searchCagList(patientTobeAdded.uuid,cagListLength)==0){
                     var data={
-                        "cagUuid": $scope.uuid+"",
-                        "uuid": patientTobeAdded.uuid+""
+                        "cag": {
+                            "uuid": $scope.uuid+""
+                        },
+                        "patient": {
+                            "uuid": patientTobeAdded.uuid+""
+                        }
                     }
                     console.log(data);
                     apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
