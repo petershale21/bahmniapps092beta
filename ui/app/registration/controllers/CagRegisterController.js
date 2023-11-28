@@ -122,15 +122,24 @@ angular.module('bahmni.registration')
                 return 0;
             }
 
-            $scope.openPatientDashboardInNewTab = function (cagMember) {
+            $scope.openPatientRegistrationInNewTab = function (cagMember) {
                 // var personRelatedTo = getPersonRelatedTo(cagMember);
                 console.log(getPatientRegistrationUrl(cagMember.uuid));
                 $window.open(getPatientRegistrationUrl(cagMember.uuid), '_blank');
             };
-
             var getPatientRegistrationUrl = function (patientUuid) {
-                return '#/patient/' + patientUuid + '/visit';
+                return '#/patient/' + patientUuid;
             };
+
+            // $scope.openPatientVisitInNewTab = function (cagMember) {
+            //     // var personRelatedTo = getPersonRelatedTo(cagMember);
+            //     console.log(getPatientVisitUrl(cagMember.uuid));
+            //     $window.open(getPatientVisitUrl(cagMember.uuid), '_blank');
+            // };
+            // var getPatientVisitUrl = function (patientUuid) {
+            //     return '#/patient/' + patientUuid + '/visit';
+            // };
+
             $scope.show = function(x,y){
                 if(x==true){
                     $scope.cag.cagPatientList[y].absenteeReason="";
@@ -467,7 +476,8 @@ angular.module('bahmni.registration')
                     data: angular.toJson(data)
                 }).then(function(response){
                     messagingService.showMessage('info', 'Visit Opened ! !');
-                    $window.open(getPatientRegistrationUrl(cagMember.uuid), '_blank');
+                    // $window.open(getPatientVisitUrl(cagMember.uuid), '_blank');
+                    $location.path('/patient/' + cagMember.uuid + '/visit')
                 })
             }
 
