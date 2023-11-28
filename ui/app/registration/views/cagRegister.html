@@ -182,10 +182,10 @@
                     </article>
                 </section>
                 
-                <legend class="registraion_legend"  ng-hide="uuid===''">
+                <legend class="registraion_legend">
                     <span class="mylegend"> CAG Members List <span style="font-size: 10px;">(Note: If member absent for visit, turn toggle off )</span><!--{{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}--></span>
                     </legend>
-                <section class="relationships-container form"  ng-hide="uuid===''">
+                <section class="relationships-container form">
                     
                     <div class="box-container box-container-default history-relationship" >
                         <div class="row" ng-repeat="patientx in cag.cagPatientList track by $index" ng-hide="cag.cagPatientList.length==0" style="padding: 14px 0px 14px 0px;">
@@ -193,7 +193,7 @@
                             <div class="col col4"></div>
                             <div class="col col4"></div>
                             <div class="col col4" style="padding-right: 40px;">
-                                <div class="toggle-list" style="margin-top: -10px;">
+                                <div class="toggle-list" ng-hide="uuid===''" style="margin-top: -10px;">
                                     <div class="toggle-item">
                                         <div class="toggle-checkbox" style="padding: 0%;">
                                                 <label class="switch">
@@ -206,14 +206,14 @@
                             </div>
                             <div class="col col2">
                                 <span>{{patientx.display}}</span>
-                                <span ng-if="patientx.display"><a ng-click="openPatientDashboardInNewTab(patientx)"><i class="fa fa-external-link"></i></a></span>
+                                <!-- <span ng-if="patientx.display"><a ng-click="openPatientDashboardInNewTab(patientx)"><i class="fa fa-external-link"></i></a></span> -->
                             </div>
                             
                             
                            
                                 
                             
-                            <div class="col col3">
+                            <div class="col col3" ng-hide="uuid===''">
                                 <button type="button" id='startVisitButton' ng-click="startVisit(patientx,$index)"
                                     ng-hide="patientx.presentMember==false" 
                                     style=" color: white; 
@@ -260,7 +260,7 @@
                     </div>
                     
                 </section>
-                <section class="form-field-inline" ng-hide="uuid===''">
+                <section class="form-field-inline">
                     <article class="form-field">
                         <div class="field-attribute col col2">
                             <label for="newField">

@@ -52,7 +52,8 @@ angular.module('bahmni.registration')
                     "description": $scope.cag.description,
                     "constituency": $scope.constituency,
                     "village": $scope.village,
-                    "district": $scope.district+""
+                    "district": $scope.district+"",
+                    "cagPatientList": $scope.cag.cagPatientList 
                 }
                 console.log(($scope.cagData));
                 var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag';
@@ -128,7 +129,7 @@ angular.module('bahmni.registration')
             };
 
             var getPatientRegistrationUrl = function (patientUuid) {
-                return '#/patient/' + patientUuid;
+                return '#/patient/' + patientUuid + '/visit';
             };
             $scope.show = function(x,y){
                 if(x==true){
@@ -141,39 +142,46 @@ angular.module('bahmni.registration')
                 console.log(patientTobeAdded);
                 if(cagListLength==undefined) cagListLength=0;
                 if(JSON.stringify($scope.patientTobeAdded) != '{}' && $scope.searchCagList(patientTobeAdded.uuid,cagListLength)==0){
-                    var data={
-                        "cag": {
-                            "uuid": $scope.uuid+""
-                        },
-                        "patient": {
-                            "uuid": patientTobeAdded.uuid+""
-                        }
+                    
+                    if($location.path()=='/cag/new'){
+                        $scope.cag.cagPatientList.push(patientTobeAdded);
                     }
-                    console.log(data);
-                    apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
+                    else{
+                        var data={
+                            "cag": {
+                                "uuid": $scope.uuid+""
+                            },
+                            "patient": {
+                                "uuid": patientTobeAdded.uuid+""
+                            }
+                        }
+                        console.log(data);
+                        apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
 
-                    $http({
-                        url: apiUrl,
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json'
-                        },
-                        data: angular.toJson(data)
-                    }).then(function(response){
-                        if((response.status==200 || response.status==201) && $scope.cag.cagPatientList!=null){
-                            patientTobeAdded["presentMember"] = true;
-                            patientTobeAdded["absenteeReason"] = "";
-                            $scope.cag.cagPatientList.push(patientTobeAdded);
-                            console.log($scope.cag.cagPatientList);
-                            $scope.patientTobeAdded = {};
-                            $scope.newPatient = '';
-                            messagingService.showMessage('info', 'Patient has been added to CAG');
-                        }
-                        else{
-                            messagingService.showMessage('error', response.error.message);
-                        }
-                        $scope.isSubmitting = false;
-                    })
+                        $http({
+                            url: apiUrl,
+                            method: 'POST',
+                            headers: {
+                            'Content-Type': 'application/json'
+                            },
+                            data: angular.toJson(data)
+                        }).then(function(response){
+                            if((response.status==200 || response.status==201) && $scope.cag.cagPatientList!=null){
+                                patientTobeAdded["presentMember"] = true;
+                                patientTobeAdded["absenteeReason"] = "";
+                                $scope.cag.cagPatientList.push(patientTobeAdded);
+                                console.log($scope.cag.cagPatientList);
+                                $scope.patientTobeAdded = {};
+                                $scope.newPatient = '';
+                                messagingService.showMessage('info', 'Patient has been added to CAG');
+                            }
+                            else{
+                                messagingService.showMessage('error', response.error.message);
+                            }
+                            $scope.isSubmitting = false;
+                        })
+                    }
+                    
                     
                 }
                 else{
@@ -231,7 +239,7 @@ angular.module('bahmni.registration')
                 presentPatientUuid = cagMember.uuid;
                 const locationUuid = loginLocation.uuid;
                 const locationName = loginLocation.name;
-                const valueNumeric  = 140;//$scope.Height;
+                // const valueNumeric  = 140;//$scope.Height;
                 console.log($scope.Height);
                 var visitObjArray = [];
                 const absenteesObj = {};
@@ -285,34 +293,34 @@ angular.module('bahmni.registration')
                                                             "uuid": locationUuid
                                                         }
                                                     },
-                                                    {
-                                                        "concept": {
-                                                            "conceptId": 118,
-                                                            "uuid": "5090AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                                                        },
-                                                        "valueNumeric": 140,
-                                                        "obsDatetime": dateStarted,
-                                                        "person": {
-                                                            "uuid": cagMember.uuid
-                                                        },
-                                                        "location":{
-                                                            "uuid": locationUuid
-                                                        }
-                                                    },
-                                                    {
-                                                        "concept": {
-                                                            "conceptId": 119,
-                                                            "uuid": "5089AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                                                        },
-                                                        "valueNumeric": 60,
-                                                        "obsDatetime": dateStarted,
-                                                        "person": {
-                                                            "uuid": cagMember.uuid
-                                                        },
-                                                        "location":{
-                                                            "uuid": locationUuid
-                                                        }
-                                                    },
+                                                    // {
+                                                    //     "concept": {
+                                                    //         "conceptId": 118,
+                                                    //         "uuid": "5090AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                                    //     },
+                                                    //     "valueNumeric": 1000,
+                                                    //     "obsDatetime": dateStarted,
+                                                    //     "person": {
+                                                    //         "uuid": cagMember.uuid
+                                                    //     },
+                                                    //     "location":{
+                                                    //         "uuid": locationUuid
+                                                    //     }
+                                                    // },
+                                                    // {
+                                                    //     "concept": {
+                                                    //         "conceptId": 119,
+                                                    //         "uuid": "5089AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                                    //     },
+                                                    //     "valueNumeric": 2000,
+                                                    //     "obsDatetime": dateStarted,
+                                                    //     "person": {
+                                                    //         "uuid": cagMember.uuid
+                                                    //     },
+                                                    //     "location":{
+                                                    //         "uuid": locationUuid
+                                                    //     }
+                                                    // },
                                                     {
                                                         "concept": {
                                                             "conceptId": 3710,
@@ -459,6 +467,7 @@ angular.module('bahmni.registration')
                     data: angular.toJson(data)
                 }).then(function(response){
                     messagingService.showMessage('info', 'Visit Opened ! !');
+                    $window.open(getPatientRegistrationUrl(cagMember.uuid), '_blank');
                 })
             }
 
