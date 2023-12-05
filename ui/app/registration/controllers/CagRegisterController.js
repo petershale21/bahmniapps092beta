@@ -163,6 +163,7 @@ angular.module('bahmni.registration')
                             "patient": {
                                 "uuid": patientTobeAdded.uuid+""
                             }
+
                         }
                         console.log(data);
                         apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';

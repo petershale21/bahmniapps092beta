@@ -25,13 +25,65 @@ angular.module('bahmni.common.appFramework')
             };
            // Getting CAG dat from API - senekanet and shalet
            this.getCAG = function (uuid) {
-               var cag = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/" + uuid, {
-                   method: "GET",
-                   params: {v: "full"},
-                   withCredentials: true
-               });
+                var cag = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/" + uuid, {
+                method: "GET", 
+                headers: {
+                    'Content-Type': 'application/json'
+                  },
+                withCredentials: true
+            });
                return cag;
            };
+
+           this.getAllCags = function () {
+            return $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/", {
+                method: "GET",
+                params: {v: "full"},
+                headers: {
+                    'Content-Type': 'application/json'
+                  },
+                withCredentials: true
+            });
+            
+        };
+
+        this.getCagVisit = function (patientUuid) {
+            return $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cagPatient/"+patientUuid, {
+                method: "GET",
+                params: {v: "full"},
+                headers: {
+                    'Content-Type': 'application/json'
+                  },
+                withCredentials: true
+            });
+             
+        };
+
+        this.createCagEncounter = function(cagEncounterData){
+            
+            return $http({
+                url: Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cagEncounter/",
+                method: 'POST',
+                params: {v: "full"},
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                data: angular.toJson(cagEncounterData)
+                })
+        }
+
+            this.getCagPatient = function(patientUuid){
+                var cagPatient = $http.get(
+                    Bahmni.Common.Constants.openmrsUrl + '/ws/rest/v1/cagPatient/'+patientUuid,
+                    {
+                        method : "GET",
+                        params: {v: "full"},
+                        withCredentials: true
+                    }
+                );   
+                
+                return cagPatient;
+            }
 
             var loadTemplate = function (appDescriptor) {
                 var deferrable = $q.defer();
