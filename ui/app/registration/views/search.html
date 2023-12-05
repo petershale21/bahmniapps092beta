@@ -41,7 +41,7 @@
                     <label for="cagName"><strong>{{ ::'REGISTRATION_LABEL_CAG_NAME' | translate}}</strong></label>
                     <div class="search-patient-id fl">
 
-                        <input tabindex="2" class="fl" type="text" id="cagName"
+                        <input ng-if="showCAGName()" tabindex="2" class="fl" type="text" id="cagName"
                             ng-model="searchParameters.cagName" focus-me="true"
                             placeholder="{{ ::'REGISTRATION_LABEL_CAG_NAME_PLACEHOLDER' | translate}}">
                         <div class="reg-srch-btn fl">
@@ -261,7 +261,7 @@
                 <tbody>
                     <tr ng-repeat="result in cagResults | filter: searchParameters.cagName">
                         <td>
-                            <a href="" ng-click="viewCAG(result.uuid)">CAG-{{result.id}}</a>
+                            <a href="" ng-click="viewCAG(result.uuid)">CAG-{{$index}}</a>
                         </td>
                         <td>
                             {{result.name}}

@@ -11,14 +11,15 @@ angular.module('bahmni.registration')
             $scope.constituency="";
             $scope.village="";
             $scope.uuid = "";
+            $scope.presentMember=true;
+            $scope.selectedPresentMemberUuid="";
             $scope.cag = [];
             $scope.cag.cagPatientList=[];
             $scope.patientThis;// = "5a6f70be-19c2-442e-adf4-89e184abd039";
 
-            var loginLocationUuid = $bahmniCookieStore.get(Bahmni.Common.Constants.locationCookieName);
-            console.log("Location" ,loginLocationUuid);
-            var visitLocationUuid = $rootScope.visitLocation;
-            var defaultVisitType = $rootScope.regEncounterConfiguration.getDefaultVisitType(loginLocationUuid);
+            
+            // var visitLocationUuid = $rootScope.visitLocation;
+            // var defaultVisitType = $rootScope.regEncounterConfiguration.getDefaultVisitType(loginLocationUuid);
             $scope.Height;
         
             console.log(cagService.run());
@@ -51,7 +52,8 @@ angular.module('bahmni.registration')
                     "description": $scope.cag.description,
                     "constituency": $scope.constituency,
                     "village": $scope.village,
-                    "district": $scope.district+""
+                    "district": $scope.district+"",
+                    "cagPatientList": $scope.cag.cagPatientList 
                 }
                 console.log(($scope.cagData));
                 var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag';
@@ -120,46 +122,76 @@ angular.module('bahmni.registration')
                 return 0;
             }
 
-            $scope.openPatientDashboardInNewTab = function (cagMember) {
+            $scope.openPatientRegistrationInNewTab = function (cagMember) {
                 // var personRelatedTo = getPersonRelatedTo(cagMember);
                 console.log(getPatientRegistrationUrl(cagMember.uuid));
                 $window.open(getPatientRegistrationUrl(cagMember.uuid), '_blank');
             };
-
             var getPatientRegistrationUrl = function (patientUuid) {
                 return '#/patient/' + patientUuid;
             };
+
+            // $scope.openPatientVisitInNewTab = function (cagMember) {
+            //     // var personRelatedTo = getPersonRelatedTo(cagMember);
+            //     console.log(getPatientVisitUrl(cagMember.uuid));
+            //     $window.open(getPatientVisitUrl(cagMember.uuid), '_blank');
+            // };
+            // var getPatientVisitUrl = function (patientUuid) {
+            //     return '#/patient/' + patientUuid + '/visit';
+            // };
+
+            $scope.show = function(x,y){
+                if(x==true){
+                    $scope.cag.cagPatientList[y].absenteeReason="";
+                    console.log($scope.cag.cagPatientList[y]);
+                }
+            }
 
             $scope.addPatientToCag = function(patientTobeAdded, cagListLength){
                 console.log(patientTobeAdded);
                 if(cagListLength==undefined) cagListLength=0;
                 if(JSON.stringify($scope.patientTobeAdded) != '{}' && $scope.searchCagList(patientTobeAdded.uuid,cagListLength)==0){
-                    var data={
-                        "cagUuid": $scope.uuid+"",
-                        "uuid": patientTobeAdded.uuid+""
+                    
+                    if($location.path()=='/cag/new'){
+                        $scope.cag.cagPatientList.push(patientTobeAdded);
                     }
-                    console.log(data);
-                    apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
+                    else{
+                        var data={
+                            "cag": {
+                                "uuid": $scope.uuid+""
+                            },
+                            "patient": {
+                                "uuid": patientTobeAdded.uuid+""
+                            }
 
-                    $http({
-                        url: apiUrl,
-                        method: 'POST',
-                        headers: {
-                          'Content-Type': 'application/json'
-                        },
-                        data: angular.toJson(data)
-                    }).then(function(response){
-                        if((response.status==200 || response.status==201) && $scope.cag.cagPatientList!=null){
-                            $scope.cag.cagPatientList.push($scope.patientTobeAdded);
-                            $scope.patientTobeAdded = {};
-                            $scope.newPatient = '';
-                            messagingService.showMessage('info', 'Patient has been added to CAG');
                         }
-                        else{
-                            messagingService.showMessage('error', response.error);
-                        }
-                        $scope.isSubmitting = false;
-                    })
+                        console.log(data);
+                        apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
+
+                        $http({
+                            url: apiUrl,
+                            method: 'POST',
+                            headers: {
+                            'Content-Type': 'application/json'
+                            },
+                            data: angular.toJson(data)
+                        }).then(function(response){
+                            if((response.status==200 || response.status==201) && $scope.cag.cagPatientList!=null){
+                                patientTobeAdded["presentMember"] = true;
+                                patientTobeAdded["absenteeReason"] = "";
+                                $scope.cag.cagPatientList.push(patientTobeAdded);
+                                console.log($scope.cag.cagPatientList);
+                                $scope.patientTobeAdded = {};
+                                $scope.newPatient = '';
+                                messagingService.showMessage('info', 'Patient has been added to CAG');
+                            }
+                            else{
+                                messagingService.showMessage('error', response.error.message);
+                            }
+                            $scope.isSubmitting = false;
+                        })
+                    }
+                    
                     
                 }
                 else{
@@ -183,7 +215,7 @@ angular.module('bahmni.registration')
                     $scope.isSubmitting = false;
                 })
             }
-            
+            $
             var getConceptValues = function () {
                 return $q.all([
                     observationsService.fetch("580d4b70-9593-481a-9fe6-3a721fb56184", [
@@ -205,76 +237,237 @@ angular.module('bahmni.registration')
                     
                 }
             });
-
+            var presentPatientUuid="";
             $scope.startVisit = function(cagMember, cagListLength){
-                $scope.patientThis = "5a6f70be-19c2-442e-adf4-89e184abd039";
+                var loginLocation = $bahmniCookieStore.get(Bahmni.Common.Constants.locationCookieName);
                 // Generate the current date and time
                 console.log($scope);
                 console.log($rootScope);
                 const currentDate = new Date();
                 const dateStarted = currentDate.toISOString().slice(0, 19).replace("T", " ");
-                const cagUuid = $scope.uuid;
-                const patientUuid = cagMember.uuid;
-                const locationUuid = "8d6c993e-c2cc-11de-8d13-0010c6dffd0f";
-                const encounterType = "81888515-3f10-11e4-adec-0800271c1b75";
-                const encounterDatetime = "2023-10-12 03:32:46";
-                const conceptUuid = "9b1fa8e6-8209-4fcd-abd2-142887fc83e0";
-                const valueCoded = "a3e3fdfe-e03c-401d-a3fd-1c2553fefe53";
-                const valueCodedName = "HTC, Patient";
-                const valueNumeric  = 140;//$scope.Height;
+                const cagUuid = $scope.cag.uuid;
+                presentPatientUuid = cagMember.uuid;
+                const locationUuid = loginLocation.uuid;
+                const locationName = loginLocation.name;
+                // const valueNumeric  = 140;//$scope.Height;
                 console.log($scope.Height);
-                const absenteesObj = {
-                    "429a3773-d45f-41de-a07e-bec53a6bff22": "Went to Bloemfontein"
-                };
+                var visitObjArray = [];
+                const absenteesObj = {};
+                for(var i = 0; i<$scope.cag.cagPatientList.length; i++){
+                    if($scope.cag.cagPatientList[i].presentMember==false){
+                        absenteesObj[$scope.cag.cagPatientList[i].uuid] = $scope.cag.cagPatientList[i].absenteeReason;
+                    }
+                    else{
+                        if(cagMember.uuid==$scope.cag.cagPatientList[i].uuid){
+                            var presentObj = {
+                                "patient": {
+                                    "uuid": cagMember.uuid
+                                },
+                                "visitType": "33e15d3c-54b7-4e8e-9527-b828c1cb24d0",
+                                "location": {
+                                    "uuid": locationUuid
+                                },
+                                "startDatetime": dateStarted,
+                                "encounters": [
+                                    {
+                                        "encounterDatetime": dateStarted,
+                                        "encounterType": "81888515-3f10-11e4-adec-0800271c1b75",
+                                        "patient": cagMember.uuid,
+                                        "location": locationUuid, 
+                                        "obs":[
+                                            {
+                                                "concept": {
+                                                    "conceptId": 55,
+                                                    "uuid": "84f626d0-3f10-11e4-adec-0800271c1b75"
+                                                },
+                                                "obsDatetime": dateStarted,
+                                                "person": {
+                                                    "uuid": cagMember.uuid
+                                                },
+                                                "location":{
+                                                    "uuid": locationUuid
+                                                },
+                                                "groupMembers": [
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 4964,
+                                                            "uuid": "9b1fa8e6-8209-4fcd-abd2-142887fc83e0"
+                                                        },
+                                                        "valueCoded": "a3e3fdfe-e03c-401d-a3fd-1c2553fefe53",
+                                                        "valueCodedName": "HTC, Patient",
+                                                        "obsDatetime": dateStarted,
+                                                        "person": {
+                                                            "uuid": cagMember.uuid
+                                                        },
+                                                        "location":{
+                                                            "uuid": locationUuid
+                                                        }
+                                                    },
+                                                    // {
+                                                    //     "concept": {
+                                                    //         "conceptId": 118,
+                                                    //         "uuid": "5090AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                                    //     },
+                                                    //     "valueNumeric": 1000,
+                                                    //     "obsDatetime": dateStarted,
+                                                    //     "person": {
+                                                    //         "uuid": cagMember.uuid
+                                                    //     },
+                                                    //     "location":{
+                                                    //         "uuid": locationUuid
+                                                    //     }
+                                                    // },
+                                                    // {
+                                                    //     "concept": {
+                                                    //         "conceptId": 119,
+                                                    //         "uuid": "5089AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+                                                    //     },
+                                                    //     "valueNumeric": 2000,
+                                                    //     "obsDatetime": dateStarted,
+                                                    //     "person": {
+                                                    //         "uuid": cagMember.uuid
+                                                    //     },
+                                                    //     "location":{
+                                                    //         "uuid": locationUuid
+                                                    //     }
+                                                    // },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3710,
+                                                            "uuid": "4a2cec08-4512-4635-b1de-b3b698f56346"
+                                                        },
+                                                        "valueCoded": "562fee67-96c5-4b80-ba02-ba8805a28693",
+                                                        "valueCodedName": "No signs",
+                                                        "obsDatetime": dateStarted,
+                                                        "person": {
+                                                            "uuid": cagMember.uuid
+                                                        },
+                                                        "location":{
+                                                            "uuid": locationUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 128,
+                                                            "uuid": "c36e9c8b-3f10-11e4-adec-0800271c1b75"
+                                                        },
+                                                        "valueNumeric": 120,
+                                                        "obsDatetime": dateStarted,
+                                                        "person": {
+                                                            "uuid": cagMember.uuid
+                                                        },
+                                                        "location":{
+                                                            "uuid": locationUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 131,
+                                                            "uuid": "c379aa1d-3f10-11e4-adec-0800271c1b75"
+                                                        },
+                                                        "valueNumeric": 73,
+                                                        "obsDatetime": dateStarted,
+                                                        "person": {
+                                                            "uuid": cagMember.uuid
+                                                        },
+                                                        "location":{
+                                                            "uuid": locationUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 2086,
+                                                            "uuid": "90f53912-95d5-4b5c-a9eb-81f3f937225e"
+                                                        },
+                                                        "valueNumeric": 24,
+                                                        "obsDatetime": dateStarted,
+                                                        "person": {
+                                                            "uuid": cagMember.uuid
+                                                        },
+                                                        "location":{
+                                                            "uuid": locationUuid
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            };
+                            visitObjArray.push(presentObj);
+                        }
+                        else{
+                            const buddieObj = {
+                                "patient": $scope.cag.cagPatientList[i].uuid,
+                                "visitType": "33e15d3c-54b7-4e8e-9527-b828c1cb24d0",
+                                "location": locationUuid,
+                                "startDatetime": dateStarted,
+                                "encounters": [
+                                    {
+                    
+                                        "encounterDatetime": dateStarted,
+                                        "encounterType": "81888515-3f10-11e4-adec-0800271c1b75",
+                                        "patient": $scope.cag.cagPatientList[i].uuid,
+                                        "location": locationUuid,
+                                        "obs": [
+                                            {
+                                                "concept": {
+                                                    "conceptId": 55,
+                                                    "uuid": "84f626d0-3f10-11e4-adec-0800271c1b75"
+                                                },
+                                                "obsDatetime": dateStarted,
+                                                "person": {
+                                                    "uuid": $scope.cag.cagPatientList[i].uuid
+                                                },
+                                                "location":{
+                                                    "uuid": locationUuid
+                                                },
+                                                "groupMembers": [
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 4964,
+                                                            "uuid": "9b1fa8e6-8209-4fcd-abd2-142887fc83e0"
+                                                        },
+                                                        "valueCoded": "60c86ea4-5a2d-4d72-8190-32e47d06e0fa",
+                                                        "valueCodedName": "HTC, Buddy",
+                                                        "obsDatetime": dateStarted,
+                                                        "person": {
+                                                            "uuid": $scope.cag.cagPatientList[i].uuid
+                                                        },
+                                                        "location":{
+                                                            "uuid": locationUuid
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            };
+                            visitObjArray.push(buddieObj);
+                            console.log(visitObjArray);
+                        }
+                    }
+                }
+                console.log(absenteesObj);
                 //const locationName = "Unknown Location";
 
                 // Build the JSON data
-                const data = {
+                var data = {
                     "cag": {
                         "uuid": cagUuid
                     },
                     "dateStarted": dateStarted,
-                    "attenderVisit": {
-                        "patient": {
-                            "uuid": patientUuid
-                        },
-                        "location": {
-                            "uuid": locationUuid
-                        },
-                        "encounters": [
-                            {
-                                "encounterType": encounterType,
-                                "encounterDatetime": encounterDatetime,
-                                "patient": {
-                                    "uuid": patientUuid
-                                },
-                                "location": {
-                                    "uuid": locationUuid
-                                },
-                                "obs": [
-                                    {
-                                        "concept": {
-                                            "uuid": conceptUuid
-                                        },
-                                        "valueCoded": valueCoded,
-                                        "valueCodedName": valueCodedName
-                                    },
-                                    {
-                                        "concept": {
-                                            "uuid": "5090AAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-                                        },
-                                        "valueNumeric": valueNumeric
-                                    }
-                                ]
-                            }
-                        ]
+                    "locationName": loginLocation.name,
+                    "attender": {
+                        "uuid": cagMember.uuid
                     },
                     "absentees": absenteesObj,
-                    "locationName": "ART/TB Clinic"
-                };
+                    "visits": visitObjArray
+                }
                 
                 console.log(data);
-                apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit/';
+                apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit';
                 $http({
                     url: apiUrl,
                     method: 'POST',
@@ -284,18 +477,29 @@ angular.module('bahmni.registration')
                     data: angular.toJson(data)
                 }).then(function(response){
                     messagingService.showMessage('info', 'Visit Opened ! !');
+                    // $window.open(getPatientVisitUrl(cagMember.uuid), '_blank');
+                    $location.path('/patient/' + cagMember.uuid + '/visit')
                 })
             }
+
+
+            
 
             $scope.fetchCag = function(url) {
                 $http.get(apiUrl)
                 .then(function(response) {
-                    // Handle the successful response here
                     console.log('API Response:', response);
-                    $scope.cag = response.data;
-                    $scope.village=$scope.cag.village;
-                    $scope.constituency=$scope.cag.constituency;
-                    $scope.district=$scope.cag.district;
+                    // Handle the successful response here
+                    if(response.data.cagPatientList!=null){
+                        for(let i=0; i<response.data.cagPatientList.length; i++){
+                            response.data.cagPatientList[i]["presentMember"] = true;
+                            response.data.cagPatientList[i]["absenteeReason"] = "";
+                        }
+                        $scope.cag = response.data;
+                        $scope.village=$scope.cag.village;
+                        $scope.constituency=$scope.cag.constituency;
+                        $scope.district=$scope.cag.district;
+                    }
                 })
                 .catch(function(error) {
                     // Handle any errors that occurred during the request
@@ -307,12 +511,9 @@ angular.module('bahmni.registration')
                 $scope.uuid = $stateParams.cagUuid;
                 console.log("state: "+$stateParams.cagUuid);
                 console.log($location.path());
-                var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag/'+$scope.uuid;
+                var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag/'+$scope.uuid+"?v=full";
                 $scope.fetchCag(apiUrl);
             }
-
-
-            
             
         }
     ]);
