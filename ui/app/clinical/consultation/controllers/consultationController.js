@@ -22,7 +22,8 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             $scope.isCagMember = true;
             $scope.availableCagId = [];
             $scope.availableCagDetails = [];
-            $scope.cagPatient = [];
+            $scope.cagPatientVisitList = {};
+            $scope.patientVisitData = []// Other 
             $scope.cagPatientObsertions = [];
             $scope.runCagEncounterPostOnce = 0;
             $scope.visitHistory = visitHistory;
@@ -162,76 +163,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     $scope.currentBoard.isSelectedTab = true;
                 }
             };
-            // $scope.getCagPatient = function(){ 
-
-            //     var patientUuid =  $scope.patient.uuid; 
-                
-            //     appService.getCagPatient(patientUuid)
-            //     .then(function(response){
-            //         if(response.status == 200){
-            //             $scope.isCagMember = true;
-            //             console.log("cag Patient data :",response);
-            //             $scope.availableCagId = response.data.cagId;
-            //             console.log("CAG Id : ",$scope.availableCagId);
-            //             var allCags = appService.getAllCags();        
-            //             allCags.then(function(response){
-            //                 if(response.status == 200){
-            //                     $scope.availableCagDetails = response.data.results;
-            //                     console.log("all cags : ",$scope.availableCagDetails);
-            //                     $scope.availableCagDetails.forEach(function(cag){
-
-            //                     if($scope.availableCagId == cag.id){
-            //                         console.log("current cag uuid : ",cag.uuid,cag.id);
-            //                         var getCagBelongingToPatient = appService.getCAG(cag.uuid);
-            //                         getCagBelongingToPatient.then(function(res){
-                                         
-            //                             if(res.status == 200){
-            //                             console.log("Final Cag patient details : ",res);
-            //                             console.log(res.data.cagPatientList);
-            //                         }else{
-            //                             console.log("An error occured please check you query");
-            //                         }
-            //                         }).catch(function(error){
-            //                             console.error("Error : ",error);
-            //                         });
-            //                     }                                                                      
-            //                 });
-            //                 }else{
-            //                     console.log("Resource was not found");
-            //                 }
-            //             }).catch(function(error){
-            //                 console.error("Error : ",error);
-            //             });
-            //         }else{
-            //             console.log("Patient is not in any cag");
-            //         }
-            //     }).catch(function(error){
-            //         console.error("Error : ",error);
-            //     });
-            // }
-            /**
-             * == look at "encounterService"? and observationService to get the latest encounter and
-             * obs for the current patient and apply them to all other members. E.g Start with the first 6 concepts in the consultation form
-             * on the save function instantiate the process of getting all the objectivs and assign them to the json obj of the cag.
-             */
-            
-            // observationsService.fetch($scope.patient.uuid, [
-            //     "Type of client",
-            //     "Appointment scheduled",
-            //     "ART, Follow-up date",
-            //     "HIVTC, ARV drugs supply duration",
-            //     "ARV drugs No. of days dispensed"
-            // ], "latest", 1, null, null, null, null)
-            // .then(function (res){
-            //     console.log("Patient Observations: ",res);
-            //     _.each(res,function(obs){
-            //         console.log(res.data);
-            //         _.each(res.data,function(obsValue){
-            //             console.log( obsValue.conceptNameToDisplay,obsValue.valueAsString)
-            //         });
-
-            //     })
-            // }).catch(function(error){console.log(error)});
 
             var initialize = function () {
                 var appExtensions = clinicalAppConfigService.getAllConsultationBoards();
@@ -574,17 +505,10 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 }
                 return spinner.forPromise($q.all([preSavePromise(), encounterService.getEncounterType($state.params.programUuid, sessionService.getLoginLocationUuid())])
                 .then(function (results) {
-                    console.log("Results : ",results);
                     var encounterData = results[0];
                     encounterData.encounterTypeUuid = results[1].uuid;
                     var params = angular.copy($state.params);
                     params.cachebuster = Math.random();
-
-                    $scope.visitUuid =  results[0].visitUuid;
-                    $scope.visitType = results[0].visitType;
-                    $scope.encounterDateTime = results[0].encounterDateTime; 
-                    $scope.encounterTypeUuid = results[0].encounterTypeUuid; 
-                    $scope.locationUuid = results[0].locationUuid; 
 
                     return encounterService.create(encounterData)
                         .then(function (saveResponse) {
@@ -596,7 +520,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                             consultation.lastvisited = $scope.lastvisited;
                             return consultation;
                         }).then(function (savedConsultation) {
-                            console.log("savedConsultation : ",savedConsultation);
                             return spinner.forPromise(diagnosisService.populateDiagnosisInformation($scope.patient.uuid, savedConsultation)
                                 .then(function (consultationWithDiagnosis) {
                                     return saveConditions().then(function (savedConditions) {
@@ -621,7 +544,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                             /**
                              * 1st create an object associated with the main patient.
                              * 2nd assign observations attained from the current patient especially for common observation for all ART Follow Up
-                             * Inject the $timeout service. To await all other observations to be store in other to call the post to cag encounter with the currrent patient
+                             * Inject the $timeout service. To await all other observations to be store in state in other to call the post to cag encounter with the currrent patient
                              * observation .
                              * This funtion should not return a object since we are going to post to the end point
                              */
@@ -633,72 +556,171 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                             appService.getCagPatient(patientUuid)
                             .then(function(response){
                                 if(response.status == 200 ){
-                                    $scope.isCagMember = true;
-                                    console.log("cag Patient data :",response);
-                                    $scope.availableCagId = response.data.cagId;
-                                    console.log("CAG Id : ",$scope.availableCagId);
-                                    var allCags = appService.getAllCags();        
-                                    allCags.then(function(response){
-                                        if(response.status == 200){
-                                            $scope.availableCagDetails = response.data.results;
-                                            console.log("all cags : ",$scope.availableCagDetails);
-                                            $scope.availableCagDetails.forEach(function(cag){
-            
-                                            if($scope.availableCagId == cag.id){
-                                                console.log("current cag uuid : ",cag.uuid,cag.id);
-                                                $scope.cagUuid = cag.uuid;
-                                                var getCagBelongingToPatient = appService.getCAG(cag.uuid);
-                                                getCagBelongingToPatient.then(function(res){
-                                                        
-                                                    if(res.status == 200){
-                                                    console.log("Final Cag patient details : ",res);
-                                                    console.log("CagPatient List ",res.data.cagPatientList);
-                                                    // Get the latest observations for the current patient in order to create an object 
-                                                        observationsService.fetch($scope.patient.uuid, [
-                                                            "Type of client",
-                                                            "Appointment scheduled",
-                                                            "ART, Follow-up date",
-                                                            "HIVTC, ARV drugs supply duration",
-                                                            "ARV drugs No. of days dispensed"
-                                                        ], "latest", 1, null, null, null, null)
-                                                        .then(function (res){                                                                     
-                                                            console.log("Patient Observations : ",res);
-                                                            $scope.data = res.data;
-                                                            $scope.data.forEach(function(response){
-                                                            //console.log("Values : ",response.conceptNameToDisplay, response.valueAsString);
-                                                            console.log(response);
-                                                            $scope.cagEncounterDefaultData = setDefaultCagEncounterValues($scope.cagUuid, $scope.visitUuid, $scope.encounterDateTime, $scope.encounterTypeUuid, $scope.locationUuid, $scope.patient.uuid );
-                                                            
-                                                                if($scope.runCagEncounterPostOnce == 0){
-                                                                    console.log("once") 
-                                                                    /**
-                                                                     * we want to get the observations for the current use and create the first object
-                                                                     * for the obs: [ob1,obj2]
-                                                                     */
-                                                                    $scope.runCagEncounterPostOnce=+1;
-                                                                }else{
+                                    
+                                    var visitData = response.data;
+                                    
+                                    console.log("cag visit Patient data :",visitData);
+                                    
+                                    $scope.cagVisitUuid = visitData.activeCagVisits[0].uuid;
+                                    
+                                    $scope.cagUuid = visitData.activeCagVisits[0].cag.uuid;                                     
+                                    $scope.attenderUuid = visitData.activeCagVisits[0].attender.uuid;
 
-                                                                    // next we need to update the cagEncounter with the other member list [?????]
-                                                                    console.log("twoo")
-                                                                    $scope.runCagEncounterPostOnce=+1;
-                                                                }
-                                                            });                                                                    
-                                                
-                                                        }).catch(function(error){console.log(error)});
-                                                }else{
-                                                    console.error();("An error occured please check you query");
-                                                }
-                                                }).catch(function(error){
-                                                    console.error("Error : ",error);
-                                                });
-                                            }                                                                      
-                                        });
-                                        }else{
-                                            console.log("Resource was not found");
-                                        }
-                                    }).catch(function(error){
-                                        console.error("Error : ",error);
-                                    });
+                                    //console.log("CAG visitUuid : ",$scope.cagVisitUuid);
+                                    //console.log("Patient visits : ",visitData.activeCagVisits[0].visits);
+
+                                    var patientVisits = visitData.activeCagVisits[0].visits;
+                                    
+                                    patientVisits.forEach(function(res){   
+                                        var patientVisitData = 
+                                            { 
+                                                "patientUuid" : res.patient.uuid,
+                                                "patientVisitUuid" : res.uuid
+                                            };
+                                        
+                                        $scope.patientVisitData.push(
+                                            patientVisitData
+                                        );     
+                                        $scope.cagVisitLocation = res.location.uuid;                                                                                                  
+                                    });  
+                                    observationsService.fetch($scope.patient.uuid, [
+                                        "Type of client",
+                                        "Appointment scheduled",
+                                        "ART, Follow-up date",
+                                        "HIVTC, ARV drugs supply duration",
+                                        "ARV drugs No. of days dispensed", 
+                                        "HIVTC, HIV care WHO Staging",
+                                        "Cotrimoxazole adherence",
+                                        "Cotrimoxazole No of days dispensed"
+                                    ], "latest", 1, null, null, null, null)
+                                    .then(function (res){                                                                     
+                                        //console.log("Patient Observations : ",res);
+                                        
+                                        $scope.cagEncounterDateTime = res.data[0].observationDateTime;
+                                        $scope.obsDateTime = res.data[0].observationDateTime;
+                                        console.log("$scope.obsDateTime = res.data[0].observationDateTime; :",$scope.obsDateTime);
+                                        var data = res.data;     
+                                         
+                                        _.each(data,function(response) {
+                                            // console.log(
+                                            //             " value : " + response.conceptNameToDisplay +
+                                            //             " uuids : " + response.value.uuid + 
+                                            //             " name " + response.value.name +
+                                            //             " valueString : " + response.valueAsString);
+                                            
+                                            $scope.provider = response.providers[0].uuid; 
+                                            //console.log("response.conceptNameToDisplay : ",response.conceptNameToDisplay );
+                                            //console.log("Data Values for all Obs : ",response );
+                                            
+                                            if(response.conceptNameToDisplay == "Follow-up date"){
+                                                $scope.nextCagEncounterDateValue = response.valueAsString;
+                                                $scope.nextCagEncounterDateUuid = response.uuid;  
+                                             
+                                            }
+                                            else if(response.conceptNameToDisplay == "Type of client"){                                                                
+                                                $scope.TypeOfClientTreatmentValue = response.valueAsString; 
+                                                $scope.TypeOfClientTreatmentUuid = response.value.uuid;
+                                            }
+
+                                            else  if(response.conceptNameToDisplay == "Appointment scheduled"){
+                                                $scope.AppointmentScheduledValue = response.valueAsString;
+                                                $scope.AppointmentScheduledUuid = response.value.uuid; 
+                                            }                                                                
+                                            else if(response.conceptNameToDisplay == "ARV drugs supply duration"){
+                                                $scope.ARVDrugsSupplyDurationValue = response.valueAsString;
+                                                $scope.ARVDrugsSupplyDurationUuid = response.value.uuid;
+                                                $scope.ARVDrugsSupplyDurationName = response.value.name;
+                                            
+                                            }
+                                            else if(response.conceptNameToDisplay == "Drugs days dispensed"){
+                                                $scope.DrugsDaysDispensedValue = response.valueAsString;
+                                                $scope.DrugsDaysDispensedUuid = response.uuid; 
+                                            
+                                            }
+                                            else if(response.conceptNameToDisplay == "WHO Staging"){
+                                                $scope.HIVCareWHOStagingValue = response.valueAsString;
+                                                $scope.HIVCareWHOStagingUuid = response.value.uuid;
+
+                                            }
+                                            else if(response.conceptNameToDisplay == "Cotrimoxazole adherence"){
+                                                $scope.CotrimoxazoleAdherenceValue = response.valueAsString;
+                                                $scope.CotrimoxazoleAdherenceUuid = response.value.uuid;                                                                    
+                                            }
+                                            
+                                            else if(response.conceptNameToDisplay == "Cotrimoxazole days dispensed"){
+                                                $scope.cotrimoxazoleNoOfDaysValue = response.valueAsString;
+                                                $scope.cotrimoxazoleNoOfDaysUuid  = response.uuid;  
+                                            } 
+                                            
+
+                                        }); 
+
+                                        console.log("cagUuid :",$scope.cagUuid);
+                                        console.log("cagVisitUuid :",$scope.cagVisitUuid);
+                                        console.log("cagEncounterDateTime :",$scope.cagEncounterDateTime);
+                                        console.log("obsDateTime :",$scope.obsDateTime);
+                                        console.log("nextCagEncounterDateValue :",$scope.nextCagEncounterDateValue);
+                                        console.log("nextCagEncounterDateUuid :",$scope.nextCagEncounterDateUuid);
+                                        console.log("locationUuid :",$scope.cagVisitLocation);  
+                                        console.log("attenderUuid :",$scope.attenderUuid);
+                                        console.log("TypeOfClientTreatmentValue :",$scope.TypeOfClientTreatmentValue);
+                                        console.log("TypeOfClientTreatmentUuid : ",$scope.TypeOfClientTreatmentUuid);
+                                        console.log("AppointmentScheduledValue :",$scope.AppointmentScheduledValue);
+                                        console.log("AppointmentScheduledUuid :",$scope.AppointmentScheduledUuid);
+                                        console.log("ARVDrugsSupplyDurationValue :",$scope.ARVDrugsSupplyDurationValue);
+                                        console.log("ARVDrugsSupplyDurationUuid :",$scope.ARVDrugsSupplyDurationUuid);
+                                        console.log("ARVDrugsSupplyDurationName :",$scope.ARVDrugsSupplyDurationName);
+                                        console.log("DrugsDaysDispensedValue :",$scope.DrugsDaysDispensedValue);
+                                        console.log("DrugsDaysDispensedUuid :",$scope.DrugsDaysDispensedUuid);
+                                        console.log("HIVCareWHOStagingValue :",$scope.HIVCareWHOStagingValue);
+                                        console.log("HIVCareWHOStagingUuid :",$scope.HIVCareWHOStagingUuid);
+                                        console.log("CotrimoxazoleAdherenceValue :",$scope.CotrimoxazoleAdherenceValue);
+                                        console.log("CotrimoxazoleAdherenceUuid :",$scope.CotrimoxazoleAdherenceUuid);
+                                        console.log("cotrimoxazoleNoOfDaysValue :",$scope.cotrimoxazoleNoOfDaysValue);
+                                        console.log("cotrimoxazoleNoOfDaysUuid :",$scope.cotrimoxazoleNoOfDaysUuid);
+                                        console.log("provider :",$scope.provider);
+                                        console.log("patientVisitData :",$scope.patientVisitData); 
+                                        
+                                        // The function to return POST reponse
+                                        var postCagEncounter = createCagEncounter(
+                                            $scope.cagUuid
+                                            ,$scope.cagVisitUuid
+                                            ,$scope.cagEncounterDateTime
+                                            ,$scope.obsDateTime
+                                            ,$scope.nextCagEncounterDateValue
+                                            ,$scope.nextCagEncounterDateUuid
+                                            ,$scope.cagVisitLocation
+                                            ,$scope.attenderUuid
+                                            ,$scope.TypeOfClientTreatmentValue
+                                            ,$scope.TypeOfClientTreatmentUuid
+                                            ,$scope.AppointmentScheduledValue
+                                            ,$scope.AppointmentScheduledUuid
+                                            ,$scope.ARVDrugsSupplyDurationValue
+                                            ,$scope.ARVDrugsSupplyDurationUuid
+                                            ,$scope.ARVDrugsSupplyDurationName
+                                            ,$scope.DrugsDaysDispensedValue
+                                            ,$scope.DrugsDaysDispensedUuid
+                                            ,$scope.HIVCareWHOStagingValue
+                                            ,$scope.HIVCareWHOStagingUuid
+                                            ,$scope.CotrimoxazoleAdherenceValue
+                                            ,$scope.CotrimoxazoleAdherenceUuid
+                                            ,$scope.cotrimoxazoleNoOfDaysValue
+                                            ,$scope.cotrimoxazoleNoOfDaysUuid
+                                            ,$scope.provider
+                                            ,$scope.patientVisitData
+                                        );
+                                        
+                                        // Post cagEncounter
+                                        postCagEncounter.then(function(cagEncounter){
+                                        if(cagEncounter.status == 201){
+                                                console.info("CAG Encounter successully posted!!!!",cagEncounter)
+                                            }
+                                        }).catch(
+                                            function(err){
+                                                console.error("CAG ECOUNTER POST ERROR : ",err)
+                                            }
+                                        );
+                                    }).catch(function(error){console.log(error)}); 
                                 }else{
                                     console.log("Patient is not in any cag");
                                 }
@@ -714,28 +736,417 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     });
                 }));
             }; 
-
-            var setDefaultCagEncounterValues = function(cagUuid, cagVisitUuid, cagEncounterDate, nextCagEncounterDate, locationUuid, attenderUuid){
+            var removeAttenderInOtherCagMember = function(patientVisitArray, patientToRemove) { 
+    
+                return arr.filter(function(ele){ 
+                    return ele != patientToRemove; 
+                });
+            }
+            
+            var createCagEncounter = function(
+                 cagUuid
+                ,cagVisitUuid
+                ,cagEncounterDateTime
+                ,obsDateTime
+                ,nextCagEncounterDateValue
+                ,nextCagEncounterDateUuid
+                ,cagVisitLocation
+                ,attenderUuid
+                ,TypeOfClientTreatmentUuid
+                ,TypeOfClientTreatmentValue
+                ,AppointmentScheduledUuid
+                ,AppointmentScheduledValue
+                ,ARVDrugsSupplyDurationValue
+                ,ARVDrugsSupplyDurationUuid
+                ,ARVDrugsSupplyDurationName
+                ,DrugsDaysDispensedValue
+                ,DrugsDaysDispensedUuid
+                ,HIVCareWHOStagingValue
+                ,HIVCareWHOStagingUuid
+                ,CotrimoxazoleAdherenceValue
+                ,CotrimoxazoleAdherenceUuid
+                ,cotrimoxazoleNoOfDaysValue
+                ,cotrimoxazoleNoOfDaysUuid
+                ,provider
+                ,patientVisitData
+            ){
+                var cagEncounterData = [];
                 
-                const cagData = 
-                    {
-                        cag: {
+                    console.log("data id : ",cagEncounterData);
+                    
+                    var autoExpireDate = Bahmni.Common.Util.DateUtil.addDays(cagEncounterDateTime,3);
+                    
+                    autoExpireDate = moment(autoExpireDate, "YYYY-MM-DDTHH:mm:ss.SSSZZ").format();
+                
+                    console.log("expiry date : ",autoExpireDate);
+
+                    var attenderEncounterData = [];
+                    
+                    for (let index = 0; index < patientVisitData.length; index++) {
+                        if (patientVisitData[index].patientUuid ==  attenderUuid) {
+                             
+                            const attenderData = {
+                                "encounterDatetime":  cagEncounterDateTime,
+                                "encounterType":{
+                                    "uuid": "81852aee-3f10-11e4-adec-0800271c1b75"
+                                },
+                                "patient": {
+                                    "uuid": attenderUuid
+                                },
+                                "visit": {
+                                    "uuid": patientVisitData[index].patientVisitUuid
+                                },
+                                "location":{
+                                    "uuid": cagVisitLocation 
+                                },
+                                "orders":[
+                                    {
+                                        "type": "drugorder",
+                                        "patient": patientVisitData[index].patientUuid ,
+                                        "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
+                                        "concept": "9d155660-c16e-42d8-bff1-76cebe867e56",
+                                        "dateActivated" : cagEncounterDateTime,
+                                        "autoExpireDate" : autoExpireDate,
+                                        "orderer" : provider, // should get the current logged Provider
+                                        "urgency": "ON_SCHEDULED_DATE",
+                                        "careSetting": "6f0c9a92-6f24-11e3-af88-005056821db0",
+                                        "scheduledDate": cagEncounterDateTime,
+                                        "dose": 1,
+                                        "doseUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                        "frequency": "9d7c32a2-3f10-11e4-adec-0800271c1b75",
+                                        "quantity":  DrugsDaysDispensedValue,
+                                        "quantityUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                        "drug": "189a5fc2-d29b-4ce5-b3ca-dc5405228bfc",
+                                        "numRefills": 0,
+                                        "dosingInstructions": "As directed",
+                                        "duration":  DrugsDaysDispensedValue,
+                                        "durationUnits": "9d7437a9-3f10-11e4-adec-0800271c1b75",
+                                        "route": "9d6bc13f-3f10-11e4-adec-0800271c1b75",
+                                        "action": "NEW"
+                                    }
+                                ],
+                                "obs":[
+                                    {
+                                        "concept": {
+                                            "conceptId": 2403,
+                                            "uuid": "746818ac-65a0-4d74-9609-ddb2c330a31b" 
+                                        },
+                                        "obsDatetime": obsDateTime,
+                                        "person": attenderUuid,
+                                        "location":  cagVisitLocation,
+                                        "groupMembers": [
+                                            {
+                                                "concept": {
+                                                    "conceptId": 3753,
+                                                    "uuid": "65aa58be-3957-4c82-ad63-422637c8dd18"
+                                                },
+                                                "obsDatetime": obsDateTime,
+                                                "person": {
+                                                    "uuid": attenderUuid
+                                                },
+                                                "location":{
+                                                    "uuid": cagVisitLocation
+                                                },
+                                                "groupMembers": [
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3843,
+                                                            "uuid": "e0bc761d-ac3b-4033-92c7-476304b9c5e8"
+                                                        },
+                                                        "valueCoded": TypeOfClientTreatmentUuid,
+                                                        "valueCodedName": TypeOfClientTreatmentValue,
+                                                        "valueText":TypeOfClientTreatmentValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": attenderUuid
+                                                        },
+                                                        "location":{
+                                                            "uuid": cagVisitLocation
+                                                        } 
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3751,
+                                                            "uuid": "ed064424-0331-47f6-9532-77156f40a014"
+                                                        },
+                                                        "valueCoded": AppointmentScheduledUuid,
+                                                        "valueCodedName": AppointmentScheduledValue,
+                                                        "valueText": AppointmentScheduledValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": attenderUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3752,
+                                                            "uuid": "88489023-783b-4021-b7a9-05ca9877bf67"
+                                                        },
+                                                        "valueDatetime": nextCagEncounterDateValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": attenderUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 2250,
+                                                            "uuid": "13382e01-9f18-488b-b2d2-58ab54c82d82"
+                                                        },
+                                                        "valueCoded": "225b0d93-d4b9-46b0-bbb2-1bce82c9107c",
+                                                        "valueCodedName": "1j=TDF-3TC-DTG",
+                                                        "valueDrug": "1j=TDF-3TC-DTG",
+                                                        "obsDatetime":  obsDateTime,
+                                                        "person": {
+                                                            "uuid": attenderUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 4174,
+                                                            "uuid": "9eb00622-1078-4f7b-aa69-61e6c36db347"
+                                                        },
+                                                        "valueCoded":  ARVDrugsSupplyDurationUuid,
+                                                        "valueCodedName":  ARVDrugsSupplyDurationName,
+                                                        "valueText":  ARVDrugsSupplyDurationValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": attenderUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3730,
+                                                            "uuid": "27d55083-5e66-4b5a-91d3-2c9a42cc9996"
+                                                        },
+                                                        "valueNumeric":  DrugsDaysDispensedValue,
+                                                        "obsDatetime":  obsDateTime,
+                                                        "person": {
+                                                            "uuid":  attenderUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 2224,
+                                                            "uuid": "95e1fc28-84ab-4971-8bb1-d8ee68ef5739"
+                                                        },
+                                                        "valueCoded": HIVCareWHOStagingUuid,
+                                                        "valueCodedName": HIVCareWHOStagingValue,
+                                                        "valueText":HIVCareWHOStagingValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": attenderUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3726,
+                                                            "uuid": "e8d05f4a-9c3f-4f99-941c-596f238f095f"
+                                                        },
+                                                        "valueCoded": CotrimoxazoleAdherenceUuid,
+                                                        "valueCodedName": CotrimoxazoleAdherenceValue,
+                                                        "valueText": CotrimoxazoleAdherenceValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": attenderUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3728,
+                                                            "uuid": "3485a002-f72f-43fd-8ba7-0288273489da"
+                                                        },
+                                                        "valueNumeric":cotrimoxazoleNoOfDaysValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": attenderUuid
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }            
+                                ]
+                            };
+                            attenderEncounterData.push(attenderData)
+                            console.log("attenderEncounterData : ",attenderEncounterData)
+                        }else if(patientVisitData[index].patientUuid != attenderUuid){
+                            // Exclude the attender from the list of cagVisits
+                            //removeAttenderInOtherCagMember();
+                            var otherCagMemberData =     {
+                                "encounterDatetime": cagEncounterDateTime,
+                                "encounterType":{
+                                    "uuid": "81852aee-3f10-11e4-adec-0800271c1b75"
+                                },
+                                "patient": {
+                                    "uuid": patientVisitData[index].patientUuid
+                                },
+                                "visit": {
+                                    "uuid":  patientVisitData[index].patientVisitUuid
+                                },
+                                "location":{
+                                    "uuid": cagVisitLocation
+                                },
+                                "orders":[
+                                    {
+                                        "type": "drugorder",
+                                        "patient":  patientVisitData[index].patientUuid,
+                                        "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
+                                        "concept": "9d155660-c16e-42d8-bff1-76cebe867e56",
+                                        "dateActivated" : cagEncounterDateTime,
+                                        "autoExpireDate" : autoExpireDate,
+                                        "orderer" : provider,
+                                        "urgency": "ON_SCHEDULED_DATE",
+                                        "careSetting": "6f0c9a92-6f24-11e3-af88-005056821db0",
+                                        "scheduledDate": cagEncounterDateTime,
+                                        "dose": 1,
+                                        "doseUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                        "frequency": "9d7c32a2-3f10-11e4-adec-0800271c1b75",
+                                        "quantity": 30.0,
+                                        "quantityUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                        "drug": "189a5fc2-d29b-4ce5-b3ca-dc5405228bfc",
+                                        "numRefills": 0,
+                                        "dosingInstructions": "As directed",
+                                        "duration": 30,
+                                        "durationUnits": "9d7437a9-3f10-11e4-adec-0800271c1b75",
+                                        "route": "9d6bc13f-3f10-11e4-adec-0800271c1b75",
+                                        "action": "NEW"
+                                    }
+                                ],
+                                "obs":[
+                                    {
+                                        "concept": {
+                                            "conceptId": 2403,
+                                            "uuid": "746818ac-65a0-4d74-9609-ddb2c330a31b"
+                                        },
+                                        "obsDatetime": obsDateTime,
+                                        "person":  patientVisitData[index].patientUuid,
+                                        "location": cagVisitLocation,
+                                        "groupMembers": [
+                                            {
+                                                "concept": {
+                                                    "conceptId": 3753,
+                                                    "uuid": "65aa58be-3957-4c82-ad63-422637c8dd18"
+                                                },
+                                                "obsDatetime": obsDateTime,
+                                                "person": {
+                                                    "uuid":  patientVisitData[index].patientUuid
+                                                },
+                                                "location":{
+                                                    "uuid": cagVisitLocation
+                                                },
+                                                "groupMembers": [
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3843,
+                                                            "uuid": "e0bc761d-ac3b-4033-92c7-476304b9c5e8"
+                                                        },
+                                                        "valueCoded": "0f880c52-3ced-43ac-a79b-07a2740ae428",
+                                                        "valueCodedName": "Treatment Buddy",
+                                                        "valueText": "Treatment Buddy",
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": patientVisitData[index].patientUuid
+                                                        },
+                                                        "location":{
+                                                            "uuid": cagVisitLocation
+                                                        } 
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3751,
+                                                            "uuid": "ed064424-0331-47f6-9532-77156f40a014"
+                                                        },
+                                                        "valueCoded": AppointmentScheduledUuid,
+                                                        "valueCodedName": AppointmentScheduledValue,
+                                                        "valueText": AppointmentScheduledValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid":  patientVisitData[index].patientUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3752,
+                                                            "uuid": "88489023-783b-4021-b7a9-05ca9877bf67"
+                                                        },
+                                                        "valueDatetime": nextCagEncounterDateValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid":  patientVisitData[index].patientUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 2250,
+                                                            "uuid": "13382e01-9f18-488b-b2d2-58ab54c82d82"
+                                                        },
+                                                        "valueCoded": "225b0d93-d4b9-46b0-bbb2-1bce82c9107c",
+                                                        "valueCodedName": "1j=TDF-3TC-DTG",
+                                                        "valueDrug": "1j=TDF-3TC-DTG",
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid":  patientVisitData[index].patientUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 4174,
+                                                            "uuid": "9eb00622-1078-4f7b-aa69-61e6c36db347"
+                                                        },
+                                                        "valueCoded": ARVDrugsSupplyDurationUuid,
+                                                        "valueCodedName": ARVDrugsSupplyDurationName,
+                                                        "valueText": ARVDrugsSupplyDurationValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": patientVisitData[index].patientUuid
+                                                        }
+                                                    },
+                                                    {
+                                                        "concept": {
+                                                            "conceptId": 3730,
+                                                            "uuid": "27d55083-5e66-4b5a-91d3-2c9a42cc9996"
+                                                        },
+                                                        "valueNumeric": DrugsDaysDispensedValue,
+                                                        "obsDatetime": obsDateTime,
+                                                        "person": {
+                                                            "uuid": patientVisitData[index].patientUuid
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }            
+                                ]
+                            }
+
+                            cagEncounterData.push(otherCagMemberData);
+                        }
+                        
+                    } 
+                     
+                    var encounterData={
+                        cag:{
                             uuid: cagUuid
-                        },
+                        },       
                         cagVisit: {
                             uuid: cagVisitUuid
                         },
-                        cagEncounterDatetTime: cagEncounterDate,// "2023-11-12 18:40:16",
-                        nextEncounterDate: nextCagEncounterDate,// "2023-12-12 23:59:59",
+                        cagEncounterDateTime:  cagEncounterDateTime, 
+                        nextEncounterDate: nextCagEncounterDateValue, 
                         location: {
-                            uuid: locationUuid //"8d6c993e-c2cc-11de-8d13-0010c6dffd0f"
+                            uuid:  cagVisitLocation  
                         },
                         attender: {
-                            uuid: attenderUuid //"af4726dd-ba5b-456c-b30e-d30ef3893242"
+                            uuid:  attenderUuid  
                         },
-                    };
-            
-                return cagData;
+                        encounters:cagEncounterData
+
+                    }        
+                    
+                    var cagEncounter = appService.createCagEncounter(encounterData);
+                    
+                    return cagEncounter;
                 
             }
             initialize();

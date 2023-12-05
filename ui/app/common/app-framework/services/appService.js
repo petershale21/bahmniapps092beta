@@ -36,7 +36,7 @@ angular.module('bahmni.common.appFramework')
            };
 
            this.getAllCags = function () {
-            var cags = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/", {
+            return $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/", {
                 method: "GET",
                 params: {v: "full"},
                 headers: {
@@ -44,8 +44,33 @@ angular.module('bahmni.common.appFramework')
                   },
                 withCredentials: true
             });
-            return cags;
+            
         };
+
+        this.getCagVisit = function (patientUuid) {
+            return $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cagPatient/"+patientUuid, {
+                method: "GET",
+                params: {v: "full"},
+                headers: {
+                    'Content-Type': 'application/json'
+                  },
+                withCredentials: true
+            });
+             
+        };
+
+        this.createCagEncounter = function(cagEncounterData){
+            
+            return $http({
+                url: Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cagEncounter/",
+                method: 'POST',
+                params: {v: "full"},
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                data: angular.toJson(cagEncounterData)
+                })
+        }
 
             this.getCagPatient = function(patientUuid){
                 var cagPatient = $http.get(
