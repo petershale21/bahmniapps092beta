@@ -717,7 +717,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                             }
                                         }).catch(
                                             function(err){
-                                                console.error("CAG ECOUNTER POST ERROR : ",err)
+                                                messagingService.showMessage('error',"Can not have more than one order");
                                             }
                                         );
                                     }).catch(function(error){console.log(error)}); 
