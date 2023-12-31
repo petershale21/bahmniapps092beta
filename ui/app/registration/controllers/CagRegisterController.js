@@ -482,23 +482,46 @@ angular.module('bahmni.registration')
                 })
             }
 
+            $scope.enterVisit = function(patientdata, index){
+                $location.path('/patient/' + patientdata.uuid + '/visit')
+            }
 
-            
-
+            $scope.activePatientVisitUUid="";
+            $scope.activevisits = [];
             $scope.fetchCag = function(url) {
+                
                 $http.get(apiUrl)
                 .then(function(response) {
                     console.log('API Response:', response);
                     // Handle the successful response here
-                    if(response.data.cagPatientList!=null){
-                        for(let i=0; i<response.data.cagPatientList.length; i++){
-                            response.data.cagPatientList[i]["presentMember"] = true;
-                            response.data.cagPatientList[i]["absenteeReason"] = "";
+                    $scope.cag = response.data;
+                    if($scope.cag.cagPatientList!=null){
+                        for(let i=0; i<$scope.cag.cagPatientList.length; i++){
+                            $scope.cag.cagPatientList[i]["presentMember"] = true;
+                            $scope.cag.cagPatientList[i]["absenteeReason"] = "";
+
+                            if($scope.activePatientVisitUUid==""){
+                                var CagPatientapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+response.data.cagPatientList[i].uuid;
+                                $http.get(CagPatientapiURL)
+                                .then(function(response2) {
+                                    console.log(response2);
+                                    if(response2.data.activeCagVisits.length!=0){
+                                        $scope.activevisits = response2.data.activeCagVisits[0].visits;
+                                        console.log($scope.activevisits);
+                                        $scope.activePatientVisitUUid = response2.data.activeCagVisits[0].attender.uuid;
+                                    }
+                                })
+                            }
+                            
+
                         }
-                        $scope.cag = response.data;
+                        
+                        
                         $scope.village=$scope.cag.village;
                         $scope.constituency=$scope.cag.constituency;
                         $scope.district=$scope.cag.district;
+
+                        
                     }
                 })
                 .catch(function(error) {
@@ -506,6 +529,25 @@ angular.module('bahmni.registration')
                     console.error('API Error:', error);
                 });
             }
+            $scope.$watchGroup(['cag.cagPatientList','activevisits'],function(oldV,newV){
+                //only when active visit are less than cag member total do we check for missing member visits
+                if($scope.activevisits.length<$scope.cag.cagPatientList.length && $scope.activevisits.length!=0){
+                    for (let k = 0; k < $scope.cag.cagPatientList.length; k++) {
+                        var absentee = false;
+                        for (let j = 0; j < $scope.activevisits.length; j++) {                                
+                            if($scope.cag.cagPatientList[k].uuid==$scope.activevisits[j].patient.uuid) {
+                                absentee = true;
+                                // alert(absentee);
+                            }  
+                        }
+                        if(absentee==false){
+                            $scope.cag.cagPatientList[k].presentMember=false;
+                            $scope.cag.cagPatientList[k].absenteeReason="absent";
+                        }
+                        console.log($scope.cag.cagPatientList)
+                    }
+                }
+            });
             
             if($location.path()!='/cag/new'){
                 $scope.uuid = $stateParams.cagUuid;

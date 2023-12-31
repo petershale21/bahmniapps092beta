@@ -2,10 +2,11 @@
 
 angular.module('bahmni.registration')
     .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
-        'auditLogService', 'formService',
-        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        'auditLogService', 'formService', '$http',
+        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService, $http) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
+            console.log(patientUuid);
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
             var formExtensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "forms");
             var locationUuid = sessionService.getLoginLocationUuid();
@@ -135,6 +136,50 @@ angular.module('bahmni.registration')
                     $scope.canCloseVisit = isUserPrivilegedToCloseVisit() && hasActiveVisit;
                 });
             };
+
+            $scope.cagVisitOpen = false;
+            $scope.cagUuid = "";
+
+            $scope.backToCag = function () {
+                $location.path('/cag/'+$scope.cagUuid);
+            };
+
+            $scope.isCagVisitOpenForMember = function() {
+                var CagPatientapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+patientUuid;
+                $http.get(CagPatientapiURL)
+                .then(function(response) {
+                    console.log(response.data);
+                    if(response.data.activeCagVisits.length!=0){
+                        $scope.cagVisitOpen = true;
+                        $scope.cagUuid = response.data.activeCagVisits[0].cag.uuid;
+                        $scope.canCloseVisit=false;
+                        
+                    }
+                    else{
+                        $scope.cagVisitOpen = false;
+                    }
+                })
+            }
+            $scope.isCagVisitOpenForMember();
+            $scope.closeCAGVisitIfDischargeda = function(){
+                var closeCagVisitapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit/'+$scope.cagUuid;
+                const currentDate = new Date();
+                const dateStarted = currentDate.toISOString().slice(0, 19).replace("T", " ");
+                $scope.cagCloseVisitData={
+                    "dateStopped" : dateStarted
+                }
+                $http({
+                    url: closeCagVisitapiURL,
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    data: angular.toJson($scope.cagCloseVisitData)
+                }).then(function(response){
+                    console.log(response);
+                    
+                })
+            }
 
             $scope.closeVisitIfDischarged = function () {
                 visitService.getVisitSummary(vm.visitUuid).then(function (response) {

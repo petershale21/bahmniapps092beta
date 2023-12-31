@@ -48,9 +48,11 @@
                     </section>
                 </div>
                 <div class="submit-btn-container">
-                    <button type="button" class="cancel" tabindex="-1" ng-show="::canCloseVisit" ng-click="closeVisitIfDischarged()">{{ ::'REGISTRATION_LABEL_CLOSE_VISIT' | translate}}</button>
+                    <button type="button" class="cancel" tabindex="-1" ng-show="canCloseVisit==true" ng-click="closeVisitIfDischarged()">{{ ::'REGISTRATION_LABEL_CLOSE_VISIT' | translate}}</button>
+                    <button type="button" class="cancel" tabindex="-1" ng-show="canCloseVisit==false && cagVisitOpen==true" ng-click="closeCAGVisitIfDischargeda()">{{ ::'REGISTRATION_LABEL_CLOSE_CAG_VISIT' | translate}}</button>
                     <div class="right">
-                        <button ng-click="back()" accesskey="{{ ::'REGISTRATION_BACK_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_BACK' | translate"></button>
+                        <button ng-click="back()" ng-show="canCloseVisit==true" accesskey="{{ ::'REGISTRATION_BACK_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_BACK' | translate"></button>
+                        <button ng-click="backToCag()" ng-show="canCloseVisit==false && cagVisitOpen==true" accesskey="{{ ::'REGISTRATION_BACK_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_BACK' | translate"></button>
                         <button ng-click="submit()" class="confirm" accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_SAVE' | translate"></button>
                     </div>
                 </div>
