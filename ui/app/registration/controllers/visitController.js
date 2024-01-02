@@ -161,7 +161,7 @@ angular.module('bahmni.registration')
                 })
             }
             $scope.isCagVisitOpenForMember();
-            $scope.closeCAGVisitIfDischargeda = function(){
+            $scope.closeCAGVisitIfDischarged = function(){
                 var closeCagVisitapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit/'+$scope.cagUuid;
                 const currentDate = new Date();
                 const dateStarted = currentDate.toISOString().slice(0, 19).replace("T", " ");
