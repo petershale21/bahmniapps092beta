@@ -572,6 +572,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     var patientVisits = visitData.activeCagVisits[0].visits;
                                     
                                     patientVisits.forEach(function(res){   
+                                        console.log("patientVisit data :",res)
                                         var patientVisitData = 
                                             { 
                                                 "patientUuid" : res.patient.uuid,
@@ -588,29 +589,23 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                         "Appointment scheduled",
                                         "ART, Follow-up date",
                                         "HIVTC, ARV drugs supply duration",
+                                        "HIVTC, ART Regimen",
                                         "ARV drugs No. of days dispensed", 
                                         "HIVTC, HIV care WHO Staging",
                                         "Cotrimoxazole adherence",
-                                        "Cotrimoxazole No of days dispensed"
+                                        "Cotrimoxazole No of days dispensed",
                                     ], "latest", 1, null, null, null, null)
                                     .then(function (res){                                                                     
                                         //console.log("Patient Observations : ",res);
                                         
                                         $scope.cagEncounterDateTime = res.data[0].observationDateTime;
                                         $scope.obsDateTime = res.data[0].observationDateTime;
-                                        console.log("$scope.obsDateTime = res.data[0].observationDateTime; :",$scope.obsDateTime);
+                                        
                                         var data = res.data;     
                                          
                                         _.each(data,function(response) {
-                                            // console.log(
-                                            //             " value : " + response.conceptNameToDisplay +
-                                            //             " uuids : " + response.value.uuid + 
-                                            //             " name " + response.value.name +
-                                            //             " valueString : " + response.valueAsString);
                                             
                                             $scope.provider = response.providers[0].uuid; 
-                                            //console.log("response.conceptNameToDisplay : ",response.conceptNameToDisplay );
-                                            //console.log("Data Values for all Obs : ",response );
                                             
                                             if(response.conceptNameToDisplay == "Follow-up date"){
                                                 $scope.nextCagEncounterDateValue = response.valueAsString;
@@ -717,7 +712,8 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                             }
                                         }).catch(
                                             function(err){
-                                                messagingService.showMessage('error',"Can not have more than one order");
+                                             
+                                                messagingService.showMessage('error',err.data.error.message);
                                             }
                                         );
                                     }).catch(function(error){console.log(error)}); 
@@ -726,7 +722,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                 }
                             }
                             ).catch(function(error){
-                                console.log("Error : ",error);
+                                console.error("CAG ERROR::No Cag Visit started for attender ",error);
                             });                            
                             // EndTimeOut
                         },2000);
@@ -738,7 +734,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             }; 
             var removeAttenderInOtherCagMember = function(patientVisitArray, patientToRemove) { 
     
-                return arr.filter(function(ele){ 
+                return patientVisitArray.filter(function(ele){ 
                     return ele != patientToRemove; 
                 });
             }
@@ -869,7 +865,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                             "conceptId": 3751,
                                                             "uuid": "ed064424-0331-47f6-9532-77156f40a014"
                                                         },
-                                                        "valueCoded": AppointmentScheduledUuid,
+                                                        "valueCoded": AppointmentScheduledValue,
                                                         "valueCodedName": AppointmentScheduledValue,
                                                         "valueText": AppointmentScheduledValue,
                                                         "obsDatetime": obsDateTime,
@@ -988,6 +984,20 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     "uuid": cagVisitLocation
                                 },
                                 "orders":[
+                                    /**
+                                     * {
+                                            "dose": 1,
+                                            "doseUnits": "Tablet(s)",
+                                            "route": "Oral",
+                                            "frequency": "Once a day",
+                                            "asNeeded": false,
+                                            "administrationInstructions": "As directed",
+                                            "quantity": 30,
+                                            "quantityUnits": "Tablet(s)",
+                                            "numberOfRefills": null
+                                        }
+                                     * 
+                                     */
                                     {
                                         "type": "drugorder",
                                         "patient":  patientVisitData[index].patientUuid,
@@ -1057,7 +1067,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                             "conceptId": 3751,
                                                             "uuid": "ed064424-0331-47f6-9532-77156f40a014"
                                                         },
-                                                        "valueCoded": AppointmentScheduledUuid,
+                                                        "valueCoded": AppointmentScheduledValue,
                                                         "valueCodedName": AppointmentScheduledValue,
                                                         "valueText": AppointmentScheduledValue,
                                                         "obsDatetime": obsDateTime,
