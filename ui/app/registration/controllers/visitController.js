@@ -138,7 +138,7 @@ angular.module('bahmni.registration')
             };
 
             $scope.cagVisitOpen = false;
-            $scope.cagUuid = "";
+            $scope.cagVisitUuid = "";
 
             $scope.backToCag = function () {
                 $location.path('/cag/'+$scope.cagUuid);
@@ -148,10 +148,10 @@ angular.module('bahmni.registration')
                 var CagPatientapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+patientUuid;
                 $http.get(CagPatientapiURL)
                 .then(function(response) {
-                    console.log(response.data);
+                    console.log("cag visit arr " , response.data);
                     if(response.data.activeCagVisits.length!=0){
                         $scope.cagVisitOpen = true;
-                        $scope.cagUuid = response.data.activeCagVisits[0].cag.uuid;
+                        $scope.cagVisitUuid = response.data.activeCagVisits[0].uuid;
                         $scope.canCloseVisit=false;
                         
                     }
@@ -162,12 +162,14 @@ angular.module('bahmni.registration')
             }
             $scope.isCagVisitOpenForMember();
             $scope.closeCAGVisitIfDischarged = function(){
-                var closeCagVisitapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit/'+$scope.cagUuid;
+                var closeCagVisitapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit/'+$scope.cagVisitUuid;
                 const currentDate = new Date();
-                const dateStarted = currentDate.toISOString().slice(0, 19).replace("T", " ");
+                const dateStopped = currentDate.toISOString().slice(0, 19).replace("T", " ");
+                console.log(closeCagVisitapiURL);
                 $scope.cagCloseVisitData={
-                    "dateStopped" : dateStarted
+                    "dateStopped" : dateStopped
                 }
+                console.log($scope.cagCloseVisitData);
                 $http({
                     url: closeCagVisitapiURL,
                     method: 'POST',
