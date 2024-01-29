@@ -559,7 +559,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     
                                     var visitData = response.data;
                                     
-                                    console.log("cag visit Patient data :",visitData);
+                                    //console.log("cag visit Patient data :",visitData);
                                     
                                     $scope.cagVisitUuid = visitData.activeCagVisits[0].uuid;
                                     
@@ -569,25 +569,40 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     var patientVisits = visitData.activeCagVisits[0].visits;
                                     
                                     patientVisits.forEach(function(res){  
-                                        // Fetch individual regimen from observation end point
-                                        observationsService.fetch(res.patient.uuid, [
-                                            "HIVTC, ART Regimen",
-                                        ], "latest", 1, null, null, null, null)
-                                        .then(function (response){  
-                                                console.log("response : ",response)
-                                            // var patientVisitData = 
-                                            // { 
-                                            //     "patientUuid" : response.patient.uuid,
-                                            //     "patientVisitUuid" : response.uuid,
-                                            //     "patientRegimen": response.uuid
-                                            // };
+                                        console.log("Visit data : ",res);
                                         
-                                            // $scope.patientVisitData.push(
-                                            //     patientVisitData
-                                            // );  
+                                        $scope.patientUuids = res.patient.uuid;
+                                        $scope.patientVisitUuid = res.uuid;
+
+                                        //console.log("patient uuid = ",res.patient.uuid);
+                                        
+                                        // Fetch individual regimen from observation end point
+                                        observationsService.fetch($scope.patientUuids, [
+                                            "HIVTC, ART Regimen"
+                                        ], "latest")
+                                        .then(function (response){  
+                                             
+                                            //console.log("Response data : : : ",response);
+                                            var patientRegimen = response.data[0].value.name;
+                                            var patientRegimenUuid = response.data[0].value.uuid;
+                                            var patientVisitData = 
+                                            { 
+                                                "patientUuid" : $scope.patientUuids,
+                                                "patientVisitUuid" : $scope.patientVisitUuid,
+                                                "patientRegimen": patientRegimen,
+                                                "patientRegimenUuid": patientRegimenUuid
+                                            };
+                                            console.log("inner loop: ",patientVisitData);
+                                            console.log("uuid for patients :",$scope.patientUuids);
+                                            console.log("uuid fro visits :",$scope.patientVisitUuid);
+                                            
+                                            $scope.patientVisitData.push(
+                                                patientVisitData
+                                            );  
                                         });   
 
-                                        $scope.cagVisitLocation = res.location.uuid;                                                                                                  
+                                        $scope.cagVisitLocation = res.location.uuid;    
+                                                                                                                                      
                                     });  
                                     // var arrayFromPatientObject = Object.keys($scope.patientVisitData).map(function(key) {
                                     //     return $scope.patientVisitData[key];
@@ -597,7 +612,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     //   for (let index = 0; index < arrayFromPatientObject.length; index++) {
                                         
                                     //   }
-
+                                    
                                     observationsService.fetch($scope.patient.uuid, [
                                         "Type of client",
                                         "Appointment scheduled",
