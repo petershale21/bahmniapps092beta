@@ -566,43 +566,55 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     $scope.cagUuid = visitData.activeCagVisits[0].cag.uuid;                                     
                                     $scope.attenderUuid = visitData.activeCagVisits[0].attender.uuid;
 
-                                    //console.log("CAG visitUuid : ",$scope.cagVisitUuid);
-                                    //console.log("Patient visits : ",visitData.activeCagVisits[0].visits);
-
                                     var patientVisits = visitData.activeCagVisits[0].visits;
                                     
-                                    patientVisits.forEach(function(res){   
-                                        console.log("patientVisit data :",res)
-                                        var patientVisitData = 
-                                            { 
-                                                "patientUuid" : res.patient.uuid,
-                                                "patientVisitUuid" : res.uuid
-                                            };
+                                    patientVisits.forEach(function(res){  
+                                        // Fetch individual regimen from observation end point
+                                        observationsService.fetch(res.patient.uuid, [
+                                            "HIVTC, ART Regimen",
+                                        ], "latest", 1, null, null, null, null)
+                                        .then(function (response){  
+                                                console.log("response : ",response)
+                                            // var patientVisitData = 
+                                            // { 
+                                            //     "patientUuid" : response.patient.uuid,
+                                            //     "patientVisitUuid" : response.uuid,
+                                            //     "patientRegimen": response.uuid
+                                            // };
                                         
-                                        $scope.patientVisitData.push(
-                                            patientVisitData
-                                        );     
+                                            // $scope.patientVisitData.push(
+                                            //     patientVisitData
+                                            // );  
+                                        });   
+
                                         $scope.cagVisitLocation = res.location.uuid;                                                                                                  
                                     });  
+                                    // var arrayFromPatientObject = Object.keys($scope.patientVisitData).map(function(key) {
+                                    //     return $scope.patientVisitData[key];
+                                    //   });   
+                                     
+                                    //   // Get individual regimen for all patients 
+                                    //   for (let index = 0; index < arrayFromPatientObject.length; index++) {
+                                        
+                                    //   }
+
                                     observationsService.fetch($scope.patient.uuid, [
                                         "Type of client",
                                         "Appointment scheduled",
                                         "ART, Follow-up date",
                                         "HIVTC, ARV drugs supply duration",
-                                        "HIVTC, ART Regimen",
                                         "ARV drugs No. of days dispensed", 
                                         "HIVTC, HIV care WHO Staging",
                                         "Cotrimoxazole adherence",
                                         "Cotrimoxazole No of days dispensed",
                                     ], "latest", 1, null, null, null, null)
-                                    .then(function (res){                                                                     
-                                        //console.log("Patient Observations : ",res);
+                                    .then(function (res){  
                                         
                                         $scope.cagEncounterDateTime = res.data[0].observationDateTime;
                                         $scope.obsDateTime = res.data[0].observationDateTime;
                                         
-                                        var data = res.data;     
-                                         
+                                        var data = res.data;  
+                                        
                                         _.each(data,function(response) {
                                             
                                             $scope.provider = response.providers[0].uuid; 
