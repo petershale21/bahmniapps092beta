@@ -526,249 +526,253 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 return deferred.promise;
             }
 
+            $scope.isCagVisit = function(uuid){
+                var deferred = $q.defer();
+                appService.getCagPatient(uuid).then(function(response){
+                    console.log(response);
+                    if(response.data.activeCagVisits.length == 1){
+                        deferred.resolve(true);
+                    }
+                    else{
+                        deferred.resolve(false);
+                    }
+                })
+                return deferred.promise;
+            }
+
             $scope.save = function (toStateConfig) {
                 appService.setOrderstatus(true);
                 if (!isFormValid()) {
                     $scope.$parent.$parent.$broadcast("event:errorsOnForm");
                     return $q.when({});
                 }
-                return spinner.forPromise($q.all([preSavePromise(), encounterService.getEncounterType($state.params.programUuid, sessionService.getLoginLocationUuid())])
-                .then(function (results) {
-                    var encounterData = results[0];
-                    encounterData.encounterTypeUuid = results[1].uuid;
-                    var params = angular.copy($state.params);
-                    params.cachebuster = Math.random();
+                return $q.all([ $scope.isCagVisit($scope.patient.uuid)]).then(function(results){
+                    console.log(results);
+                    if(results[0] == true){
+                        var patientUuid =  $scope.patient.uuid; 
+                                    
+                        appService.getCagPatient(patientUuid)
+                        .then(function(response){
+                            if(response.status == 200 ){
+                                
+                                var visitData = response.data;
+                                
+                                //console.log("cag visit Patient data :",visitData);
+                                
+                                $scope.cagVisitUuid = visitData.activeCagVisits[0].uuid;
+                                
+                                $scope.cagUuid = visitData.activeCagVisits[0].cag.uuid;                                     
+                                $scope.attenderUuid = visitData.activeCagVisits[0].attender.uuid;
 
-                    return encounterService.create(encounterData)
-                        .then(function (saveResponse) {
-                            var messageParams = { encounterUuid: saveResponse.data.encounterUuid, encounterType: saveResponse.data.encounterType };
-                            auditLogService.log($scope.patient.uuid, "EDIT_ENCOUNTER", messageParams, "MODULE_LABEL_CLINICAL_KEY");
-                            var consultationMapper = new Bahmni.ConsultationMapper(configurations.dosageFrequencyConfig(), configurations.dosageInstructionConfig(),
-                                configurations.consultationNoteConcept(), configurations.labOrderNotesConcept(), $scope.followUpConditionConcept);
-                            var consultation = consultationMapper.map(saveResponse.data);
-                            consultation.lastvisited = $scope.lastvisited;
-                            return consultation;
-                        }).then(function (savedConsultation) {
-                            return spinner.forPromise(diagnosisService.populateDiagnosisInformation($scope.patient.uuid, savedConsultation)
-                                .then(function (consultationWithDiagnosis) {
-                                    return saveConditions().then(function (savedConditions) {
-                                        consultationWithDiagnosis.conditions = savedConditions;
-                                        messagingService.showMessage('info', "{{'CLINICAL_SAVE_SUCCESS_MESSAGE_KEY' | translate}}");
-                                    }, function () {
-                                        consultationWithDiagnosis.conditions = $scope.consultation.conditions;
-                                    }).then(function () {
-                                        copyConsultationToScope(consultationWithDiagnosis);
-                                        if ($scope.targetUrl) {
-                                            return $window.open($scope.targetUrl, "_self");
+                                var patientVisits = visitData.activeCagVisits[0].visits;
+                                var count = 1;
+                                patientVisits.forEach(function(res){  
+                                    console.log("Visit data : ",res);
+                                    
+                                    $scope.patientUuids = res.patient.uuid;
+                                    $scope.patientVisitUuid = res.uuid;
+                                    $scope.cagVisitLocation = res.location.uuid; 
+
+                                    //console.log("patient uuid = ",res.patient.uuid);
+                                    $scope.complete = false
+                                    // Fetch individual regimen from observation end point
+                                        $q.all([$scope.fetchPrevRegimen($scope.patientUuids,$scope.patientVisitUuid)]).then(function(response){
+                                        if(patientVisits.length == count){
+                                            $scope.complete = true;
                                         }
-                                        return $state.transitionTo(toStateConfig ? toStateConfig.toState : $state.current, toStateConfig ? toStateConfig.toParams : params, {
-                                            inherit: false,
-                                            notify: true,
-                                            reload: (toStateConfig !== undefined)
+                                        count++;
                                         });
-                                    });
-                                }));
-                        }).then(function(){
-                            // Manupulate data to be posted to the cag Encounter
-                            /**
-                             * 1st create an object associated with the main patient.
-                             * 2nd assign observations attained from the current patient especially for common observation for all ART Follow Up
-                             * Inject the $timeout service. To await all other observations to be store in state in other to call the post to cag encounter with the currrent patient
-                             * observation .
-                             * This funtion should not return a object since we are going to post to the end point
-                             */
-                            // StartTimeOut
-                            $timeout(function(){                                
 
-                            var patientUuid =  $scope.patient.uuid; 
+                                        
+                                                                                                                                    
+                                });  
+                                
+                                observationsService.fetch($scope.patient.uuid, [
+                                    "Type of client",
+                                    "Appointment scheduled",
+                                    "ART, Follow-up date",
+                                    "HIVTC, ARV drugs supply duration",
+                                    "ARV drugs No. of days dispensed", 
+                                    "HIVTC, HIV care WHO Staging",
+                                    "Cotrimoxazole adherence",
+                                    "Cotrimoxazole No of days dispensed",
+                                ], "latest", 1, null, null, null, null)
+                                .then(function (res){  
                                     
-                            appService.getCagPatient(patientUuid)
-                            .then(function(response){
-                                if(response.status == 200 ){
+                                    $scope.cagEncounterDateTime = res.data[0].observationDateTime;
+                                    $scope.obsDateTime = res.data[0].observationDateTime;
                                     
-                                    var visitData = response.data;
+                                    var data = res.data;  
                                     
-                                    //console.log("cag visit Patient data :",visitData);
+                                    _.each(data,function(response) {
+                                        
+                                        $scope.provider = response.providers[0].uuid; 
+                                        
+                                        if(response.conceptNameToDisplay == "Follow-up date"){
+                                            $scope.nextCagEncounterDateValue = response.valueAsString;
+                                            $scope.nextCagEncounterDateUuid = response.uuid;  
+                                            
+                                        }
+                                        else if(response.conceptNameToDisplay == "Type of client"){                                                                
+                                            $scope.TypeOfClientTreatmentValue = response.valueAsString; 
+                                            $scope.TypeOfClientTreatmentUuid = response.value.uuid;
+                                        }
+
+                                        else  if(response.conceptNameToDisplay == "Appointment scheduled"){
+                                            $scope.AppointmentScheduledValue = response.valueAsString;
+                                            $scope.AppointmentScheduledUuid = response.value.uuid; 
+                                        }                                                                
+                                        else if(response.conceptNameToDisplay == "ARV drugs supply duration"){
+                                            $scope.ARVDrugsSupplyDurationValue = response.valueAsString;
+                                            $scope.ARVDrugsSupplyDurationUuid = response.value.uuid;
+                                            $scope.ARVDrugsSupplyDurationName = response.value.name;
+                                        
+                                        }
+                                        else if(response.conceptNameToDisplay == "Drugs days dispensed"){
+                                            $scope.DrugsDaysDispensedValue = response.valueAsString;
+                                            $scope.DrugsDaysDispensedUuid = response.uuid; 
+                                        
+                                        }
+                                        else if(response.conceptNameToDisplay == "WHO Staging"){
+                                            $scope.HIVCareWHOStagingValue = response.valueAsString;
+                                            $scope.HIVCareWHOStagingUuid = response.value.uuid;
+
+                                        }
+                                        else if(response.conceptNameToDisplay == "Cotrimoxazole adherence"){
+                                            $scope.CotrimoxazoleAdherenceValue = response.valueAsString;
+                                            $scope.CotrimoxazoleAdherenceUuid = response.value.uuid;                                                                    
+                                        }
+                                        
+                                        else if(response.conceptNameToDisplay == "Cotrimoxazole days dispensed"){
+                                            $scope.cotrimoxazoleNoOfDaysValue = response.valueAsString;
+                                            $scope.cotrimoxazoleNoOfDaysUuid  = response.uuid;  
+                                        } 
+                                        
+
+                                    }); 
+
+                                    console.log("cagUuid :",$scope.cagUuid);
+                                    console.log("cagVisitUuid :",$scope.cagVisitUuid);
+                                    console.log("cagEncounterDateTime :",$scope.cagEncounterDateTime);
+                                    console.log("obsDateTime :",$scope.obsDateTime);
+                                    console.log("nextCagEncounterDateValue :",$scope.nextCagEncounterDateValue);
+                                    console.log("nextCagEncounterDateUuid :",$scope.nextCagEncounterDateUuid);
+                                    console.log("locationUuid :",$scope.cagVisitLocation);  
+                                    console.log("attenderUuid :",$scope.attenderUuid);
+                                    console.log("TypeOfClientTreatmentValue :",$scope.TypeOfClientTreatmentValue);
+                                    console.log("TypeOfClientTreatmentUuid : ",$scope.TypeOfClientTreatmentUuid);
+                                    console.log("AppointmentScheduledValue :",$scope.AppointmentScheduledValue);
+                                    console.log("AppointmentScheduledUuid :",$scope.AppointmentScheduledUuid);
+                                    console.log("ARVDrugsSupplyDurationValue :",$scope.ARVDrugsSupplyDurationValue);
+                                    console.log("ARVDrugsSupplyDurationUuid :",$scope.ARVDrugsSupplyDurationUuid);
+                                    console.log("ARVDrugsSupplyDurationName :",$scope.ARVDrugsSupplyDurationName);
+                                    console.log("DrugsDaysDispensedValue :",$scope.DrugsDaysDispensedValue);
+                                    console.log("DrugsDaysDispensedUuid :",$scope.DrugsDaysDispensedUuid);
+                                    console.log("HIVCareWHOStagingValue :",$scope.HIVCareWHOStagingValue);
+                                    console.log("HIVCareWHOStagingUuid :",$scope.HIVCareWHOStagingUuid);
+                                    console.log("CotrimoxazoleAdherenceValue :",$scope.CotrimoxazoleAdherenceValue);
+                                    console.log("CotrimoxazoleAdherenceUuid :",$scope.CotrimoxazoleAdherenceUuid);
+                                    console.log("cotrimoxazoleNoOfDaysValue :",$scope.cotrimoxazoleNoOfDaysValue);
+                                    console.log("cotrimoxazoleNoOfDaysUuid :",$scope.cotrimoxazoleNoOfDaysUuid);
+                                    console.log("provider :",$scope.provider);
+                                    console.log("patientVisitData :",$scope.patientVisitData); 
                                     
-                                    $scope.cagVisitUuid = visitData.activeCagVisits[0].uuid;
+                                    // The function to return POST reponse
+                                    var postCagEncounter = createCagEncounter(
+                                        $scope.cagUuid
+                                        ,$scope.cagVisitUuid
+                                        ,$scope.cagEncounterDateTime
+                                        ,$scope.obsDateTime
+                                        ,$scope.nextCagEncounterDateValue
+                                        ,$scope.nextCagEncounterDateUuid
+                                        ,$scope.cagVisitLocation
+                                        ,$scope.attenderUuid
+                                        ,$scope.TypeOfClientTreatmentValue
+                                        ,$scope.TypeOfClientTreatmentUuid
+                                        ,$scope.AppointmentScheduledValue
+                                        ,$scope.AppointmentScheduledUuid
+                                        ,$scope.ARVDrugsSupplyDurationValue
+                                        ,$scope.ARVDrugsSupplyDurationUuid
+                                        ,$scope.ARVDrugsSupplyDurationName
+                                        ,$scope.DrugsDaysDispensedValue
+                                        ,$scope.DrugsDaysDispensedUuid
+                                        ,$scope.HIVCareWHOStagingValue
+                                        ,$scope.HIVCareWHOStagingUuid
+                                        ,$scope.CotrimoxazoleAdherenceValue
+                                        ,$scope.CotrimoxazoleAdherenceUuid
+                                        ,$scope.cotrimoxazoleNoOfDaysValue
+                                        ,$scope.cotrimoxazoleNoOfDaysUuid
+                                        ,$scope.provider
+                                        ,$scope.patientVisitData
+                                    );
                                     
-                                    $scope.cagUuid = visitData.activeCagVisits[0].cag.uuid;                                     
-                                    $scope.attenderUuid = visitData.activeCagVisits[0].attender.uuid;
-
-                                    var patientVisits = visitData.activeCagVisits[0].visits;
-                                    
-                                    patientVisits.forEach(function(res){  
-                                        console.log("Visit data : ",res);
-                                        
-                                        $scope.patientUuids = res.patient.uuid;
-                                        $scope.patientVisitUuid = res.uuid;
-                                        $scope.cagVisitLocation = res.location.uuid; 
-
-                                        //console.log("patient uuid = ",res.patient.uuid);
-                                        
-                                        // Fetch individual regimen from observation end point
-                                          $q.all([$scope.fetchPrevRegimen($scope.patientUuids,$scope.patientVisitUuid)]).then(function(response){
+                                    //Post cagEncounter
+                                    postCagEncounter.then(function(cagEncounter){
+                                    if(cagEncounter.status == 201){
+                                            console.info("CAG Encounter successully posted!!!!",cagEncounter)
+                                        }
+                                    }).catch(
+                                        function(err){
                                             
-                                          });
-
-                                           
-                                                                                                                                      
-                                    });  
-                                    // var arrayFromPatientObject = Object.keys($scope.patientVisitData).map(function(key) {
-                                    //     return $scope.patientVisitData[key];
-                                    //   });   
-                                     
-                                    //   // Get individual regimen for all patients 
-                                    //   for (let index = 0; index < arrayFromPatientObject.length; index++) {
-                                        
-                                    //   }
-                                    
-                                    observationsService.fetch($scope.patient.uuid, [
-                                        "Type of client",
-                                        "Appointment scheduled",
-                                        "ART, Follow-up date",
-                                        "HIVTC, ARV drugs supply duration",
-                                        "ARV drugs No. of days dispensed", 
-                                        "HIVTC, HIV care WHO Staging",
-                                        "Cotrimoxazole adherence",
-                                        "Cotrimoxazole No of days dispensed",
-                                    ], "latest", 1, null, null, null, null)
-                                    .then(function (res){  
-                                        
-                                        $scope.cagEncounterDateTime = res.data[0].observationDateTime;
-                                        $scope.obsDateTime = res.data[0].observationDateTime;
-                                        
-                                        var data = res.data;  
-                                        
-                                        _.each(data,function(response) {
-                                            
-                                            $scope.provider = response.providers[0].uuid; 
-                                            
-                                            if(response.conceptNameToDisplay == "Follow-up date"){
-                                                $scope.nextCagEncounterDateValue = response.valueAsString;
-                                                $scope.nextCagEncounterDateUuid = response.uuid;  
-                                             
-                                            }
-                                            else if(response.conceptNameToDisplay == "Type of client"){                                                                
-                                                $scope.TypeOfClientTreatmentValue = response.valueAsString; 
-                                                $scope.TypeOfClientTreatmentUuid = response.value.uuid;
-                                            }
-
-                                            else  if(response.conceptNameToDisplay == "Appointment scheduled"){
-                                                $scope.AppointmentScheduledValue = response.valueAsString;
-                                                $scope.AppointmentScheduledUuid = response.value.uuid; 
-                                            }                                                                
-                                            else if(response.conceptNameToDisplay == "ARV drugs supply duration"){
-                                                $scope.ARVDrugsSupplyDurationValue = response.valueAsString;
-                                                $scope.ARVDrugsSupplyDurationUuid = response.value.uuid;
-                                                $scope.ARVDrugsSupplyDurationName = response.value.name;
-                                            
-                                            }
-                                            else if(response.conceptNameToDisplay == "Drugs days dispensed"){
-                                                $scope.DrugsDaysDispensedValue = response.valueAsString;
-                                                $scope.DrugsDaysDispensedUuid = response.uuid; 
-                                            
-                                            }
-                                            else if(response.conceptNameToDisplay == "WHO Staging"){
-                                                $scope.HIVCareWHOStagingValue = response.valueAsString;
-                                                $scope.HIVCareWHOStagingUuid = response.value.uuid;
-
-                                            }
-                                            else if(response.conceptNameToDisplay == "Cotrimoxazole adherence"){
-                                                $scope.CotrimoxazoleAdherenceValue = response.valueAsString;
-                                                $scope.CotrimoxazoleAdherenceUuid = response.value.uuid;                                                                    
-                                            }
-                                            
-                                            else if(response.conceptNameToDisplay == "Cotrimoxazole days dispensed"){
-                                                $scope.cotrimoxazoleNoOfDaysValue = response.valueAsString;
-                                                $scope.cotrimoxazoleNoOfDaysUuid  = response.uuid;  
-                                            } 
-                                            
-
-                                        }); 
-
-                                        console.log("cagUuid :",$scope.cagUuid);
-                                        console.log("cagVisitUuid :",$scope.cagVisitUuid);
-                                        console.log("cagEncounterDateTime :",$scope.cagEncounterDateTime);
-                                        console.log("obsDateTime :",$scope.obsDateTime);
-                                        console.log("nextCagEncounterDateValue :",$scope.nextCagEncounterDateValue);
-                                        console.log("nextCagEncounterDateUuid :",$scope.nextCagEncounterDateUuid);
-                                        console.log("locationUuid :",$scope.cagVisitLocation);  
-                                        console.log("attenderUuid :",$scope.attenderUuid);
-                                        console.log("TypeOfClientTreatmentValue :",$scope.TypeOfClientTreatmentValue);
-                                        console.log("TypeOfClientTreatmentUuid : ",$scope.TypeOfClientTreatmentUuid);
-                                        console.log("AppointmentScheduledValue :",$scope.AppointmentScheduledValue);
-                                        console.log("AppointmentScheduledUuid :",$scope.AppointmentScheduledUuid);
-                                        console.log("ARVDrugsSupplyDurationValue :",$scope.ARVDrugsSupplyDurationValue);
-                                        console.log("ARVDrugsSupplyDurationUuid :",$scope.ARVDrugsSupplyDurationUuid);
-                                        console.log("ARVDrugsSupplyDurationName :",$scope.ARVDrugsSupplyDurationName);
-                                        console.log("DrugsDaysDispensedValue :",$scope.DrugsDaysDispensedValue);
-                                        console.log("DrugsDaysDispensedUuid :",$scope.DrugsDaysDispensedUuid);
-                                        console.log("HIVCareWHOStagingValue :",$scope.HIVCareWHOStagingValue);
-                                        console.log("HIVCareWHOStagingUuid :",$scope.HIVCareWHOStagingUuid);
-                                        console.log("CotrimoxazoleAdherenceValue :",$scope.CotrimoxazoleAdherenceValue);
-                                        console.log("CotrimoxazoleAdherenceUuid :",$scope.CotrimoxazoleAdherenceUuid);
-                                        console.log("cotrimoxazoleNoOfDaysValue :",$scope.cotrimoxazoleNoOfDaysValue);
-                                        console.log("cotrimoxazoleNoOfDaysUuid :",$scope.cotrimoxazoleNoOfDaysUuid);
-                                        console.log("provider :",$scope.provider);
-                                        console.log("patientVisitData :",$scope.patientVisitData); 
-                                        
-                                        // The function to return POST reponse
-                                        // var postCagEncounter = createCagEncounter(
-                                        //     $scope.cagUuid
-                                        //     ,$scope.cagVisitUuid
-                                        //     ,$scope.cagEncounterDateTime
-                                        //     ,$scope.obsDateTime
-                                        //     ,$scope.nextCagEncounterDateValue
-                                        //     ,$scope.nextCagEncounterDateUuid
-                                        //     ,$scope.cagVisitLocation
-                                        //     ,$scope.attenderUuid
-                                        //     ,$scope.TypeOfClientTreatmentValue
-                                        //     ,$scope.TypeOfClientTreatmentUuid
-                                        //     ,$scope.AppointmentScheduledValue
-                                        //     ,$scope.AppointmentScheduledUuid
-                                        //     ,$scope.ARVDrugsSupplyDurationValue
-                                        //     ,$scope.ARVDrugsSupplyDurationUuid
-                                        //     ,$scope.ARVDrugsSupplyDurationName
-                                        //     ,$scope.DrugsDaysDispensedValue
-                                        //     ,$scope.DrugsDaysDispensedUuid
-                                        //     ,$scope.HIVCareWHOStagingValue
-                                        //     ,$scope.HIVCareWHOStagingUuid
-                                        //     ,$scope.CotrimoxazoleAdherenceValue
-                                        //     ,$scope.CotrimoxazoleAdherenceUuid
-                                        //     ,$scope.cotrimoxazoleNoOfDaysValue
-                                        //     ,$scope.cotrimoxazoleNoOfDaysUuid
-                                        //     ,$scope.provider
-                                        //     ,$scope.patientVisitData
-                                        // );
-                                        
-                                        // Post cagEncounter
-                                        // postCagEncounter.then(function(cagEncounter){
-                                        // if(cagEncounter.status == 201){
-                                        //         console.info("CAG Encounter successully posted!!!!",cagEncounter)
-                                        //     }
-                                        // }).catch(
-                                        //     function(err){
-                                             
-                                        //         messagingService.showMessage('error',err.data.error.message);
-                                        //     }
-                                        // );
-                                    }).catch(function(error){console.log(error)}); 
-                                }else{
-                                    console.log("Patient is not in any cag");
-                                }
+                                            messagingService.showMessage('error',err.data.error.message);
+                                        }
+                                    );
+                                }).catch(function(error){console.log(error)}); 
+                            }else{
+                                console.log("Patient is not in any cag");
                             }
-                            ).catch(function(error){
-                                console.error("CAG ERROR::No Cag Visit started for attender ",error);
-                            });                            
-                            // EndTimeOut
-                        },2000);
-                    }).catch(function (error) {
-                        var message = Bahmni.Clinical.Error.translate(error) || "{{'CLINICAL_SAVE_FAILURE_MESSAGE_KEY' | translate}}";
-                        messagingService.showMessage('error', message);
-                    });
-                }));
-            }; 
+                        }
+                        ).catch(function(error){
+                            console.error("CAG ERROR::No Cag Visit started for attender ",error);
+                        });
+                    }
+                    else{
+                        return spinner.forPromise($q.all([preSavePromise(), encounterService.getEncounterType($state.params.programUuid, sessionService.getLoginLocationUuid())])
+                        .then(function (results) {
+                            var encounterData = results[0];
+                            encounterData.encounterTypeUuid = results[1].uuid;
+                            var params = angular.copy($state.params);
+                            params.cachebuster = Math.random();
+
+                            return encounterService.create(encounterData)
+                                .then(function (saveResponse) {
+                                    var messageParams = { encounterUuid: saveResponse.data.encounterUuid, encounterType: saveResponse.data.encounterType };
+                                    auditLogService.log($scope.patient.uuid, "EDIT_ENCOUNTER", messageParams, "MODULE_LABEL_CLINICAL_KEY");
+                                    var consultationMapper = new Bahmni.ConsultationMapper(configurations.dosageFrequencyConfig(), configurations.dosageInstructionConfig(),
+                                        configurations.consultationNoteConcept(), configurations.labOrderNotesConcept(), $scope.followUpConditionConcept);
+                                    var consultation = consultationMapper.map(saveResponse.data);
+                                    consultation.lastvisited = $scope.lastvisited;
+                                    return consultation;
+                                }).then(function (savedConsultation) {
+                                    return spinner.forPromise(diagnosisService.populateDiagnosisInformation($scope.patient.uuid, savedConsultation)
+                                        .then(function (consultationWithDiagnosis) {
+                                            return saveConditions().then(function (savedConditions) {
+                                                consultationWithDiagnosis.conditions = savedConditions;
+                                                messagingService.showMessage('info', "{{'CLINICAL_SAVE_SUCCESS_MESSAGE_KEY' | translate}}");
+                                            }, function () {
+                                                consultationWithDiagnosis.conditions = $scope.consultation.conditions;
+                                            }).then(function () {
+                                                copyConsultationToScope(consultationWithDiagnosis);
+                                                if ($scope.targetUrl) {
+                                                    return $window.open($scope.targetUrl, "_self");
+                                                }
+                                                return $state.transitionTo(toStateConfig ? toStateConfig.toState : $state.current, toStateConfig ? toStateConfig.toParams : params, {
+                                                    inherit: false,
+                                                    notify: true,
+                                                    reload: (toStateConfig !== undefined)
+                                                });
+                                            });
+                                        }));
+                                }).catch(function (error) {
+                                    var message = Bahmni.Clinical.Error.translate(error) || "{{'CLINICAL_SAVE_FAILURE_MESSAGE_KEY' | translate}}";
+                                    messagingService.showMessage('error', message);
+                                });
+                            }
+                        ));
+                    }
+                })
+                
+            };
             var removeAttenderInOtherCagMember = function(patientVisitArray, patientToRemove) { 
     
                 return patientVisitArray.filter(function(ele){ 
@@ -832,7 +836,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     "uuid": attenderUuid
                                 },
                                 "visit": {
-                                    "uuid": patientVisitData[index].patientVisitUuid
+                                     "uuid": patientVisitData[index].patientVisitUuid
                                 },
                                 "location":{
                                     "uuid": cagVisitLocation 
@@ -842,7 +846,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                         "type": "drugorder",
                                         "patient": patientVisitData[index].patientUuid ,
                                         "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
-                                        "concept": "9d155660-c16e-42d8-bff1-76cebe867e56",
+                                        "concept":  "9d155660-c16e-42d8-bff1-76cebe867e56",
                                         "dateActivated" : cagEncounterDateTime,
                                         "autoExpireDate" : autoExpireDate,
                                         "orderer" : provider, // should get the current logged Provider
@@ -931,9 +935,9 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                             "conceptId": 2250,
                                                             "uuid": "13382e01-9f18-488b-b2d2-58ab54c82d82"
                                                         },
-                                                        "valueCoded": "225b0d93-d4b9-46b0-bbb2-1bce82c9107c",
-                                                        "valueCodedName": "1j=TDF-3TC-DTG",
-                                                        "valueDrug": "1j=TDF-3TC-DTG",
+                                                        "valueCoded": patientVisitData[index].patientRegimenUuid,
+                                                        "valueCodedName": patientVisitData[index].patientRegimen,
+                                                        "valueDrug": patientVisitData[index].patientRegimen,
                                                         "obsDatetime":  obsDateTime,
                                                         "person": {
                                                             "uuid": attenderUuid
@@ -1026,20 +1030,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     "uuid": cagVisitLocation
                                 },
                                 "orders":[
-                                    /**
-                                     * {
-                                            "dose": 1,
-                                            "doseUnits": "Tablet(s)",
-                                            "route": "Oral",
-                                            "frequency": "Once a day",
-                                            "asNeeded": false,
-                                            "administrationInstructions": "As directed",
-                                            "quantity": 30,
-                                            "quantityUnits": "Tablet(s)",
-                                            "numberOfRefills": null
-                                        }
-                                     * 
-                                     */
                                     {
                                         "type": "drugorder",
                                         "patient":  patientVisitData[index].patientUuid,
@@ -1132,10 +1122,10 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                         "concept": {
                                                             "conceptId": 2250,
                                                             "uuid": "13382e01-9f18-488b-b2d2-58ab54c82d82"
-                                                        },
-                                                        "valueCoded": "225b0d93-d4b9-46b0-bbb2-1bce82c9107c",
-                                                        "valueCodedName": "1j=TDF-3TC-DTG",
-                                                        "valueDrug": "1j=TDF-3TC-DTG",
+                                                        },                                                       
+                                                        "valueCoded": patientVisitData[index].patientRegimenUuid,
+                                                        "valueCodedName": patientVisitData[index].patientRegimen,
+                                                        "valueDrug": patientVisitData[index].patientRegimen,
                                                         "obsDatetime": obsDateTime,
                                                         "person": {
                                                             "uuid":  patientVisitData[index].patientUuid
