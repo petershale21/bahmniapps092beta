@@ -263,7 +263,7 @@ angular.module('bahmni.registration')
                                 "patient": {
                                     "uuid": cagMember.uuid
                                 },
-                                "visitType": "33e15d3c-54b7-4e8e-9527-b828c1cb24d0",
+                                "visitType": "da0fffe2-a9c9-489a-b9b0-a5405032c465",
                                 "location": {
                                     "uuid": locationUuid
                                 },
@@ -399,7 +399,7 @@ angular.module('bahmni.registration')
                         else{
                             const buddieObj = {
                                 "patient": $scope.cag.cagPatientList[i].uuid,
-                                "visitType": "33e15d3c-54b7-4e8e-9527-b828c1cb24d0",
+                                "visitType": "da0fffe2-a9c9-489a-b9b0-a5405032c465",
                                 "location": locationUuid,
                                 "startDatetime": dateStarted,
                                 "encounters": [
