@@ -2,11 +2,15 @@
 
 angular.module('bahmni.common.patientSearch')
 .controller('PatientsListController', ['$scope', '$window', 'patientService', '$rootScope', 'appService', 'spinner',
-    '$stateParams', '$bahmniCookieStore', 'printer', 'configurationService',
-    function ($scope, $window, patientService, $rootScope, appService, spinner, $stateParams, $bahmniCookieStore, printer, configurationService) {
+    '$stateParams', '$bahmniCookieStore', 'printer', 'configurationService', '$q',
+    function ($scope, $window, patientService, $rootScope, appService, spinner, $stateParams, $bahmniCookieStore, printer, configurationService, $q) {
         const DEFAULT_FETCH_DELAY = 2000;
         var patientSearchConfig = appService.getAppDescriptor().getConfigValue("patientSearch");
+        console.log(patientSearchConfig);
         var patientListSpinner;
+        var count = 0;
+        $scope.activeVisits = [];
+        $scope.totalqueueLimit=0;
         var initialize = function () {
             var searchTypes = appService.getAppDescriptor().getExtensions("org.bahmni.patient.search", "config").map(mapExtensionToSearchType);
             $scope.search = new Bahmni.Common.PatientSearch.Search(_.without(searchTypes, undefined));
@@ -16,6 +20,11 @@ angular.module('bahmni.common.patientSearch')
             });
             $scope.$watch('search.activePatients', function (activePatientsList) {
                 if (activePatientsList.length > 0 && patientListSpinner) {
+                    if(activePatientsList.length>$scope.totalqueueLimit)    $scope.totalqueueLimit=activePatientsList.length;
+                    else if(activePatientsList.length<$scope.totalqueueLimit){
+                        showSpinner(spinner, $(".tab-content"))
+                    }
+                    $scope.isCagType(activePatientsList ,$scope.totalqueueLimit);
                     hideSpinner(spinner, patientListSpinner, $(".tab-content"));
                 }
             });
@@ -35,6 +44,40 @@ angular.module('bahmni.common.patientSearch')
             });
         };
 
+        $scope.isCagType = function(activePatients,limit){
+            console.log($scope.search);
+            appService.getIsCAGVisitType(limit).then(function(response){
+                $scope.activeVisits = response.data.results;
+
+                console.log($scope.activeVisits);
+                for(var i=0;i<limit;i++){
+                    var found = 0;
+                    var uuid = "";
+                    for(var j=0; j<$scope.activeVisits.length; j++){
+                        if(activePatients[i].activeVisitUuid == $scope.activeVisits[j].uuid && $scope.activeVisits[j].display.substring(0,3)=="CAG"){
+                            activePatients[i]['showIsCag'] = true;
+                            activePatients[i]['presentMember'] = false;
+                            found=1;
+                            j=$scope.activeVisits.length;
+                            uuid=activePatients[i].uuid;
+                            console.log(activePatients);
+                        }
+                        
+                    }
+                    if(uuid!=""){
+                        appService.getCagPatient(uuid).then(function(results){
+                            if(results.data.activeCagVisits.length > 0){
+                                activePatients[0].presentMember=true;
+                                console.log(activePatients[0].presentMember);
+                            }
+                        })
+                    }
+                }
+            });
+            
+            return false;
+        }
+        
         $scope.searchPatients = function () {
             return spinner.forPromise(patientService.search($scope.search.searchParameter)).then(function (response) {
                 $scope.search.updateSearchResults(response.data.pageOfResults);
@@ -159,6 +202,15 @@ angular.module('bahmni.common.patientSearch')
             }
         };
 
+        $scope.checkifCagPresentMember = function(patient, isCag, isPresentCagMember){
+            if((isPresentCagMember==true && isCag==true) || (isPresentCagMember==undefined && isCag==undefined)){
+                $scope.forwardPatient(patient);
+            }
+            else{
+                alert("Not a present cag member!",isCag);
+            }
+        }
+
         $scope.forwardPatient = function (patient, heading) {
             var options = $.extend({}, $stateParams);
             $rootScope.patientAdmitLocationStatus = patient.Status;
@@ -207,5 +259,6 @@ angular.module('bahmni.common.patientSearch')
             }
         };
         initialize();
+        
     }
 ]);
