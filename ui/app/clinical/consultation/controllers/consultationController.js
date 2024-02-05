@@ -521,7 +521,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                         patientVisitData
                     );  
                     console.log("patientVisitData = ", $scope.patientVisitData);
-                    deferred.resolve(true)
+                    deferred.resolve(true);
                 }); 
                 return deferred.promise;
             }
@@ -539,6 +539,16 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 })
                 return deferred.promise;
             }
+
+            $scope.createAppointment = function (appointment) {
+                var createAppointmentApiUrl = Bahmni.Common.Constants.openmrsUrl+"/appointment";
+                
+                console.log(Bahmni.Appointments.Constants.createAppointmentUrl, appointment);
+                return $http.post(Bahmni.Appointments.Constants.createAppointmentUrl, appointment, {
+                    withCredentials: true,
+                    headers: {"Accept": "application/json", "Content-Type": "application/json"}
+                });
+            };
 
             $scope.save = function (toStateConfig) {
                 appService.setOrderstatus(true);
@@ -710,6 +720,15 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     postCagEncounter.then(function(cagEncounter){
                                     if(cagEncounter.status == 201){
                                             console.info("CAG Encounter successully posted!!!!",cagEncounter)
+                                            var appointment = {
+                                                "patientUuid": "c923ca95-d7b6-4b4f-90a2-11c863d0dce6",
+                                                "serviceUuid": "0c8dfd62-776a-4ddd-bcee-f2570c0721fa",
+                                                "serviceTypeUuid": "257dcd02-e539-46fb-b61c-b23e413935c2",
+                                                "startDateTime": "2024-10-28T22:00:00.000Z",
+                                                "endDateTime": "2024-10-28T22:15:00.000Z",
+                                                "locationUuid": "0d4cb392-b10f-473e-8dde-784cd3996cbb",
+                                                "appointmentKind": "Scheduled"
+                                            }
                                         }
                                     }).catch(
                                         function(err){
