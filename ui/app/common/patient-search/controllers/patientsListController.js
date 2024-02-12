@@ -17,14 +17,15 @@ angular.module('bahmni.common.patientSearch')
             $scope.search.markPatientEntry();
             $scope.$watch('search.searchType', function (currentSearchType) {
                 _.isEmpty(currentSearchType) || fetchPatients(currentSearchType);
+                console.log($scope.search.searchTypes);
+                console.log(getPatientCount($scope.search.searchTypes[0], null));
             });
-            $scope.$watch('search.activePatients', function (activePatientsList) {
-                if (activePatientsList.length > 0 && patientListSpinner) {
-                    if(activePatientsList.length>$scope.totalqueueLimit)    $scope.totalqueueLimit=activePatientsList.length;
-                    else if(activePatientsList.length<$scope.totalqueueLimit){
-                        showSpinner(spinner, $(".tab-content"))
-                    }
-                    $scope.isCagType(activePatientsList ,$scope.totalqueueLimit);
+            $scope.$watch('search.activePatients', function () {
+                if ($scope.search.activePatients.length > 0 && $scope.search.activePatients[0].activeVisitUuid) {
+                    $scope.totalqueueLimit=$scope.search.searchTypes[0].patientCount;
+                    console.log("active === ", $scope.search.activePatients, "searchtypes ===",$scope.search);
+                    // if($scope.search.activePatients)
+                    $scope.isCagType($scope.totalqueueLimit);
                     hideSpinner(spinner, patientListSpinner, $(".tab-content"));
                 }
             });
@@ -44,8 +45,32 @@ angular.module('bahmni.common.patientSearch')
             });
         };
 
-        $scope.isCagType = function(activePatients,limit){
+        $scope.isCagVisit = function(uuid, activePatientsUuid, index){
+            var deferred = $q.defer();
+            appService.getCagPatient(uuid).then(function(response){
+                // console.log(response);
+                var res={
+                    "status" : false,
+                    "index" : index
+                }
+                if(response.data.activeCagVisits.length > 0){
+                    // console.log(response.data.activeCagVisits.length > 0,response.data.activeCagVisits[response.data.activeCagVisits.length-1].attender.uuid==activePatientsUuid);
+                    // console.log(res[0].activeCagVisits[res[0].activeCagVisits.length-1].attender.uuid,activePatients[pos].uuid);
+                    if(response.data.activeCagVisits[response.data.activeCagVisits.length-1].attender.uuid==activePatientsUuid) {
+                        res.status=true;
+                        deferred.resolve(res);
+                    }
+                    else deferred.resolve(res);
+                }
+                else deferred.resolve(res);
+                deferred.resolve();
+            })
+            return deferred.promise;
+        }
+
+        $scope.isCagType = function(limit){
             console.log($scope.search);
+            
             appService.getIsCAGVisitType(limit).then(function(response){
                 $scope.activeVisits = response.data.results;
 
@@ -54,28 +79,32 @@ angular.module('bahmni.common.patientSearch')
                     var found = 0;
                     var uuid = "";
                     for(var j=0; j<$scope.activeVisits.length; j++){
-                        if(activePatients[i].activeVisitUuid == $scope.activeVisits[j].uuid && $scope.activeVisits[j].display.substring(0,3)=="CAG"){
-                            activePatients[i]['showIsCag'] = true;
-                            activePatients[i]['presentMember'] = false;
-                            found=1;
-                            j=$scope.activeVisits.length;
-                            uuid=activePatients[i].uuid;
-                            console.log(activePatients);
-                        }
+                        try{
+                            if($scope.search.activePatients[i].activeVisitUuid == $scope.activeVisits[j].uuid && $scope.activeVisits[j].display.substring(0,3)=="CAG"){
+                                $scope.search.activePatients[i]['showIsCag'] = true;
+                                $scope.search.activePatients[i]['presentMember'] = false;
+                                found=1;
+                                j=$scope.activeVisits.length;
+                                uuid=$scope.search.activePatients[i].uuid;
+                                console.log($scope.search.activePatients);
+                                console.log(i,);
+                            }
+                        }catch (Exception) {
+                            // console.error(`Couldn't insert card ${x}`);
+                          }
                         
                     }
                     if(uuid!=""){
-                        appService.getCagPatient(uuid).then(function(results){
-                            if(results.data.activeCagVisits.length > 0){
-                                activePatients[0].presentMember=true;
-                                console.log(activePatients[0].presentMember);
-                            }
+                        var pos=i;
+                        $q.all([$scope.isCagVisit(uuid, $scope.search.activePatients[i].uuid, pos)]).then(function(res){
+                            console.log(res[0]);
+                            if(res[0].status) $scope.search.activePatients[res[0].index].presentMember = res[0].status;
+                            
                         })
                     }
                 }
             });
-            
-            return false;
+           
         }
         
         $scope.searchPatients = function () {

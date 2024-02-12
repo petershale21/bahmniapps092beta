@@ -183,7 +183,7 @@
                 </section>
                 
                 <legend class="registraion_legend">
-                    <span class="mylegend"> CAG Members List <span style="font-size: 10px;">(Note: If member absent for visit, turn toggle off )</span><!--{{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}--></span>
+                    <span class="mylegend"> CAG Members List <span style="font-size: 10px;" ng-hide="cag.cagPatientList.length==0">(Note: If member absent for visit, turn toggle off )</span><!--{{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}--></span>
                     </legend>
                 <section class="relationships-container form">
                     
@@ -197,7 +197,7 @@
                                     <div class="toggle-item">
                                         <div class="toggle-checkbox" style="padding: 0%;">
                                                 <label class="switch">
-                                                    <input type="checkbox" ng-model="patientx.presentMember" ng-click="show(patientx.presentMember,$index)" ng-checked="patientx.presentMember==true">
+                                                    <input type="checkbox" ng-model="patientx.presentMember" ng-click="show(patientx.presentMember,$index)" ng-checked="patientx.presentMember==true" ng-disabled="activePatientVisitUUid!==''">
                                                     <span class="slider round"></span>
                                                 </label>
                                         </div>
@@ -215,7 +215,7 @@
                             
                             <div class="col col3" ng-hide="uuid===''">
                                 <button type="button" id='startVisitButton' ng-click="startVisit(patientx,$index)"
-                                    ng-hide="patientx.presentMember==false" 
+                                    ng-hide="patientx.presentMember==false || activePatientVisitUUid!==''" 
                                     style=" color: white; 
                                             border-color:green;
                                             height: 2pc;
@@ -224,12 +224,25 @@
                                             width: 100%;">
                                     Start Visit(Present Member)
                                 </button>
+                                <button type="button" id='startVisitButton' ng-click="enterVisit(patientx,$index)"
+                                    ng-hide="patientx.presentMember==false || activePatientVisitUUid!==patientx.uuid" 
+                                    style=" color: white; 
+                                            border-color:green;
+                                            height: 2pc;
+                                            text-align: center;
+                                            background:linear-gradient(to bottom, #A1D030, #88af28);
+                                            width: 100%;">
+                                    Enter Present Member Visit Details
+                                </button>
                                 <div class="field-value" ng-show="patientx.presentMember==false" >
-                                    <input type="text"  ng-model="patientx.absenteeReason" placeholder="Reason Absent for visit" style="width: 90%;">
+                                    <input type="text"  ng-model="patientx.absenteeReason" placeholder="Reason Absent for visit" style="width: 90%;" ng-disabled="activePatientVisitUUid!==''">
+                                </div>
+                                <div class="field-value" ng-show="patientx.presentMember==true && activePatientVisitUUid!==patientx.uuid && activePatientVisitUUid!==''" >
+                                    <p><b>Sent Present Member for refill</b></p>
                                 </div>
                             </div>
                             <div class="col col4">
-                                <button type="button" class="small-btn row-remover" ng-confirm-click="deletePatientFromCag(patientx,$index)" id="relationRemoveBtn">
+                                <button type="button" ng-hide="activePatientVisitUUid!==''" class="small-btn row-remover" ng-confirm-click="deletePatientFromCag(patientx,$index)" id="relationRemoveBtn">
                                     <span class="fa fa-remove"></span>
                                 </button>
                             </div>
@@ -260,11 +273,11 @@
                     </div>
                     
                 </section>
-                <section class="form-field-inline">
+                <section class="form-field-inline" ng-hide="activePatientVisitUUid!==''">
                     <article class="form-field">
                         <div class="field-attribute col col2">
                             <label for="newField">
-                                    <b>Patient to Cag List </b>
+                                    <b>Add Patient to Cag List </b>
                              </label>
                         </div>
                         <div class="field-value col col4" style="position: absolute; display: inline-block;">
