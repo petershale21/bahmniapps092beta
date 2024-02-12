@@ -34,6 +34,26 @@ angular.module('bahmni.common.appFramework')
             });
                return cag;
            };
+           // posting cag appointment to API - senekane
+           this.createAppointment = function (appointment) {
+                var createAppointmentApiUrl = Bahmni.Common.Constants.openmrsUrl+"/ws/rest/v1/appointment";
+                
+                return $http.post(createAppointmentApiUrl, appointment, {
+                    withCredentials: true,
+                    headers: {"Accept": "application/json", "Content-Type": "application/json"}
+                });
+            };
+           // checkinh visit type data from API - senekanet
+           this.getIsCAGVisitType = function (limit) {
+                var cag = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/visit?limit="+limit, {
+                    method: "GET", 
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    withCredentials: true
+                });
+                return cag;
+            };
 
            this.getAllCags = function () {
             return $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cag/", {
