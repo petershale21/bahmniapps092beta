@@ -503,7 +503,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 var deferred = $q.defer();
                 observationsService.fetch(patientUuids, [
                     "HIVTC, ART Regimen"
-                ], "latest",1)
+                ], "latest")
                 .then(function (response){  
                     if(response.data.length>0){
                         console.log("Response data : : : ",response);
@@ -1093,32 +1093,32 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                 "location":{
                                     "uuid": cagVisitLocation 
                                 },
-                                // "orders":[
-                                //     {
-                                //         "type": "drugorder",
-                                //         "patient": patientVisitData[index].patientUuid ,
-                                //         "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
-                                //         "concept":  "9d155660-c16e-42d8-bff1-76cebe867e56",
-                                //         "dateActivated" : cagEncounterDateTime,
-                                //         "autoExpireDate" : autoExpireDate,
-                                //         "orderer" : provider, // should get the current logged Provider
-                                //         "urgency": "ON_SCHEDULED_DATE",
-                                //         "careSetting": "6f0c9a92-6f24-11e3-af88-005056821db0",
-                                //         "scheduledDate":  cagEncounterDateTime,
-                                //         "dose": 1,
-                                //         "doseUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
-                                //         "frequency": "9d7c32a2-3f10-11e4-adec-0800271c1b75",
-                                //         "quantity":  DrugsDaysDispensedValue,
-                                //         "quantityUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
-                                //          "drug": "189a5fc2-d29b-4ce5-b3ca-dc5405228bfc",
-                                //         "numRefills": 0,
-                                //         "dosingInstructions": "{\"instructions\":\"As directed\"}",
-                                //         "duration":  DrugsDaysDispensedValue,
-                                //         "durationUnits": "9d7437a9-3f10-11e4-adec-0800271c1b75",
-                                //         "route": "9d6bc13f-3f10-11e4-adec-0800271c1b75",
-                                //         "action": "NEW"
-                                //     }
-                                // ],
+                                "orders":[
+                                    {
+                                        "type": "drugorder",
+                                        "patient": patientVisitData[index].patientUuid ,
+                                        "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
+                                        "concept":  "9d155660-c16e-42d8-bff1-76cebe867e56",
+                                        "dateActivated" : cagEncounterDateTime,
+                                        "autoExpireDate" : autoExpireDate,
+                                        "orderer" : provider, // should get the current logged Provider
+                                        "urgency": "ON_SCHEDULED_DATE",
+                                        "careSetting": "6f0c9a92-6f24-11e3-af88-005056821db0",
+                                        "scheduledDate":  cagEncounterDateTime,
+                                        "dose": 1,
+                                        "doseUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                        "frequency": "9d7c32a2-3f10-11e4-adec-0800271c1b75",
+                                        "quantity":  DrugsDaysDispensedValue,
+                                        "quantityUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                         "drug": "189a5fc2-d29b-4ce5-b3ca-dc5405228bfc",
+                                        "numRefills": 0,
+                                        "dosingInstructions": "{\"instructions\":\"As directed\"}",
+                                        "duration":  DrugsDaysDispensedValue,
+                                        "durationUnits": "9d7437a9-3f10-11e4-adec-0800271c1b75",
+                                        "route": "9d6bc13f-3f10-11e4-adec-0800271c1b75",
+                                        "action": "NEW"
+                                    }
+                                ],
                                 "obs":[
                                     {
                                         "concept": {
@@ -1281,32 +1281,32 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                 "location":{
                                     "uuid": cagVisitLocation
                                 },
-                                // "orders":[
-                                //     {
-                                //         "type": "drugorder",
-                                //         "patient":  patientVisitData[index].patientUuid,
-                                //         "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
-                                //         "concept": "9d155660-c16e-42d8-bff1-76cebe867e56",
-                                //         "dateActivated" : cagEncounterDateTime,
-                                //         "autoExpireDate" : autoExpireDate,
-                                //         "orderer" : provider,
-                                //         "urgency": "ON_SCHEDULED_DATE",
-                                //         "careSetting": "6f0c9a92-6f24-11e3-af88-005056821db0",
-                                //         "scheduledDate": cagEncounterDateTime,
-                                //         "dose": 1,
-                                //         "doseUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
-                                //         "frequency": "9d7c32a2-3f10-11e4-adec-0800271c1b75",
-                                //         "quantity": 30.0,
-                                //         "quantityUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
-                                //         "drug": "189a5fc2-d29b-4ce5-b3ca-dc5405228bfc",
-                                //         "numRefills": 0,
-                                //         "dosingInstructions": "{\"instructions\":\"As directed\"}",
-                                //         "duration": 30,
-                                //         "durationUnits": "9d7437a9-3f10-11e4-adec-0800271c1b75",
-                                //         "route": "9d6bc13f-3f10-11e4-adec-0800271c1b75",
-                                //         "action": "NEW"
-                                //     }
-                                // ],
+                                "orders":[
+                                    {
+                                        "type": "drugorder",
+                                        "patient":  patientVisitData[index].patientUuid,
+                                        "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
+                                        "concept": "9d155660-c16e-42d8-bff1-76cebe867e56",
+                                        "dateActivated" : cagEncounterDateTime,
+                                        "autoExpireDate" : autoExpireDate,
+                                        "orderer" : provider,
+                                        "urgency": "ON_SCHEDULED_DATE",
+                                        "careSetting": "6f0c9a92-6f24-11e3-af88-005056821db0",
+                                        "scheduledDate": cagEncounterDateTime,
+                                        "dose": 1,
+                                        "doseUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                        "frequency": "9d7c32a2-3f10-11e4-adec-0800271c1b75",
+                                        "quantity": 30.0,
+                                        "quantityUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                        "drug": "189a5fc2-d29b-4ce5-b3ca-dc5405228bfc",
+                                        "numRefills": 0,
+                                        "dosingInstructions": "{\"instructions\":\"As directed\"}",
+                                        "duration": 30,
+                                        "durationUnits": "9d7437a9-3f10-11e4-adec-0800271c1b75",
+                                        "route": "9d6bc13f-3f10-11e4-adec-0800271c1b75",
+                                        "action": "NEW"
+                                    }
+                                ],
                                 "obs":[
                                     {
                                         "concept": {
@@ -1413,10 +1413,11 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     }            
                                 ]
                             }
-                            console.log("otherCagMemberData : ",otherCagMemberData)
+                           
                             cagEncounterData.push(otherCagMemberData);
+                            
                         }
-                        
+                        console.log("otherCagMemberData : ",cagEncounterData)
                     } 
                      
                     var encounterData={
