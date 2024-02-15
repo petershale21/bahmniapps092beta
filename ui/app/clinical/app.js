@@ -17,6 +17,8 @@ angular.module('consultation', ['ui.router', 'bahmni.clinical', 'bahmni.common.c
     'bahmni.common.displaycontrol.forms', 'bahmni.common.displaycontrol.drugOrderDetails',
     'bahmni.common.displaycontrol.hint', 'bahmni.common.displaycontrol.drugOrdersSection', 'bahmni.common.attributeTypes',
     'bahmni.common.services', 'bahmni.common.models']);
+
+
 angular.module('consultation')
     .config(['$stateProvider', '$httpProvider', '$urlRouterProvider', '$bahmniTranslateProvider', '$compileProvider',
         function ($stateProvider, $httpProvider, $urlRouterProvider, $bahmniTranslateProvider, $compileProvider) {
@@ -28,10 +30,15 @@ angular.module('consultation')
                 id: "patients-link",
                 icon: "fa-users"
             };
-            var homeBackLink = {label: "", url: "../home/index.html", accessKey: "h", icon: "fa-home"};
+            var homeBackLink = {
+                label: "", 
+                url: "../home/index.html", 
+                accessKey: "h", 
+                icon: "fa-home"
+            };
 
         // @if DEBUG='production'
-            $compileProvider.debugInfoEnabled(false);
+            $compileProvider.debugInfoEnabled(true);
         // @endif
 
         // @if DEBUG='development'
