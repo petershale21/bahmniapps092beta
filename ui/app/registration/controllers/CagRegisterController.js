@@ -6,6 +6,7 @@ angular.module('bahmni.registration')
         function ($rootScope, $scope, $location, $window, spinner, ngDialog, patientAttributeService, appService, messagingService, $translate, $filter, $http, $stateParams, addressHierarchyService, patientService, $timeout, $bahmniCookieStore,$q,observationsService,cagService) {
             $scope.isSubmitting = false;
             $scope.patientlist=[];
+            var DateUtil = Bahmni.Common.Util.DateUtil;
             // $scope.cagMembers=[];
             $scope.district="";
             $scope.constituency="";
@@ -147,50 +148,91 @@ angular.module('bahmni.registration')
                 }
             }
 
+
+            $scope.fetchPrevRegimen = function (patientUuids) {
+                var todayDate = DateUtil.getDateTimeInSpecifiedFormat(DateUtil.now(),"YYYY-MM-DD");
+                console.log("===", patientUuids);
+                var deferred = $q.defer();
+                observationsService.fetch(patientUuids, [
+                    "HIVTC, ART Regimen",
+                    "HIVTC, ART start date"
+                ], "latest")
+                .then(function (response){  
+                    // console.log(response,$scope.getMonthDifference(response.data[1].value,todayDate)>=6);
+                    if(response.data.length==2 && $scope.getMonthDifference(response.data[1].value,todayDate)>=6){
+                        
+                        deferred.resolve(true);
+                    } 
+                    else{
+                        deferred.resolve(false);
+                    }
+                    
+                }).catch(function(error){console.log(error)}); 
+                return deferred.promise;
+            }
+            $scope.getMonthDifference = function(startDate, endDate) {
+                // const increment = startDate.getMonth() === endDate.getMonth() ? 2 : 1;
+                const diff = moment(endDate).diff(moment(startDate), 'months', true);
+                return Math.ceil(diff) ;    // this increment is opitional and totally depends on your need.
+            }
+
+
+            console.log("===========",$scope.getMonthDifference("2024-01-20","2024-02-20"));
             $scope.addPatientToCag = function(patientTobeAdded, cagListLength){
                 console.log(patientTobeAdded);
+                
                 if(cagListLength==undefined) cagListLength=0;
                 if(JSON.stringify($scope.patientTobeAdded) != '{}' && $scope.searchCagList(patientTobeAdded.uuid,cagListLength)==0){
-                    
-                    if($location.path()=='/cag/new'){
-                        $scope.cag.cagPatientList.push(patientTobeAdded);
-                    }
-                    else{
-                        var data={
-                            "cag": {
-                                "uuid": $scope.uuid+""
-                            },
-                            "patient": {
-                                "uuid": patientTobeAdded.uuid+""
-                            }
-
-                        }
-                        console.log(data);
-                        apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
-
-                        $http({
-                            url: apiUrl,
-                            method: 'POST',
-                            headers: {
-                            'Content-Type': 'application/json'
-                            },
-                            data: angular.toJson(data)
-                        }).then(function(response){
-                            if((response.status==200 || response.status==201) && $scope.cag.cagPatientList!=null){
-                                patientTobeAdded["presentMember"] = true;
-                                patientTobeAdded["absenteeReason"] = "";
+                    $q.all([$scope.fetchPrevRegimen(patientTobeAdded.uuid)]).then(function(hasPrevRegimen) {
+                        console.log(hasPrevRegimen);
+                        if(hasPrevRegimen[0]){
+                            if($location.path()=='/cag/new'){
                                 $scope.cag.cagPatientList.push(patientTobeAdded);
-                                console.log($scope.cag.cagPatientList);
-                                $scope.patientTobeAdded = {};
-                                $scope.newPatient = '';
-                                messagingService.showMessage('info', 'Patient has been added to CAG');
                             }
                             else{
-                                messagingService.showMessage('error', response.error.message);
+                                var data={
+                                    "cag": {
+                                        "uuid": $scope.uuid+""
+                                    },
+                                    "patient": {
+                                        "uuid": patientTobeAdded.uuid+""
+                                    }
+        
+                                }
+                                console.log(data);
+                                apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
+        
+                                $http({
+                                    url: apiUrl,
+                                    method: 'POST',
+                                    headers: {
+                                    'Content-Type': 'application/json'
+                                    },
+                                    data: angular.toJson(data)
+                                }).then(function(response){
+                                    if((response.status==200 || response.status==201) && $scope.cag.cagPatientList!=null){
+                                        patientTobeAdded["presentMember"] = true;
+                                        patientTobeAdded["absenteeReason"] = "";
+                                        $scope.cag.cagPatientList.push(patientTobeAdded);
+                                        console.log($scope.cag.cagPatientList);
+                                        $scope.patientTobeAdded = {};
+                                        $scope.newPatient = '';
+                                        messagingService.showMessage('info', 'Patient has been added to CAG');
+                                    }
+                                    else{
+                                        messagingService.showMessage('error', response.error.message);
+                                    }
+                                    $scope.isSubmitting = false;
+                                })
                             }
-                            $scope.isSubmitting = false;
-                        })
-                    }
+                        }
+                        
+                        else{
+                            alert("has no previous regimen given");
+                        }
+                    })
+                    
+                    
                     
                     
                 }
@@ -199,23 +241,23 @@ angular.module('bahmni.registration')
                 }
             }
 
-            $scope.deletePatientFromCag = function(patientTobeRemoved, patientindex){
-                console.log(patientindex);
-                apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+patientTobeRemoved.uuid;
-                $http.delete(apiUrl)
-                .then(function(response){
-                    console.log(response);
-                    if(response.status==204){
-                        $scope.cag.cagPatientList.splice(patientindex, 1);
-                        messagingService.showMessage('info', 'Patient has been removed from CAG');
-                    }
-                    else{
-                        messagingService.showMessage('error', 'Errror while removing patient from CAG');
-                    }
-                    $scope.isSubmitting = false;
-                })
-            }
-            $
+            // $scope.deletePatientFromCag = function(patientTobeRemoved, patientindex){
+            //     console.log(patientindex);
+            //     apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+patientTobeRemoved.uuid;
+            //     $http.delete(apiUrl)
+            //     .then(function(response){
+            //         console.log(response);
+            //         if(response.status==204){
+            //             $scope.cag.cagPatientList.splice(patientindex, 1);
+            //             messagingService.showMessage('info', 'Patient has been removed from CAG');
+            //         }
+            //         else{
+            //             messagingService.showMessage('error', 'Errror while removing patient from CAG');
+            //         }
+            //         $scope.isSubmitting = false;
+            //     })
+            // }
+            // $
             var getConceptValues = function () {
                 return $q.all([
                     observationsService.fetch("580d4b70-9593-481a-9fe6-3a721fb56184", [

@@ -10,6 +10,7 @@ angular.module('bahmni.common.patientSearch')
         var patientListSpinner;
         var count = 0;
         $scope.activeVisits = [];
+        $scope.otherCagMemberList=[];
         $scope.totalqueueLimit=0;
         var initialize = function () {
             var searchTypes = appService.getAppDescriptor().getExtensions("org.bahmni.patient.search", "config").map(mapExtensionToSearchType);
@@ -26,6 +27,7 @@ angular.module('bahmni.common.patientSearch')
                     console.log("active === ", $scope.search.activePatients, "searchtypes ===",$scope.search);
                     // if($scope.search.activePatients)
                     $scope.isCagType($scope.totalqueueLimit);
+                    $scope.otherCagMemberList=[];
                     hideSpinner(spinner, patientListSpinner, $(".tab-content"));
                 }
             });
@@ -48,16 +50,18 @@ angular.module('bahmni.common.patientSearch')
         $scope.isCagVisit = function(uuid, activePatientsUuid, index){
             var deferred = $q.defer();
             appService.getCagPatient(uuid).then(function(response){
-                // console.log(response);
+                console.log(response);
                 var res={
                     "status" : false,
-                    "index" : index
+                    "index" : index,
+                    "cagName":undefined,
+                    "otherMemberList":[]
                 }
                 if(response.data.activeCagVisits.length > 0){
-                    // console.log(response.data.activeCagVisits.length > 0,response.data.activeCagVisits[response.data.activeCagVisits.length-1].attender.uuid==activePatientsUuid);
-                    // console.log(res[0].activeCagVisits[res[0].activeCagVisits.length-1].attender.uuid,activePatients[pos].uuid);
                     if(response.data.activeCagVisits[response.data.activeCagVisits.length-1].attender.uuid==activePatientsUuid) {
                         res.status=true;
+                        res.cagName=response.data.activeCagVisits[response.data.activeCagVisits.length-1].cag.name;
+                        res.otherMemberList=response.data.activeCagVisits[response.data.activeCagVisits.length-1].visits;
                         deferred.resolve(res);
                     }
                     else deferred.resolve(res);
@@ -83,6 +87,7 @@ angular.module('bahmni.common.patientSearch')
                             if($scope.search.activePatients[i].activeVisitUuid == $scope.activeVisits[j].uuid && $scope.activeVisits[j].display.substring(0,3)=="CAG"){
                                 $scope.search.activePatients[i]['showIsCag'] = true;
                                 $scope.search.activePatients[i]['presentMember'] = false;
+                                $scope.search.activePatients[i]['cagName'] = "";
                                 found=1;
                                 j=$scope.activeVisits.length;
                                 uuid=$scope.search.activePatients[i].uuid;
@@ -94,12 +99,38 @@ angular.module('bahmni.common.patientSearch')
                           }
                         
                     }
+                    
                     if(uuid!=""){
                         var pos=i;
                         $q.all([$scope.isCagVisit(uuid, $scope.search.activePatients[i].uuid, pos)]).then(function(res){
-                            console.log(res[0]);
-                            if(res[0].status) $scope.search.activePatients[res[0].index].presentMember = res[0].status;
-                            
+                            if(res){
+                                console.log(res[0],i,$scope.otherCagMemberList);
+                                if(res[0].status)   $scope.search.activePatients[res[0].index].presentMember = res[0].status;
+                                if(res[0].cagName!=undefined)  $scope.search.activePatients[res[0].index].cagName = res[0].cagName;
+                                if(res[0].otherMemberList.length==0)  $scope.otherCagMemberList.push({"uuid":$scope.search.activePatients[res[0].index].uuid,"index":res[0].index}) 
+                                // for (let k = 0; k < $scope.otherCagMemberList.length; k++) {
+                                //     console.log( $scope.otherCagMemberList, k,res[0].otherMemberList,$scope.search.activePatients );
+                                //     for(let j=0; j<res[0].otherMemberList.length; j++){
+                                //         if( $scope.otherCagMemberList[k].uuid== res[0].otherMemberList[j].patient.uuid) {
+                                //             console.log( $scope.otherCagMemberList, k,$scope.search.activePatients ,res[0].cagname,$scope.otherCagMemberList[k].index);
+                                //             $scope.search.activePatients[$scope.otherCagMemberList[k].index].cagName = $scope.search.activePatients[res[0].index].cagName;
+                                        
+                                //         }  
+                                //     } 
+                                // }
+
+                                // for(let j=0; j<res[0].otherMemberList.length; j++){
+                                //     for (let k = 0; k < $scope.search.activePatients.length; k++) {
+                                //         // console.log( $scope.otherCagMemberList, k,res[0].otherMemberList,$scope.search.activePatients );
+                                    
+                                //         if( $scope.search.activePatients[k].uuid== res[0].otherMemberList[j].patient.uuid && $scope.search.activePatients[k].cagName=="") {
+                                //             // console.log( $scope.otherCagMemberList, k,$scope.search.activePatients ,res[0].cagname,$scope.otherCagMemberList[k].index);
+                                //             $scope.search.activePatients[k].cagName = res[0].cagName;
+                                        
+                                //         }  
+                                //     } 
+                                // }
+                            }
                         })
                     }
                 }

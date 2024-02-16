@@ -13,6 +13,8 @@ angular.module('bahmni.registration')
             var selectedProvider = $rootScope.currentProvider;
             var regEncounterTypeUuid = $rootScope.regEncounterConfiguration.encounterTypes[Bahmni.Registration.Constants.registrationEncounterType];
             var visitLocationUuid = $rootScope.visitLocation;
+            appService.getCagPatient(patientUuid).then(function(response){$rootScope.isCagPresentMemberVisit= response.data;});//helps set type of member = ART Patient for CAG present member
+            
 
             var getPatient = function () {
                 var deferred = $q.defer();
