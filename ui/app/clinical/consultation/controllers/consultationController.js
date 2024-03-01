@@ -854,6 +854,118 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                             appService.createAppointment(appointment).then(function(reply){
                                                                 console.log(reply);
                                                             });
+
+                                                            // ==================
+                                                                // Get drugs related to cag members
+                                                                console.log("patientVIsit data in getDrug : ",$scope.patientVisitData);
+                                                                appService.getDrugConcept($scope.patientVisitData[$scope.index].patientUuid).
+                                                                then(function(drugData){
+                                                                    console.log($scope.index+1," : ",drugData);
+                                                                    
+                                                                console.log($scope.index+1,"leng of array",drugData.data.results.length);
+                                                                    
+                                                                
+                                                                    // Now create the cag member order
+                                                                    for (let index = 0; index < drugData.data.results.length; index++) {
+                                                                        
+                                                                        var cagOrder = {
+                                                                               "encounter": $scope.drugs[$scope.index].uuid,
+                                                                               "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
+                                                                               "action": "NEW",
+                                                                               "accessionNumber": null,
+                                                                               "dateActivated": $scope.nextCagEncounterDateValue,
+                                                                               "scheduledDate": $scope.nextCagEncounterDateValue,
+                                                                               "patient": $scope.patientVisitData[index].patientUuid,
+                                                                               "concept": drugData.data.results[index].uuid,
+                                                                               "careSetting": "6f0c9a92-6f24-11e3-af88-005056821db0",
+                                                                               "dateStopped": null,//Bahmni.Common.Util.DateUtil.addDays($scope.nextCagEncounterDateValue,1),
+                                                                               "autoExpireDate": $scope.nextCagEncounterDateValue,
+                                                                               "orderer": $scope.provider,
+                                                                               "previousOrder": null, //Create a getOrder for previous order
+                                                                               "urgency": "ROUTINE",
+                                                                               "orderReason": null,
+                                                                               "orderReasonNonCoded": null,
+                                                                               "instructions": "{\"instructions\":\"As directed\"}",
+                                                                               "commentToFulfiller": null,
+                                                                               "type":"drugorder"
+                                                                               } 
+    
+                                                                        appService.createCagOrder(cagOrder)
+                                                                        .then(function(orderResponse){
+                                                                            console.log("Cag order created !!!!!",orderResponse)
+                                                                        }).catch(function(codeError){
+                                                                            console.log("Code error posted !!!",codeError)
+                                                                        });
+                                                            
+                                                                    }
+                                                                })
+                                                                .catch(function(err){
+                                                                    console.log("ERROR : drug not retrieved",err)
+                                                                });
+    
+                                                                //Creating orders for all individual memeber
+                                                                // var cagOrders = {
+                                                                //    "encounter": cagEncounter.data.encounters[index].uuid,
+                                                                //    "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
+                                                                //    "action": "NEW",
+                                                                //    "accessionNumber": null,
+                                                                //    "dateActivated": $scope.nextCagEncounterDateValue,
+                                                                //    "scheduledDate": $scope.nextCagEncounterDateValue,
+                                                                //    "patient": $scope.patientVisitData[index].patientUuid,
+                                                                //    "concept": "uuid",
+                                                                //    "careSetting": "6f0c9a92-6f24-11e3-af88-005056821db0",
+                                                                //    "dateStopped": null,//Bahmni.Common.Util.DateUtil.addDays($scope.nextCagEncounterDateValue,1),
+                                                                //    "autoExpireDate": $scope.nextCagEncounterDateValue,
+                                                                //    "orderer": $scope.provider,
+                                                                //    "previousOrder": null, //Create a getOrder for previous order
+                                                                //    "urgency": "ROUTINE",
+                                                                //    "orderReason": null,
+                                                                //    "orderReasonNonCoded": null,
+                                                                //    "instructions": "{\"instructions\":\"As directed\"}",
+                                                                //    "commentToFulfiller": null,
+                                                                //    "type": "drugorder"
+                                                                //    } 
+                                                                //==========================================
+    
+    
+                                                                // appService.createCagOrder(cagOrders).then(function(cagOrderResponse){
+                                                                //     console.log("cagOrderResponse :",cagOrderResponse);
+                                                                // }).catch(function(err){ console.log(err)});
+                                                                
+                                                                
+                                                                // ==========================================
+                                                                    // "orders":[
+                                                                //     {
+                                                                //         "type": "drugorder",
+                                                                //         "patient": patientVisitData[index].patientUuid ,
+                                                                //         "orderType": "131168f4-15f5-102d-96e4-000c29c2a5d7",
+                                                                //         "concept":  "9d155660-c16e-42d8-bff1-76cebe867e56",
+                                                                //         "dateActivated" : cagEncounterDateTime,
+                                                                //         "autoExpireDate" : autoExpireDate,
+                                                                //         "orderer" : provider, // should get the current logged Provider
+                                                                //         "urgency": "ON_SCHEDULED_DATE",
+                                                                //         "careSetting": "6f0c9a92-6f24-11e3-af88-005056821db0",
+                                                                //         "scheduledDate":  cagEncounterDateTime,
+                                                                //         "dose": 1,
+                                                                //         "doseUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                                                //         "frequency": "9d7c32a2-3f10-11e4-adec-0800271c1b75",
+                                                                //         "quantity":  DrugsDaysDispensedValue,
+                                                                //         "quantityUnits": "86239663-7b04-4563-b877-d7efc4fe6c46",
+                                                                //          "drug": "189a5fc2-d29b-4ce5-b3ca-dc5405228bfc",
+                                                                //         "numRefills": 0,
+                                                                //         "dosingInstructions": "{\"instructions\":\"As directed\"}",
+                                                                //         "duration":  DrugsDaysDispensedValue,
+                                                                //         "durationUnits": "9d7437a9-3f10-11e4-adec-0800271c1b75",
+                                                                //         "route": "9d6bc13f-3f10-11e4-adec-0800271c1b75",
+                                                                //         "action": "NEW"
+                                                                //     }
+                                                                // ],
+                                    
+                                                                
+                                                            
+
+
+                                                            //=============
                                                         }
                                                         
                                                         for(let p = 0; p < cagEncounter.data.encounters.length; p++){
@@ -865,12 +977,13 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                                     encounterService.findByEncounterUuid(cagEncounter.data.encounters[p].uuid).then(function (saveResponse) {
                                                                         var messageParams = { encounterUuid: saveResponse.data.encounterUuid, encounterType: saveResponse.data.encounterType };
                                                                         auditLogService.log($scope.patient.uuid, "EDIT_ENCOUNTER", messageParams, "MODULE_LABEL_CLINICAL_KEY");
-                                                                        console.log(configurations.dosageFrequencyConfig());
+                                                                        console.log("",configurations.dosageFrequencyConfig());
                                                                         var consultationMapper = new Bahmni.ConsultationMapper(configurations.dosageFrequencyConfig(), configurations.dosageInstructionConfig(),
                                                                             configurations.consultationNoteConcept(), configurations.labOrderNotesConcept(), $scope.followUpConditionConcept);
                                                                         var consultation = consultationMapper.map(saveResponse.data);
                                                                         consultation.lastvisited = $scope.lastvisited;
                                                                         return consultation;
+                                                                        
                                                                     }).then(function (savedConsultation) {
                                                                         return spinner.forPromise(diagnosisService.populateDiagnosisInformation($scope.patient.uuid, savedConsultation)
                                                                             .then(function (consultationWithDiagnosis) {
