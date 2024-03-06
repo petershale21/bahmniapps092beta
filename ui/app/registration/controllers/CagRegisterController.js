@@ -547,12 +547,16 @@ angular.module('bahmni.registration')
                                 $http.get(CagPatientapiURL)
                                 .then(function(response2) {
                                     console.log(response2);
-                                    if(response2.data.activeCagVisits.length!=0){
-                                        $scope.activevisits = response2.data.activeCagVisits[0].visits;
-                                        console.log($scope.activevisits);
-                                        $scope.activePatientVisitUUid = response2.data.activeCagVisits[0].attender.uuid;
+                                    if(response2.data.activeCagVisits){
+                                        if(response2.data.activeCagVisits.length!=0){
+                                            $scope.activevisits = response2.data.activeCagVisits[0].visits;
+                                            console.log($scope.activevisits);
+                                            $scope.activePatientVisitUUid = response2.data.activeCagVisits[0].attender.uuid;
+                                        }
                                     }
-                                })
+                                }).catch(function (error) {
+                                    console.log('API Error:', error);
+                                });
                             }
                             
 

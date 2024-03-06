@@ -151,14 +151,16 @@ angular.module('bahmni.registration')
                 $http.get(CagPatientapiURL)
                 .then(function(response) {
                     console.log("cag visit arr " , response.data);
-                    if(response.data.activeCagVisits.length!=0){
-                        $scope.cagVisitOpen = true;
-                        $scope.cagVisitUuid = response.data.activeCagVisits[0].uuid;
-                        $scope.canCloseVisit=false;
-                        
-                    }
-                    else{
-                        $scope.cagVisitOpen = false;
+                    if(response.data.activeCagVisits){
+                        if(response.data.activeCagVisits.length!=0){
+                            $scope.cagVisitOpen = true;
+                            $scope.cagVisitUuid = response.data.activeCagVisits[0].uuid;
+                            $scope.canCloseVisit=false;
+                            
+                        }
+                        else{
+                            $scope.cagVisitOpen = false;
+                        }
                     }
                 })
             }
