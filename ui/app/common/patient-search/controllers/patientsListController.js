@@ -82,7 +82,7 @@ angular.module('bahmni.common.patientSearch')
                 for(var i=0;i<limit;i++){
                     var found = 0;
                     var uuid = "";
-                    for(var j=0; j<$scope.activeVisits.length; j++){
+                    for(var j=0; j < $scope.activeVisits.length; j++){
                         try{
                             if($scope.search.activePatients[i].activeVisitUuid == $scope.activeVisits[j].uuid && $scope.activeVisits[j].display.substring(0,3)=="CAG"){
                                 $scope.search.activePatients[i]['showIsCag'] = true;
