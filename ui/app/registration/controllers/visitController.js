@@ -141,9 +141,11 @@ angular.module('bahmni.registration')
 
             $scope.cagVisitOpen = false;
             $scope.cagVisitUuid = "";
+            var cagUuid = ""
 
             $scope.backToCag = function () {
-                $location.path('/cag/'+$scope.cagUuid);
+                console.log("cag uuid:",cagUuid);
+                $location.path('/cag/'+cagUuid);
             };
 
             $scope.isCagVisitOpenForMember = function() {
@@ -155,6 +157,7 @@ angular.module('bahmni.registration')
                         if(response.data.activeCagVisits.length!=0){
                             $scope.cagVisitOpen = true;
                             $scope.cagVisitUuid = response.data.activeCagVisits[0].uuid;
+                            cagUuid = response.data.activeCagVisits[0].cag.uuid;
                             $scope.canCloseVisit=false;
                             
                         }

@@ -649,7 +649,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     console.log(results);
                     if(results[0] == true){
                         var patientUuid =  $scope.patient.uuid;      
-                        return spinner.forPromise(appService.getCagPatient(patientUuid)
+                        appService.getCagPatient(patientUuid)
                         .then(function(response){
                             if(response.status == 200 ){
                                 
@@ -931,7 +931,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                         }
                         ).catch(function(error){
                             console.error("CAG ERROR::No Cag Visit started for attender ",error);
-                        }));
+                        });
                     }
                     else{
                         return spinner.forPromise($q.all([preSavePromise(), encounterService.getEncounterType($state.params.programUuid, sessionService.getLoginLocationUuid())])
