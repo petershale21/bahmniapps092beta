@@ -594,7 +594,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                             //     cag_order.durationUnits="";
                             //     cag_order.route="";
                             // }
-                            alert(JSON.stringify($scope.consultation.newlyAddedTabTreatments.allMedicationTabConfig.treatments));
+                            // alert(JSON.stringify($scope.consultation.newlyAddedTabTreatments.allMedicationTabConfig.treatments));
                             console.log($scope.consultation.newlyAddedTabTreatments.allMedicationTabConfig.treatments);
                         }   
                     }

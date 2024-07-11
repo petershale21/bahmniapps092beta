@@ -11,7 +11,6 @@ angular.module('bahmni.common.patientSearch')
         $scope.activeVisits = [];
         $scope.otherCagMemberList=[];
         $scope.totalqueueLimit=0;
-        $scope.cagLoad=1;
         var initialize = function () {
             $scope.cagLoad=1;
             var searchTypes = appService.getAppDescriptor().getExtensions("org.bahmni.patient.search", "config").map(mapExtensionToSearchType);
