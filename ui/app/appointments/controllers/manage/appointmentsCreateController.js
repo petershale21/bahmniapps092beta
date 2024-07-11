@@ -52,7 +52,11 @@ angular.module('bahmni.appointments')
                         ? 'INVALID_TIME_ERROR_MESSAGE' : 'INVALID_SERVICE_FORM_ERROR_MESSAGE';
                 } else if (!moment($scope.appointment.startTime, 'hh:mm a')
                         .isBefore(moment($scope.appointment.endTime, 'hh:mm a'), 'minutes')) {
-                    message = 'TIME_SEQUENCE_ERROR_MESSAGE';
+                    // error should show when endtime moment is before start time and also not when endtime is the same as starttime - senenekat
+                    if (!moment($scope.appointment.startTime, 'hh:mm a')
+                        .isSame(moment($scope.appointment.endTime, 'hh:mm a'), 'minutes')) {
+                        message = 'TIME_SEQUENCE_ERROR_MESSAGE';
+                    }
                 }
                 if (message) {
                     messagingService.showMessage('error', message);
