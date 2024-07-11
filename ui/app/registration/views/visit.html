@@ -48,7 +48,8 @@
                     </section>
                 </div>
                 <div class="submit-btn-container">
-                    <button type="button" class="cancel" tabindex="-1" ng-show="canCloseVisit==true" ng-click="closeVisitIfDischarged()">{{ ::'REGISTRATION_LABEL_CLOSE_VISIT' | translate}}</button>
+                    <button type="button" class="" ng-show="canCloseVisit==true && cagVisitOpen==false && visitname=='CAG'" style="color: red;border: solid red 1px;border-radius: 3px" disabled>Sent CAG Buddie for Visit</button>
+                    <button type="button" class="cancel" tabindex="-1" ng-show="canCloseVisit==true && cagVisitOpen==false && visitname!=='CAG'" ng-click="closeVisitIfDischarged()">{{ ::'REGISTRATION_LABEL_CLOSE_VISIT' | translate}}</button>
                     <button type="button" class="cancel" tabindex="-1" ng-show="canCloseVisit==false && cagVisitOpen==true" ng-click="closeCAGVisitIfDischarged()">{{ ::'REGISTRATION_LABEL_CLOSE_CAG_VISIT' | translate}}</button>
                     <div class="right">
                         <button ng-click="back()" ng-show="canCloseVisit==true" accesskey="{{ ::'REGISTRATION_BACK_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_BACK' | translate"></button>

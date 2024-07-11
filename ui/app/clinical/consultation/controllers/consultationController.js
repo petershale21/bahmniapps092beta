@@ -629,7 +629,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 var deferred = $q.defer();
                 appService.getCagPatient(uuid).then(function(response){
                     console.log(response);
-                    if(response.data.activeCagVisits.length == 1){
+                    if(response.data.results.length == 1){
                         deferred.resolve(true);
                     }
                     else{
@@ -655,14 +655,14 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                 
                                 var visitData = response.data;
                                 
-                                //console.log("cag visit Patient data :",visitData);
+                                console.log("cag visit Patient data :",visitData);
                                 
-                                $scope.cagVisitUuid = visitData.activeCagVisits[0].uuid;
+                                $scope.cagVisitUuid = visitData.results[0].uuid;
                                 
-                                $scope.cagUuid = visitData.activeCagVisits[0].cag.uuid;                                     
-                                $scope.attenderUuid = visitData.activeCagVisits[0].attender.uuid;
+                                $scope.cagUuid = visitData.results[0].cag.uuid;                                     
+                                $scope.attenderUuid = visitData.results[0].attender.uuid;
 
-                                var patientVisits = visitData.activeCagVisits[0].visits;
+                                var patientVisits = visitData.results[0].visits;
                                 var count = 1;
                                 patientVisits.forEach(function(res){  
                                     console.log("Visit data : ",res);

@@ -94,15 +94,9 @@ angular.module('bahmni.registration')
             }
 
             $scope.searchPatient = function(fieldPatient){
-                var apiUrl1 = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/patient?q='+fieldPatient+'&limit=10';            
-                $http.get(apiUrl1)
-                .then(function(response) {
-                    // Handle the successful response here
-                    $scope.patientResults=response.data.results;
-                })
-                .catch(function(error) {
-                    // Handle any errors that occurred during the request
-                    alert('API Error:', error);
+                patientService.searchByNameOrIdentifier(fieldPatient,10).then(function(response) {
+                    console.log(response.data.pageOfResults);
+                    $scope.patientResults=response.data.pageOfResults;
                 });
             }
              
@@ -110,7 +104,7 @@ angular.module('bahmni.registration')
             
             $scope.selectPatient = function(selectedPatient){
                 $scope.patientTobeAdded=selectedPatient;
-                $scope.newPatient = $scope.patientTobeAdded.display;
+                $scope.newPatient = $scope.patientTobeAdded.givenName+" "+$scope.patientTobeAdded.familyName+" - "+$scope.patientTobeAdded.identifier+" | ("+$scope.patientTobeAdded.age+" years)";
                 $scope.patientResults=[];
             }
 
@@ -186,8 +180,15 @@ angular.module('bahmni.registration')
                     $q.all([$scope.fetchPrevRegimen(patientTobeAdded.uuid)]).then(function(hasPrevRegimen) {
                         console.log(hasPrevRegimen);
                         if(hasPrevRegimen[0]){
+                            var patientTobeAdded2={};
+                            patientTobeAdded["display"] = patientTobeAdded.identifier+" - "+patientTobeAdded.givenName+" "+patientTobeAdded.familyName;
+                            patientTobeAdded["uuid"] =  patientTobeAdded.uuid;
                             if($location.path()=='/cag/new'){
-                                $scope.cag.cagPatientList.push(patientTobeAdded);
+                                $scope.newCagPatientToBeAdded= {
+                                    "uuid": patientTobeAdded.uuid+"",
+                                    "display":patientTobeAdded.identifier+" - "+patientTobeAdded.givenName+" "+patientTobeAdded.familyName
+                                }
+                                $scope.cag.cagPatientList.push($scope.newCagPatientToBeAdded);
                             }
                             else{
                                 var data={
@@ -239,24 +240,25 @@ angular.module('bahmni.registration')
                 else{
                     alert('No selected Patient Or patient already on list...');
                 }
+                $scope.newPatient="";
             }
 
-            // $scope.deletePatientFromCag = function(patientTobeRemoved, patientindex){
-            //     console.log(patientindex);
-            //     apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+patientTobeRemoved.uuid;
-            //     $http.delete(apiUrl)
-            //     .then(function(response){
-            //         console.log(response);
-            //         if(response.status==204){
-            //             $scope.cag.cagPatientList.splice(patientindex, 1);
-            //             messagingService.showMessage('info', 'Patient has been removed from CAG');
-            //         }
-            //         else{
-            //             messagingService.showMessage('error', 'Errror while removing patient from CAG');
-            //         }
-            //         $scope.isSubmitting = false;
-            //     })
-            // }
+            $scope.deletePatientFromCag = function(patientTobeRemoved, patientindex){
+                console.log(patientindex);
+                apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+patientTobeRemoved.uuid;
+                $http.delete(apiUrl)
+                .then(function(response){
+                    console.log(response);
+                    if(response.status==204){
+                        $scope.cag.cagPatientList.splice(patientindex, 1);
+                        messagingService.showMessage('info', 'Patient has been removed from CAG');
+                    }
+                    else{
+                        messagingService.showMessage('error', 'Errror while removing patient from CAG');
+                    }
+                    $scope.isSubmitting = false;
+                })
+            }
             // $
             var getConceptValues = function () {
                 return $q.all([
@@ -518,7 +520,7 @@ angular.module('bahmni.registration')
                     },
                     data: angular.toJson(data)
                 }).then(function(response){
-                    messagingService.showMessage('info', 'Visit Opened ! !');
+                    messagingService.showMessage('info', 'CAG Visit Opened ! !');
                     // $window.open(getPatientVisitUrl(cagMember.uuid), '_blank');
                     $location.path('/patient/' + cagMember.uuid + '/visit')
                 })
@@ -543,15 +545,15 @@ angular.module('bahmni.registration')
                             $scope.cag.cagPatientList[i]["absenteeReason"] = "";
 
                             if($scope.activePatientVisitUUid==""){
-                                var CagPatientapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+response.data.cagPatientList[i].uuid;
+                                var CagPatientapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit?attenderuuid='+response.data.cagPatientList[i].uuid+'&isactive='+true;
                                 $http.get(CagPatientapiURL)
                                 .then(function(response2) {
                                     console.log(response2);
-                                    if(response2.data.activeCagVisits){
-                                        if(response2.data.activeCagVisits.length!=0){
-                                            $scope.activevisits = response2.data.activeCagVisits[0].visits;
+                                    if(response2.data.results){
+                                        if(response2.data.results.length!=0){
+                                            $scope.activevisits = response2.data.results[0].visits;
                                             console.log($scope.activevisits);
-                                            $scope.activePatientVisitUUid = response2.data.activeCagVisits[0].attender.uuid;
+                                            $scope.activePatientVisitUUid = response2.data.results[0].attender.uuid;
                                         }
                                     }
                                 }).catch(function (error) {

@@ -306,7 +306,7 @@
                                 class="ui-menu-item" 
                                 role="presentation" ng-click="selectPatient(patient)">
                                     <a class="ui-corner-all" tabindex="-1">
-                                        {{ patient.display}}
+                                        {{ patient.givenName}} {{ patient.familyName}} - {{patient.identifier}} <b>| ({{patient.age}} years)</b>
                                     </a>
                                 </li>
                             </ul>

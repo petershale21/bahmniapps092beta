@@ -22,7 +22,7 @@ angular.module('bahmni.common.conceptSet')
 
                 $scope.select = function (answer) {
                     //setting cag present member 'type of patient' to ART Patient if Treatment Buddy selected on options
-                    if($rootScope.isCagPresentMemberVisit.activeCagVisits.length>0 && answer.uuid == "0f880c52-3ced-43ac-a79b-07a2740ae428" && answer==$scope.observation.possibleAnswers[0]){
+                    if($rootScope.isCagPresentMemberVisit.results.length>0 && answer.uuid == "0f880c52-3ced-43ac-a79b-07a2740ae428" && answer==$scope.observation.possibleAnswers[0]){
                         answer=$scope.observation.possibleAnswers[1];
                     }
                     //------end--------

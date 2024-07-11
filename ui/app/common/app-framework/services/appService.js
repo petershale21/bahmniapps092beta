@@ -68,7 +68,7 @@ angular.module('bahmni.common.appFramework')
         };
 
         this.getCagVisit = function (patientUuid) {
-            return $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cagPatient/"+patientUuid, {
+            return $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/cagVisit?attenderuuid="+patientUuid+'&isactive='+true, {
                 method: "GET",
                 params: {v: "full"},
                 headers: {
@@ -94,7 +94,7 @@ angular.module('bahmni.common.appFramework')
 
             this.getCagPatient = function(patientUuid){
                 var cagPatient = $http.get(
-                    Bahmni.Common.Constants.openmrsUrl + '/ws/rest/v1/cagPatient/'+patientUuid,
+                    Bahmni.Common.Constants.openmrsUrl + '/ws/rest/v1/cagVisit?attenderuuid='+patientUuid+'&isactive='+true,
                     {
                         method : "GET",
                         params: {v: "full"},
