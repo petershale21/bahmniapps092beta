@@ -12,7 +12,7 @@ angular.module('bahmni.common.patientSearch')
         $scope.otherCagMemberList=[];
         $scope.totalqueueLimit=0;
         var initialize = function () {
-            $scope.cagLoad=1;
+            // $scope.cagLoad=1;
             var searchTypes = appService.getAppDescriptor().getExtensions("org.bahmni.patient.search", "config").map(mapExtensionToSearchType);
             $scope.search = new Bahmni.Common.PatientSearch.Search(_.without(searchTypes, undefined));
             $scope.search.markPatientEntry();
@@ -122,19 +122,19 @@ angular.module('bahmni.common.patientSearch')
                                 //     } 
                                 // }
 
-                                for(let j=0; j<res[0].otherMemberList.length; j++){
-                                    for (let k = 0; k < $scope.search.activePatients.length; k++) {
-                                        // console.log( $scope.otherCagMemberList, k,res[0].otherMemberList,$scope.search.activePatients );
+                                // for(let j=0; j<res[0].otherMemberList.length; j++){
+                                //     for (let k = 0; k < $scope.search.activePatients.length; k++) {
+                                //         // console.log( $scope.otherCagMemberList, k,res[0].otherMemberList,$scope.search.activePatients );
                                     
-                                        if( $scope.search.activePatients[k].uuid== res[0].otherMemberList[j].patient.uuid && $scope.search.activePatients[k].cagName=="") {
-                                            // console.log( $scope.otherCagMemberList, k,$scope.search.activePatients ,res[0].cagname,$scope.otherCagMemberList[k].index);
-                                            $scope.search.activePatients[k].cagName = res[0].cagName;
+                                //         if( $scope.search.activePatients[k].uuid== res[0].otherMemberList[j].patient.uuid && $scope.search.activePatients[k].cagName=="") {
+                                //             // console.log( $scope.otherCagMemberList, k,$scope.search.activePatients ,res[0].cagname,$scope.otherCagMemberList[k].index);
+                                //             $scope.search.activePatients[k].cagName = res[0].cagName;
                                         
-                                        }  
-                                    } 
-                                }
+                                //         }  
+                                //     } 
+                                // }
                             }
-                            $scope.cagLoad=0;
+                            // $scope.cagLoad=0;
                         })
                     }
                 }

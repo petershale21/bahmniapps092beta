@@ -229,7 +229,7 @@ angular.module('bahmni.registration')
                         }
                         
                         else{
-                            alert("has no previous regimen given");
+                            alert("has no previous regimen given or started ART less than 6 months ago");
                         }
                     })
                     
