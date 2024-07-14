@@ -75,6 +75,28 @@ angular.module('bahmni.registration')
                 return updateImagePromise;
             };
 
+            $scope.showMDRTBSection = function () {
+                if ($window.TBStatusTracker === 'On DR TB Treatment') {
+                    return true;
+                }
+                else{
+                    return false;
+                }
+            }
+
+            // Access TB status as a window attribute and intialize it to null
+            $window.TBStatusTracker = null;
+
+            // Create a watcher for the TB status attribute
+            $scope.$watch(function() {
+                return $window.TBStatusTracker;
+            }, function(newValue, oldValue) {
+                // This function will be called when the TB Status attribute changes
+                if (newValue === 'On DR TB Treatment'){
+                    $scope.showMDRTBSection();
+                }
+            });
+
             var save = function () {
                 $scope.encounter = {
                     patientUuid: $scope.patient.uuid,

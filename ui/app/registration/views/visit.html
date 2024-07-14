@@ -34,8 +34,14 @@
                             </div>
                             <div class="clearfix">
                                 <article ng-if="!isFormTemplate(conceptSet)" class="fl obs-section-form">
-                                    <concept-set concept-set-name="::conceptSet.options.conceptName" required="::conceptSet.options.required" patient="patient" observations="observations"
-                                                 obs-scope="::conceptSet.options.scope" show-title="false" concept-set-focused="::$index === 0"></concept-set>
+                                    <concept-set concept-set-name="::conceptSet.options.conceptName" ng-show="conceptSet.options.conceptName != 'MDR-TB-registration'"
+                                                required="::conceptSet.options.required" patient="patient" observations="observations"
+                                                obs-scope="::conceptSet.options.scope" show-title="false" concept-set-focused="::$index === 0"></concept-set>
+
+                                    <concept-set concept-set-name="::conceptSet.options.conceptName" ng-if="::conceptSet.options.conceptName == 'MDR-TB-registration'" ng-show="showMDRTBSection()"
+                                                required="::conceptSet.options.required" patient="patient" observations="observations"
+                                                obs-scope="::conceptSet.options.scope" show-title="false" concept-set-focused="::$index === 0"></concept-set>
+
                                 </article>
                                 <article ng-if="isFormTemplate(conceptSet)" class="fl obs-section-form" id={{::conceptSet.formUuid}}>
                                     <form-controls form="conceptSet" patient="patient" validate-form="true"></form-controls>

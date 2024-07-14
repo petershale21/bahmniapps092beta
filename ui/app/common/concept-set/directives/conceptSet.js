@@ -750,7 +750,6 @@ angular.module('bahmni.common.conceptSet')
                             try {
                                 $scope.observations.forEach((obs)=>{
                                     obs.groupMembers.forEach(member =>{
-                                        console.log(member)
                                         if(member.label == 'LOR'){                                            
                                             member.groupMembers[2].groupMembers[1].conceptUIConfig.required = false;
                                         }
@@ -791,6 +790,122 @@ angular.module('bahmni.common.conceptSet')
 
                     })
 
+                    $scope.$watch(
+                        function() {
+                            var targetObservation = findObservationByLabel("ANC Program");
+                            return getValueFromObservationByLabel(targetObservation, 'Gravida', [2, 0]);
+                        },
+                        function(newValue, oldValue) {
+                            if (newValue !== oldValue) {
+                                console.log('Value of label Gravida in groupMembers[2][0] changed:', newValue);
+                                var targetObservation = findObservationByLabel("ANC Program");
+                                setValueToObservationByLabel(targetObservation, 'Gravida', [3, 0], newValue);
+                            }
+                        }
+                    );
+
+                    $scope.$watch(
+                        function() {
+                            var targetObservation = findObservationByLabel("ANC Program");
+                            return getValueFromObservationByLabel(targetObservation, 'Parity', [2, 0]);
+                        },
+                        function(newValue, oldValue) {
+                            if (newValue !== oldValue) {
+                                console.log('Value of label Parity in groupMembers[2][0] changed:', newValue);
+                                var targetObservation = findObservationByLabel("ANC Program");
+                                setValueToObservationByLabel(targetObservation, 'Parity', [3, 0], newValue);
+                            }
+                        }
+                    );
+                    
+                    $scope.$watch(
+                        function() {
+                            var targetObservation = findObservationByLabel("ANC Program");
+                            return getValueFromObservationByLabel(targetObservation, 'Miscarriages', [2, 0]);
+                        },
+                        function(newValue, oldValue) {
+                            if (newValue !== oldValue) {
+                                console.log('Value of label Miscarriages in groupMembers[2][0] changed:', newValue);
+                                var targetObservation = findObservationByLabel("ANC Program");
+                                setValueToObservationByLabel(targetObservation, 'Miscarriages', [3, 0], newValue);
+                            }
+                        }
+                    );
+
+                    $scope.$watch(
+                        function() {
+                            var targetObservation = findObservationByLabel("ANC Program");
+                            return getValueFromObservationByLabel(targetObservation, 'Last Normal Menstrual Period', [2, 0]);
+                        },
+                        function(newValue, oldValue) {
+                            if (newValue !== oldValue) {
+                                console.log('Value of label Last Normal Menstrual Period in groupMembers[2][0] changed:', newValue);
+                                var targetObservation = findObservationByLabel("ANC Program");
+                                setValueToObservationByLabel(targetObservation, 'Last Normal Menstrual Period', [3, 0], newValue);
+                            }
+                        }
+                    );
+
+                    $scope.$watch(
+                        function() {
+                            var targetObservation = findObservationByLabel("ANC Program");
+                            return getValueFromObservationByLabel(targetObservation, 'Estimated Date of Delivery', [2, 0]);
+                        },
+                        function(newValue, oldValue) {
+                            if (newValue !== oldValue) {
+                                console.log('Value of label Estimated Date of Delivery in groupMembers[2][0] changed:', newValue);
+                                var targetObservation = findObservationByLabel("ANC Program");
+                                setValueToObservationByLabel(targetObservation, 'Estimated Date of Delivery', [3, 0], newValue);
+                            }
+                        }
+                    );
+                    
+                    function findObservationByLabel(label) {
+                        if ($scope.observations) {
+                            for (var i = 0; i < $scope.observations.length; i++) {
+                                if ($scope.observations[i].label === label) {
+                                    return $scope.observations[i];
+                                }
+                            }
+                        }
+                        return null;
+                    }
+                    
+                    function findGroupMemberByLabel(groupMembers, label) {
+                        if (groupMembers) {
+                            for (var i = 0; i < groupMembers.length; i++) {
+                                if (groupMembers[i].label === label) {
+                                    return groupMembers[i];
+                                }
+                            }
+                        }
+                        return null;
+                    }
+                    
+                    function getValueFromObservationByLabel(observation, label, path) {
+                        if (!observation) return null;
+                        let current = observation;
+                        for (let i = 0; i < path.length; i++) {
+                            if (!current.groupMembers || !current.groupMembers[path[i]]) return null;
+                            current = current.groupMembers[path[i]];
+                        }
+                        let targetMember = findGroupMemberByLabel(current.groupMembers, label);
+                        return targetMember ? targetMember.value : null;
+                    }
+                    
+                    function setValueToObservationByLabel(observation, label, path, value) {
+                        if (!observation) return;
+                        let current = observation;
+                        for (let i = 0; i < path.length; i++) {
+                            if (!current.groupMembers || !current.groupMembers[path[i]]) return;
+                            current = current.groupMembers[path[i]];
+                        }
+                        let targetMember = findGroupMemberByLabel(current.groupMembers, label);
+                        if (targetMember) {
+                            targetMember.value = value;
+                        }
+                    }
+                    
                     // TODO : Hack to include functionality for pre-populating ART Regimens - Teboho
                     // Will refactor accordingly
                     $scope.$watch(function() { 
