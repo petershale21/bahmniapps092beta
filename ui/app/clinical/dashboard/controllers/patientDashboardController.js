@@ -53,7 +53,8 @@ angular.module('bahmni.clinical')
                                     observationsService.fetch($scope.patient.uuid, [
                                         "HIVTC, Viral Load Blood drawn date",
                                         "HIVTC, Treatment substituted date",
-                                        "HIVTC, Treatment switched date"],
+                                        "HIVTC, Treatment switched date",
+                                        "ANC, Estimated Date of Delivery"],
                                         "latest")]);
                             };
             var getCurrentTab = function () {
@@ -67,31 +68,36 @@ angular.module('bahmni.clinical')
                 return (currentTab != undefined ? currentTab : clinicalDashboardConfig.currentTab);
             };
 
-            var determineReferenceDate = function (artStartDate, treatmentSubstitutionDate, treatmentSwitchDate) {
-                                var referenceObject = { referenceDate: "", referenceState: "" };
-                                if (artStartDate && !treatmentSubstitutionDate && !treatmentSwitchDate) {
-                                    referenceObject.referenceDate = artStartDate;
-                                    referenceObject.referenceState = "ART Initiation";
-                                } else if (artStartDate && treatmentSubstitutionDate && !treatmentSwitchDate) {
-                                    referenceObject.referenceDate = treatmentSubstitutionDate;
-                                    referenceObject.referenceState = "Treatment Substitution";
-                                } else if (artStartDate && !treatmentSubstitutionDate && treatmentSwitchDate) {
-                                    referenceObject.referenceDate = treatmentSwitchDate;
-                                    referenceObject.referenceState = "Treatment Switch";
-                                } else if (artStartDate && treatmentSubstitutionDate && treatmentSwitchDate) {
-                                    if (Bahmni.Common.Util.DateUtil.isBeforeDate(treatmentSwitchDate, treatmentSubstitutionDate)) {
-                                        referenceObject.referenceDate = treatmentSubstitutionDate;
-                                        referenceObject.referenceState = "Treatment Substitution";
-                                    } else {
-                                        referenceObject.referenceDate = treatmentSwitchDate;
-                                        referenceObject.referenceState = "Treatment Switch";
-                                    }
-                                } else {
-                                    // Nothing
-                                }
-                                return referenceObject;
-                            };
-
+            var determineReferenceDate = function (artStartDate, treatmentSubstitutionDate, treatmentSwitchDate, estimatedDateOfDeliveryDate) {
+                var referenceObject = { referenceDate: "", referenceState: "" };
+                var today = Bahmni.Common.Util.DateUtil.now();
+            
+                if (estimatedDateOfDeliveryDate && Bahmni.Common.Util.DateUtil.isBeforeDate(today, estimatedDateOfDeliveryDate)) {
+                    referenceObject.referenceDate = estimatedDateOfDeliveryDate;
+                    referenceObject.referenceState = "Estimated Date Of Delivery";
+                } else if (artStartDate && !treatmentSubstitutionDate && !treatmentSwitchDate) {
+                    referenceObject.referenceDate = artStartDate;
+                    referenceObject.referenceState = "ART Initiation";
+                } else if (artStartDate && treatmentSubstitutionDate && !treatmentSwitchDate) {
+                    referenceObject.referenceDate = treatmentSubstitutionDate;
+                    referenceObject.referenceState = "Treatment Substitution";
+                } else if (artStartDate && !treatmentSubstitutionDate && treatmentSwitchDate) {
+                    referenceObject.referenceDate = treatmentSwitchDate;
+                    referenceObject.referenceState = "Treatment Switch";
+                } else if (artStartDate && treatmentSubstitutionDate && treatmentSwitchDate) {
+                    if (Bahmni.Common.Util.DateUtil.isBeforeDate(treatmentSwitchDate, treatmentSubstitutionDate)) {
+                        referenceObject.referenceDate = treatmentSubstitutionDate;
+                        referenceObject.referenceState = "Treatment Substitution";
+                    } else {
+                        referenceObject.referenceDate = treatmentSwitchDate;
+                        referenceObject.referenceState = "Treatment Switch";
+                    }
+                } else {
+                    // Nothing
+                }
+                return referenceObject;
+            };
+            
             $scope.init = function (dashboard) {
                 dashboard.startDate = null;
                 dashboard.endDate = null;
@@ -108,28 +114,42 @@ angular.module('bahmni.clinical')
                         $scope.diseaseTemplates = diseaseTemplate;
                         $scope.sectionGroups = dashboardModel.getSections($scope.diseaseTemplates);
 
-            getARTStartDate().then(function (result) {
-                                if (result[0].data.length > 0 || result[1].data.length > 0) {
-                                    var today = Bahmni.Common.Util.DateUtil.now();
-                                    var artStartDate = result[0].data.length > 0 ?
-                                    Bahmni.Common.Util.DateUtil.parseServerDateToDate(result[0].data[0].valueAsString) : null;
-                                    var lastDateSpecimenCollected = _.find(result[1].data, function (observation) {
-                                        return observation.concept.name === "HIVTC, Viral Load Blood drawn date";
-                                    });
-                                    var treatmentSwitch = _.find(result[1].data, function (observation) {
-                                        return observation.concept.name === "HIVTC, Treatment switched date";
-                                    });
-                                    var treatmentSubstitution = _.find(result[1].data, function (observation) {
-                                        return observation.concept.name === "HIVTC, Treatment substituted date";
-                                    });
-                                    var treatmentSubstitutionDate = treatmentSubstitution ?
-                                    Bahmni.Common.Util.DateUtil.parseServerDateToDate(treatmentSubstitution.valueAsString) : null;
-                                    var treatmentSwitchDate = treatmentSwitch ?
-                                    Bahmni.Common.Util.DateUtil.parseServerDateToDate(treatmentSwitch.valueAsString) : null;
-                                    var referenceObject = determineReferenceDate(artStartDate, treatmentSubstitutionDate, treatmentSwitchDate);
+                        getARTStartDate().then(function (result) {
+                            if (result[0].data.length > 0 || result[1].data.length > 0) {
+                                var today = Bahmni.Common.Util.DateUtil.now();
+                                var artStartDate = result[0].data.length > 0 ? Bahmni.Common.Util.DateUtil.parseServerDateToDate(result[0].data[0].valueAsString) : null;
+                        
+                                var lastDateSpecimenCollected = _.find(result[1].data, function (observation) {
+                                    return observation.concept.name === "HIVTC, Viral Load Blood drawn date";
+                                });
+                                var treatmentSwitch = _.find(result[1].data, function (observation) {
+                                    return observation.concept.name === "HIVTC, Treatment switched date";
+                                });
+                                var treatmentSubstitution = _.find(result[1].data, function (observation) {
+                                    return observation.concept.name === "HIVTC, Treatment substituted date";
+                                });
+                                var estimatedDateOfDelivery = _.find(result[1].data, function (observation) {
+                                    return observation.concept.name === "ANC, Estimated Date of Delivery";
+                                });
+                        
+                                var treatmentSubstitutionDate = treatmentSubstitution ? Bahmni.Common.Util.DateUtil.parseServerDateToDate(treatmentSubstitution.valueAsString) : null;
+                                var treatmentSwitchDate = treatmentSwitch ? Bahmni.Common.Util.DateUtil.parseServerDateToDate(treatmentSwitch.valueAsString) : null;
+                                var estimatedDateOfDeliveryDate = estimatedDateOfDelivery ? Bahmni.Common.Util.DateUtil.parseServerDateToDate(estimatedDateOfDelivery.valueAsString) : null;
+                        
+                                var referenceObject = determineReferenceDate(artStartDate, treatmentSubstitutionDate, treatmentSwitchDate, estimatedDateOfDeliveryDate);
+                        
+                                if (referenceObject.referenceState === "Estimated Date Of Delivery") {
+                                    // Custom notification for Estimated Date Of Delivery
+                                    var threeMonthsAgo = Bahmni.Common.Util.DateUtil.addMonths(today, -3);
+                        
+                                    if (!lastDateSpecimenCollected || Bahmni.Common.Util.DateUtil.isBeforeDate(Bahmni.Common.Util.DateUtil.parseServerDateToDate(lastDateSpecimenCollected.valueAsString), threeMonthsAgo)) {
+                                        messagingService.showMessage('reminder', "Patient is due for 3 monthly Viral Load blood draw, since client is ANC patient");
+                                    }
+                                } else {
                                     var dateDiffinDays = Bahmni.Common.Util.DateUtil.diffInDays(referenceObject.referenceDate, today);
                                     var dateDiffInMonthsFloor = Math.floor((dateDiffinDays * 12) / 365);
                                     var dateDiffinMonthsCeil = Math.ceil((dateDiffinDays * 12) / 365);
+                        
                                     // If the difference between today and the reference date does not exceed 12 months
                                     if (dateDiffinDays > 0 && dateDiffinDays <= 365) {
                                         // After every 6 months and if no blood was drawn 1 month prior to the encounter date
@@ -139,12 +159,10 @@ angular.module('bahmni.clinical')
                                                     var recentBloodDrawDate = Bahmni.Common.Util.DateUtil.parseServerDateToDate(lastDateSpecimenCollected.valueAsString);
                                                     var recentVLBloodDrawDiff = Bahmni.Common.Util.DateUtil.diffInDays(recentBloodDrawDate, today);
                                                     if (recentVLBloodDrawDiff > 0 && !(recentVLBloodDrawDiff <= 31)) {
-                                                        messagingService.showMessage('reminder', "Patient is due for 6 monthly Viral Load blood draw, since "
-                                                        + referenceObject.referenceState);
+                                                        messagingService.showMessage('reminder', "Patient is due for 6 monthly Viral Load blood draw, since " + referenceObject.referenceState);
                                                     }
                                                 } else {
-                                                    messagingService.showMessage('reminder', "Patient is due for 6 monthly Viral Load blood draw, since "
-                                                    + referenceObject.referenceState);
+                                                    messagingService.showMessage('reminder', "Patient is due for 6 monthly Viral Load blood draw, since " + referenceObject.referenceState);
                                                 }
                                             }
                                         }
@@ -155,21 +173,18 @@ angular.module('bahmni.clinical')
                                                 var recentBloodDrawDate = Bahmni.Common.Util.DateUtil.parseServerDateToDate(lastDateSpecimenCollected.valueAsString);
                                                 var recentVLBloodDrawDiff = Bahmni.Common.Util.DateUtil.diffInDays(recentBloodDrawDate, today);
                                                 if (recentVLBloodDrawDiff > 0 && !(recentVLBloodDrawDiff <= 31)) {
-                                                    messagingService.showMessage('reminder', "Patient is due for 12 monthly Viral Load blood draw, since "
-                                                    + referenceObject.referenceState);
+                                                    messagingService.showMessage('reminder', "Patient is due for 12 monthly Viral Load blood draw, since " + referenceObject.referenceState);
                                                 }
                                             } else {
-                                                messagingService.showMessage('reminder', "Patient is due for 12 monthly Viral Load blood draw, since "
-                                                + referenceObject.referenceState);
+                                                messagingService.showMessage('reminder', "Patient is due for 12 monthly Viral Load blood draw, since " + referenceObject.referenceState);
                                             }
                                         }
                                     }
                                 }
-                            });
-
-
-                                                    
-
+                            }
+                        });
+                        
+                        
                     });
                 $scope.currentDashboardTemplateUrl = $state.current.views['dashboard-content'] ?
                     $state.current.views['dashboard-content'].templateUrl : $state.current.views['dashboard-content'];
