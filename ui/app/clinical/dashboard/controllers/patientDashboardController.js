@@ -143,7 +143,7 @@ angular.module('bahmni.clinical')
                                     var threeMonthsAgo = Bahmni.Common.Util.DateUtil.addMonths(today, -3);
                         
                                     if (!lastDateSpecimenCollected || Bahmni.Common.Util.DateUtil.isBeforeDate(Bahmni.Common.Util.DateUtil.parseServerDateToDate(lastDateSpecimenCollected.valueAsString), threeMonthsAgo)) {
-                                        messagingService.showMessage('reminder', "Patient is due for 3 monthly Viral Load blood draw, since client is ANC patient");
+                                        messagingService.showMessage('reminder', "Patient is due for 3 monthly Viral Load blood draw, since client is in ANC");
                                     }
                                 } else {
                                     var dateDiffinDays = Bahmni.Common.Util.DateUtil.diffInDays(referenceObject.referenceDate, today);
