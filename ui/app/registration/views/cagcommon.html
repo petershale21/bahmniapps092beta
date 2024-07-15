@@ -1,0 +1,105 @@
+<div ng-controller="cagCommonController">
+    <div class="box-container box-container-patient-info patient-common-info-container">
+        <section>
+            <article class="form-field patient-name-wrapper">
+                <div class="field-attribute">
+                    <label for="cagName">{{ ::'REGISTRATION_LABEL_CAG_NAME' | translate}}<span class="asterick">*</span></label>
+                </div>
+
+                <div class="field-value cag-name" id="cagName">
+
+              <span data-ng-switch="::isAutoComplete('givenName')"
+                    ng-if="::patientConfiguration.local()['showNameField']">
+                  <input data-ng-switch-when="true"
+                         type="text" id="cagName" ng-model="$parent.patient.givenName" non-blank pattern-validate
+                         my-autocomplete source="getAutoCompleteList" response-map="getDataResults"
+                         data-item-type="cagName"
+                         placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_ENTERCAGNAME' | translate}}"
+                         title="{{::'REGISTRATION_LABEL_CAG_ENTER_NAME' | translate}}">
+
+                  <input data-ng-switch-default
+                         type="text" id="givenName" ng-model="patient.givenName" non-blank pattern-validate
+                         placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_ENTERCAGNAME' | translate}}"
+                         title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_ENTERCAGNAME' | translate}}"
+                         focus-me="true">
+              </span>
+
+              <!-- <span data-ng-switch="::isAutoComplete('givenName')"
+                    ng-if="::!patientConfiguration.local()['showNameField']">
+                  <input data-ng-switch-when="true"
+                         type="text" id="givenName" ng-model="$parent.patient.givenName" non-blank pattern-validate
+                         my-autocomplete source="getAutoCompleteList" response-map="getDataResults"
+                         data-item-type="personName"
+                         placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
+                         title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}" focus-me="true">
+
+                  <input data-ng-switch-default
+                         type="text" id="givenName" ng-model="patient.givenName" non-blank pattern-validate
+                         placeholder="{{ ::'REGISTRATION_LABEL_PATIENT_FIRSTNAME' | translate}}"
+                         title="{{::'REGISTRATION_LABEL_PATIENT_ENTER_NAME' | translate}}" focus-me="true">
+                  </span> -->
+
+                    <!--<span class="input-label-inline caste-lastname" ng-show="showCasteSameAsLastName()">
+                        <input type="checkbox" id="casteSameAsLastNameCheck" ng-model="patient.sameAsLastName"
+                               ng-change="setCasteAsLastName()">
+                        <label id="casteSameAsLastNameCheckLabel" for="casteSameAsLastNameCheck">{{ 'REGISTRATION_LABEL_CASTE_SAME_LAST_NAME' | translate}}</label>
+                    </span>-->
+                </div>
+                <!-- <div class="field-value showOn-desktop" ng-show="::showCasteSameAsLastName()">
+                    <input type="checkbox" id="casteSameAsLastNameCheck" ng-model="patient.sameAsLastName"
+                           ng-change="setCasteAsLastName()">
+                </div>
+                <div class="field-attribute" ng-show="::showCasteSameAsLastName()">
+                    <label id="casteSameAsLastNameCheckLabel" for="casteSameAsLastNameCheck">{{::'REGISTRATION_LABEL_CASTE_SAME_LAST_NAME'
+                        | translate}}</label>
+                </div>
+                <div class="field-value showOn-small-screen" ng-show="::showCasteSameAsLastName()">
+                    <input type="checkbox" id="casteSameAsLastNameCheck" ng-model="patient.sameAsLastName"
+                           ng-change="setCasteAsLastName()">
+                </div> -->
+            </article>
+            <article class="form-field patient-name-wrapper" ng-if="::patientConfiguration.local()['showNameField']">
+                <div class="field-attribute">
+                    <label for="patientName">CAG description</label>
+                </div>
+                <div class="field-value" id="patientNameLocal">
+                    <textarea type="text" id="givenNameLocal" ng-model="patient.givenNameLocal" pattern-validate
+                           placeholder="CAG description" />
+                </div>
+            </article>
+        </section>
+
+        <legend class="registraion_legend">
+            <span class="mylegend"> {{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}</span>
+        </legend>
+
+        <section address-fields data-address-levels="::addressLevels" data-address="patient.address"
+                 field-validation="::fieldValidation"
+                 strict-autocomplete-from-level="::addressHierarchyConfigs.strictAutocompleteFromLevel"
+                 ng-if="::!addressHierarchyConfigs.showAddressFieldsTopDown"></section>
+
+        <section top-down-address-fields data-address-levels="::addressLevels" data-address="patient.address"
+                 field-validation="::fieldValidation" ng-if="::addressHierarchyConfigs.showAddressFieldsTopDown"
+                 strict-autocomplete-from-level="::addressHierarchyConfigs.strictAutocompleteFromLevel"></section>
+        
+        <legend class="registraion_legend">
+            <span class="mylegend"> Add Patients to CAG<!--{{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}--></span>
+            </legend>
+        <section style="margin-right: 2pc;">
+
+            <div id="CAGS">
+                <input type="text" ng-model="newField" placeholder="search Patient">
+                <!-- <button ng-click="addNewField()">Add</button> -->
+                    <i ng-click="addNewField()" class="fa fa-plus" aria-hidden="true" style="color: green; font-size:28px;"></i>
+                  
+                  
+                <div ng-repeat="field in fields">
+                  <input type="text" ng-model="field.value" placeholder="search Patient" disabled>
+                  <i ng-click="removeField($index)" class="fa fa-times" aria-hidden="true" style="color: red; font-size:28px;"></i>
+                </div>
+            </div>
+        </section>
+        
+ 
+    </div>
+</div>

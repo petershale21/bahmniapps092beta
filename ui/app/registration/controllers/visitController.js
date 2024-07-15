@@ -2,16 +2,20 @@
 
 angular.module('bahmni.registration')
     .controller('VisitController', ['$window', '$scope', '$rootScope', '$state', '$bahmniCookieStore', 'patientService', 'encounterService', '$stateParams', 'spinner', '$timeout', '$q', 'appService', 'openmrsPatientMapper', 'contextChangeHandler', 'messagingService', 'sessionService', 'visitService', '$location', '$translate',
-        'auditLogService', 'formService',
-        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService) {
+        'auditLogService', 'formService', '$http',
+        function ($window, $scope, $rootScope, $state, $bahmniCookieStore, patientService, encounterService, $stateParams, spinner, $timeout, $q, appService, openmrsPatientMapper, contextChangeHandler, messagingService, sessionService, visitService, $location, $translate, auditLogService, formService, $http) {
             var vm = this;
             var patientUuid = $stateParams.patientUuid;
+            console.log(patientUuid);
             var extensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "config");
             var formExtensions = appService.getAppDescriptor().getExtensions("org.bahmni.registration.conceptSetGroup.observations", "forms");
             var locationUuid = sessionService.getLoginLocationUuid();
             var selectedProvider = $rootScope.currentProvider;
             var regEncounterTypeUuid = $rootScope.regEncounterConfiguration.encounterTypes[Bahmni.Registration.Constants.registrationEncounterType];
             var visitLocationUuid = $rootScope.visitLocation;
+            appService.getCagPatient(patientUuid).then(function(response){$rootScope.isCagPresentMemberVisit= response.data;});//helps set type of member = ART Patient for CAG present member
+            
+            $scope.cagVisitOpen=false;
 
             var getPatient = function () {
                 var deferred = $q.defer();
@@ -139,7 +143,7 @@ angular.module('bahmni.registration')
                     return _.includes(applicablePrivs, privName);
                 });
             };
-
+            $scope.visitname="";
             var searchActiveVisitsPromise = function () {
                 return visitService.search({
                     patient: patientUuid, includeInactive: false, v: "custom:(uuid,location:(uuid))"
@@ -155,8 +159,76 @@ angular.module('bahmni.registration')
                     var hasActiveVisit = activeVisitForCurrentLoginLocation.length > 0;
                     vm.visitUuid = hasActiveVisit ? activeVisitForCurrentLoginLocation[0].uuid : "";
                     $scope.canCloseVisit = isUserPrivilegedToCloseVisit() && hasActiveVisit;
+                    $scope.isCagVisitOpenForMember();
+                    console.log(activeVisitForCurrentLoginLocation);
+                    if(activeVisitForCurrentLoginLocation){
+                        visitService.getVisit(vm.visitUuid).then(function (res) {
+                            console.log(res);
+                            if(res){
+                                $scope.visitname=res.data.visitType.name;
+                            }
+                        })
+                    }
+                    
                 });
             };
+
+            $scope.cagVisitOpen = false;
+            $scope.cagVisitUuid = "";
+            var cagUuid = ""
+
+            $scope.backToCag = function () {
+                console.log("cag uuid:",cagUuid);
+                $location.path('/cag/'+cagUuid);
+            };
+
+            $scope.isCagVisitOpenForMember = function() {
+                var CagPatientapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit?attenderuuid='+patientUuid+'&isactive='+true;
+                $http.get(CagPatientapiURL)
+                .then(function(response) {
+                    console.log("cag visit arr " , response.data.results);
+                    if(response.data.results){
+                        if(response.data.results.length!=0){
+                            $scope.cagVisitOpen = true;
+                            $scope.cagVisitUuid =response.data.results[0].uuid;
+                            cagUuid = response.data.results[0].cag.uuid;
+                            $scope.canCloseVisit=false;
+                            
+                        }
+                    }
+                    else{
+                        $scope.cagVisitOpen=false;
+                    }
+                })
+            }
+            $scope.closeCAGVisitIfDischarged = function(){
+                var closeCagVisitapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit/'+$scope.cagVisitUuid;
+                const currentDate = new Date();
+                const dateStopped = currentDate.toISOString().slice(0, 19).replace("T", " ");
+                console.log(closeCagVisitapiURL);
+                $scope.cagCloseVisitData={
+                    "dateStopped" : dateStopped
+                }
+                console.log($scope.cagCloseVisitData);
+                $http({
+                    url: closeCagVisitapiURL,
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json'
+                    },
+                    data: angular.toJson($scope.cagCloseVisitData)
+                }).then(function(response){
+                    if(response.data.dateStopped!=null && response.data.isActive==false){
+                        var confirmed = $window.confirm($translate.instant("REGISTRATION_LABEL_CLOSE_CAG_VISIT"));
+                        if (confirmed) {
+                            messagingService.showMessage('info', 'CAG Visit Closed ! !');
+                            $location.path('/search');
+                        }
+                    }
+                    
+                    
+                })
+            }
 
             $scope.closeVisitIfDischarged = function () {
                 visitService.getVisitSummary(vm.visitUuid).then(function (response) {
@@ -297,10 +369,11 @@ angular.module('bahmni.registration')
                     }
                 });
             };
-
+            $scope.showCloseVisit = 0;
             var getConceptSet = function () {
                 var visitType = $scope.encounterConfig.getVisitTypeByUuid($scope.visitTypeUuid);
                 $scope.context = {visitType: visitType, patient: $scope.patient};
+                console.log($scope.context);
             };
 
             var getObservationForms = function (extensions, observationsForms) {

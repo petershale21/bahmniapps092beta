@@ -1,0 +1,347 @@
+<div ng-include src="'views/header.html'" class="reg-header-wrapper header-wrapper"></div>
+<style>
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .toggle-list {
+            display: table;
+        }
+
+        .toggle-item {
+            display: table-row;
+        }
+
+        .toggle-button {
+            display: table-cell;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .toggle-text {
+            display: table-cell;
+            padding: 10px;
+        }
+
+        .toggle-checkbox {
+            display: table-cell;
+            padding: 10px;
+        }
+
+        .GFG { 
+           
+            text-align: center;
+            font-size: 20px;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, #88af28, #88af28);
+            border: #DDD 1px solid;
+            padding: 6px 20px 7px;
+            display: inline-block;
+            line-height: 1.2em;
+            color: white;
+            cursor: pointer;
+            min-width: 0;
+            max-width: 300px;
+            text-decoration: none;
+            
+        } 
+</style>
+<div class="reg-body-wrapper">
+    <div class="simple-form-ui new-patient">
+        <form name="myForm" class="form-horizontal well" ng-submit="save($event)">
+            <div class="box-container box-container-default">
+                <section>
+                    <legend class="registraion_legend first-registraion_legend">
+                        <span class="mylegend"><strong>{{::'REGISTRATION_LABEL_CAG_ID' | translate}} : {{cag.uuid}}</strong></span>
+                    </legend>
+                    <!-- <section class="clearfix">
+                        <div class="photo-container-wrapper" ng-if="!disablePhotoCapture">
+                            <span class="pull-right photo-container">
+                                <img class="patient-image" ng-src="{{patient.image}}" fallback-src="../images/blank-user.gif">
+                                <div ng-model="patient.image" capture-photo="" class="capture-photo-btn"></div>
+                            </span>
+                        </div>
+                    </section>
+                    <section> -->
+                    <article class="form-field existing-patient">
+                        <div class="field-attribute">
+                            <label class="control-label" for="CAGID">CAG Name
+                            </label>
+                        </div>
+                        <div class="field-value">
+                            <input type="text" id="registrationNumber" ng-model="cag.name" style="width: 300px;" required>
+                        </div>
+                    </article>
+                    <article class="form-field patient-name-wrapper" >
+                        <div class="field-attribute">
+                            <label for="patientName">CAG description</label>
+                        </div>
+                        <div class="field-value" id="patientNameLocal">
+                            <textarea type="text" id="givenNameLocal" ng-model="cag.description" pattern-validate
+                                placeholder="CAG description" />
+                        </div>
+                    </article>
+                </section>
+                
+
+                <legend class="registraion_legend">
+                    <span class="mylegend"> {{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}</span>
+                </legend>
+                <section class="form-field-inline">
+                    
+                    <article class="form-field" >
+                        <div class="field-attribute">
+                            <label for="cityVillage">
+                               Village
+                            </label>
+                        </div>
+                        <div class="field-value col col4" style="position: absolute; display: inline-block;">
+                            <input type="text"  ng-model="village"  ng-change="searchAddress('cityVillage', village)" ng-focus="showResults=0" ng-blur="clearAddressResults()">
+                            <ul ng-show="addressResults.length!==0" class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all " style="position: relative; margin-top: 30px; max-width: 400px; top: 100%; left: 0%; right: 0%; display: block;padding: 0%;border-width: 0px;z-index: 1; box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.2);">
+                                <li ng-repeat="address in addressResults" style="padding: 1px; " class="ui-menu-item" role="presentation" ng-click="selectAddress(address)">
+                                    <a class="ui-corner-all">{{ address.name}}, {{address.parent.name}}</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </article>
+                    <article class="form-field" >
+                        <div class="field-attribute">
+                            <label for="cityVillage">
+                               Constituency
+                            </label>
+                        </div>
+                        <div class="field-value">
+                            <input type="text"  ng-model="constituency">
+                        </div>
+                    </article>
+                    <article class="form-field" >
+                        <div class="field-attribute">
+                            <label for="cityVillage">
+                               District
+                            </label>
+                        </div>
+                        <div class="field-value">
+                            <input type="text"  ng-model="district" >
+                        </div>
+                    </article>
+                </section>
+                
+                <legend class="registraion_legend">
+                    <span class="mylegend"> CAG Members List <span style="font-size: 10px;" ng-hide="cag.cagPatientList.length==0">(Note: If member absent for visit, turn toggle off )</span><!--{{ ::'REGISTRATION_LABEL_ADDRESS_INFO' | translate}}--></span>
+                    </legend>
+                <section class="relationships-container form">
+                    
+                    <div class="box-container box-container-default history-relationship" >
+                        <div class="row" ng-repeat="patientx in cag.cagPatientList track by $index" ng-hide="cag.cagPatientList.length==0" style="padding: 14px 0px 14px 0px;">
+                            <div class="col col4"></div>
+                            <div class="col col4"></div>
+                            <div class="col col4"></div>
+                            <div class="col col4" style="padding-right: 40px;">
+                                <div class="toggle-list" ng-hide="uuid===''" style="margin-top: -10px;">
+                                    <div class="toggle-item">
+                                        <div class="toggle-checkbox" style="padding: 0%;">
+                                                <label class="switch">
+                                                    <input type="checkbox" ng-model="patientx.presentMember" ng-click="show(patientx.presentMember,$index)" ng-checked="patientx.presentMember==true" ng-disabled="activePatientVisitUUid!==''">
+                                                    <span class="slider round"></span>
+                                                </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col col2">
+                                <span>{{patientx.display}}</span>
+                                <span ng-if="patientx.display"><a ng-click="openPatientRegistrationInNewTab(patientx)"><i class="fa fa-external-link"></i></a></span>
+                            </div>
+                            
+                            
+                           
+                                
+                            
+                            <div class="col col3" ng-hide="uuid===''">
+                                <button type="button" id='startVisitButton' ng-click="startVisit(patientx,$index)"
+                                    ng-hide="patientx.presentMember==false || activePatientVisitUUid!==''" 
+                                    style=" color: white; 
+                                            border-color:green;
+                                            height: 2pc;
+                                            text-align: center;
+                                            background:linear-gradient(to bottom, #A1D030, #88af28);
+                                            width: 100%;">
+                                    Start Visit(Present Member)
+                                </button>
+                                <button type="button" id='startVisitButton' ng-click="enterVisit(patientx,$index)"
+                                    ng-hide="patientx.presentMember==false || activePatientVisitUUid!==patientx.uuid" 
+                                    style=" color: white; 
+                                            border-color:green;
+                                            height: 2pc;
+                                            text-align: center;
+                                            background:linear-gradient(to bottom, #A1D030, #88af28);
+                                            width: 100%;">
+                                    Enter Present Member Visit Details
+                                </button>
+                                <div class="field-value" ng-show="patientx.presentMember==false" >
+                                    <input type="text"  ng-model="patientx.absenteeReason" placeholder="Reason Absent for visit" style="width: 90%;" ng-disabled="activePatientVisitUUid!==''">
+                                </div>
+                                <div class="field-value" ng-show="patientx.presentMember==true && activePatientVisitUUid!==patientx.uuid && activePatientVisitUUid!==''" >
+                                    <p><b>Sent Present Member for refill</b></p>
+                                </div>
+                            </div>
+                            <div class="col col4">
+                                <button type="button" ng-hide="activePatientVisitUUid!==''" class="small-btn row-remover" ng-confirm-click="deletePatientFromCag(patientx,$index)" id="relationRemoveBtn">
+                                    <span class="fa fa-remove"></span>
+                                </button>
+                            </div>
+                            
+                            
+
+                        </div>    
+                        
+                        <!-- <button type="button" id='startVisitButton' ng-click="startVisit(patientx,$index)" 
+                                    style=" color: white; 
+                                            border-color:green; 
+                                            width: 300px;
+                                            height: 2pc;
+                                            margin: 0px 0px 0px 0px;
+                                            background:linear-gradient(to bottom, #A1D030, #88af28)">
+                                    Start Visit!
+                                  </button>
+                            </div> -->
+                            
+
+
+
+                           
+                        <div class="row" ng-show="cag.cagPatientList.length==0">
+                                <span>No members added...</span>
+                            
+                        </div>
+                    </div>
+                    
+                </section>
+                <section class="form-field-inline" ng-hide="activePatientVisitUUid!==''">
+                    <article class="form-field">
+                        <div class="field-attribute col col2">
+                            <label for="newField">
+                                    <b>Add Patient to Cag List </b>
+                             </label>
+                        </div>
+                        <div class="field-value col col4" style="position: absolute; display: inline-block;">
+                            <input type="text"  
+                                ng-model="newPatient" 
+                                placeholder="search Patient" 
+                                ng-change="searchPatient(newPatient)" 
+                                ng-blur="clearPatientResults()" 
+                                style="width: 320px;">
+                            
+                                <ul ng-show="patientResults.length!==0" 
+                                    class="ui-autocomplete ui-menu ui-widget ui-widget-content ui-corner-all" 
+                                    style=" position: relative; 
+                                            margin-top: 30px; 
+                                            max-width: 400px; 
+                                            top: 100%; 
+                                            left: 0%; 
+                                            right: 0%; 
+                                            display: block;
+                                            padding: 0%;
+                                            border-width: 0px;
+                                            z-index: 1; 
+                                            box-shadow: 0px 2px 2px 0px rgba(0,0,0,0.2);">
+                                <li ng-repeat="patient in patientResults" 
+                                style="padding: 1px; " 
+                                class="ui-menu-item" 
+                                role="presentation" ng-click="selectPatient(patient)">
+                                    <a class="ui-corner-all" tabindex="-1">
+                                        {{ patient.givenName}} {{ patient.familyName}} - {{patient.identifier}} <b>| ({{patient.age}} years)</b>
+                                    </a>
+                                </li>
+                            </ul>
+                            
+                        </div>
+
+                        
+                    </article>
+                    <article class="form-field">
+                        <i ng-click="addPatientToCag(patientTobeAdded,cag.cagPatientList.length)" class="fa fa-plus field-value" aria-hidden="true" style="color: green; font-size:24px;"></i>
+                      <!-- <button style="width: 20pc;"> Open Visit(s)</button> -->
+                     
+                    </article>
+                </section>
+                
+                <p><br></p>
+                <p><br></p>
+                <p><br></p>
+                <p><br></p>
+            </div>
+            <div class="submit-btn-container clearfix">
+                <button type="submit" class="right submit-btn"
+                accesskey="{{ ::'REGISTRATION_SAVE_ACCESS_KEY' | translate}}" ng-bind-html="::'REGISTRATION_LABEL_SAVE' | translate"></button>
+            </div>
+        </form>
+        <br>
+    </div>
+</div>
+
+<script>
+    function toggleVisibility(button) {
+        var toggleItem = button.parentElement;
+        // console.log(toggleItem);//
+        if(toggleItem.style.display){
+           toggleItem.style.display = "false";
+        }
+    }
+</script>

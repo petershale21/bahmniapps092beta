@@ -8,6 +8,19 @@ angular.module('bahmni.common.uiHelper')
             $scope.hasMultipleOptions = function () {
                 return $scope.secondaryOptions.length > 0;
             };
+
+
+            //added 31/01/2024 for CAG module to disable CAG visit type in patient registration.
+            $scope.removeCAGOption = function(){
+                for(let i=0; i<$scope.secondaryOptions.length; i++){
+                    if($scope.secondaryOptions[i].uuid == "da0fffe2-a9c9-489a-b9b0-a5405032c465"){//cag visit type uuid
+                        $scope.secondaryOptions.splice(i, 1);
+                    }
+                }
+            }
+            $scope.removeCAGOption();
+
+
         };
 
         var link = function (scope, element) {

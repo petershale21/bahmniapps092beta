@@ -1,0 +1,22 @@
+<style>
+button{
+    height:50px;
+    width: 50pc; 
+    margin-top: 10px;
+}
+
+#CAGS{
+    margin-left: 16pc;
+}
+</style>
+<div ng-model="chng" ng-init="patientView = true">
+    <div style="  display: table; margin-right: auto;margin-left: auto;" >
+        <button id="patient" ng-click="cag = false"> PATIENT </button>
+        <button id="cag" ng-click="cag = true"> CAG </button>
+    </div>
+
+    <div>
+        <div ng-if="!cag" ng-include="'views/newpatient.html'" ></div>
+        <div ng-if="cag" ng-include="'views/newCag.html'" ></div>
+    </div>
+</div>

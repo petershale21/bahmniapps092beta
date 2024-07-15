@@ -56,6 +56,7 @@ angular.module('bahmni.common.patient')
                 method: "GET",
                 params: {
                     q: query,
+                    limit: 20,
                     startIndex: offset,
                     identifier: identifier,
                     loginLocationUuid: sessionService.getLoginLocationUuid()
