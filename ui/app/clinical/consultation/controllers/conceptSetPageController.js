@@ -286,7 +286,10 @@ angular.module('bahmni.clinical')
                     "AHD Form",
                     "PrEP Intake",
                     "PrEP-Follow Up", 
-                    "MDR-TB Program"
+                    "MDR-TB Program",
+                    "TB Presumptive Register",
+                    "VMMC - Intake",
+                    "VMMC - Follow Up"
                 ];
             
             }else{
@@ -317,7 +320,8 @@ angular.module('bahmni.clinical')
                     "Nursery Register",
                     "Gynaecology Register",
                     "Labour and Delivery Register",
-                    "MDR-TB Program"
+                    "MDR-TB Program",
+                    "TB Presumptive Register"
                 ];
             }
 
