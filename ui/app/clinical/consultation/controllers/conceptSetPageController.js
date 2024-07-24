@@ -262,65 +262,16 @@ angular.module('bahmni.clinical')
                 return forms;
             };
 
-            //Thabiso Nthako - Filter out forms for MEN that are used in MCH in consultation
-            $scope.FormsNotForMen = [];
+            $scope.gender = $scope.patient.gender;
 
-            if($scope.patient.gender == "M"){
-
-                $scope.FormsNotForMen = [
-                    "History and Examination",
-                    "Vitals",
-                    "Tuberculosis - Intake",
-                    "Tuberculosis - Followup",
-                    "HIV Testing and Counseling",
-                    "HIV Testing Services Retesting Register",
-                    "HIV Treatment and Care Intake - Counselor",
-                    "HIV Treatment and Care - Intake",
-                    "HIV Treatment and Care - Follow Up",
-                    "Exposed Infant Monitoring",
-                    "Under5",
-                    "HIV Exposed Infant Register", 
-                    "HIV Care and Treatment - Contact Indexing",
-                    "Viral Load Monitoring",
-                    "TPT / IPT Form",
-                    "AHD Form",
-                    "PrEP Intake",
-                    "PrEP-Follow Up", 
-                    "MDR-TB Program"
-                ];
-            
-            }else{
-               
-                $scope.FormsNotForMen = [
-                    "History and Examination",
-                    "Vitals",
-                    "Tuberculosis - Intake",
-                    "Tuberculosis - Followup",
-                    "HIV Testing and Counseling",
-                    "HIV Testing Services Retesting Register",
-                    "HIV Treatment and Care Intake - Counselor",
-                    "HIV Treatment and Care - Intake",
-                    "HIV Treatment and Care - Follow Up",
-                    "Exposed Infant Monitoring",
-                    "Under5",
-                    "PNC, Register",
-                    "Cervical Cancer Screening Register",
-                    "Family Planning Register",
-                    "HIV Exposed Infant Register",
-                    "ANC Program",
-                    "HIV Care and Treatment - Contact Indexing",
-                    "Viral Load Monitoring",
-                    "TPT / IPT Form",
-                    "AHD Form",
-                    "PrEP Intake",
-                    "PrEP-Follow Up",
-                    "Nursery Register",
-                    "Gynaecology Register",
-                    "Labour and Delivery Register",
-                    "MDR-TB Program"
-                ];
-            }
-
+            $scope.MCHForms = [
+                "Nursery Register",
+                "Gynaecology Register",
+                "PNC, Register",
+                "Cervical Cancer Screening Register",
+                "ANC Program",
+                "Labour and Delivery Register"
+            ]
             // Form Code :: End
             init();
         }]);
