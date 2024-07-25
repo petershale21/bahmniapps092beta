@@ -16,14 +16,11 @@
                                     </div>
                                 </div>
                                 <ul class="template-icons">
-                                    <li ng-repeat="template in filterTemplates()">
-                                        <div  ng-repeat="formsnotformen in FormsNotForMen">
-                                            <div ng-if="template.label.toString() == formsnotformen">
-                                                <button  id="{{getNormalized(template.label)}}" ng-disabled = "((template.isAdded || template.alwaysShow) && !template.allowAddMore)" ng-click="addTemplate(template)">
-                                                    {{::template.label}}
-                                                </button>
-                                            </div>
-                                        </div>
+                                    <li ng-repeat="template in filterTemplates()" ng-show="gender == 'F' || !(MCHForms.includes(template.label))">
+                                        <!-- Show form if patient gender if female or the form is not part of the female MCH forms -->
+                                            <button  id="{{getNormalized(template.label)}}" ng-disabled = "((template.isAdded || template.alwaysShow) && !template.allowAddMore)" ng-click="addTemplate(template)">
+                                                {{::template.label}}
+                                            </button>
                                     </li>
                                 </ul>
                             </div>
