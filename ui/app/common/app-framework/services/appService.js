@@ -43,16 +43,16 @@ angular.module('bahmni.common.appFramework')
                     headers: {"Accept": "application/json", "Content-Type": "application/json"}
                 });
             };
-           // checkinh visit type data from API - senekanet
-           this.getIsCAGVisitType = function (limit) {
-                var cag = $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/visit?limit="+limit, {
+           // getting visit data by uuid from API - senekanet
+            this.fetchingVisitDatabyUuid = function (uuid) {
+                return $http.get(Bahmni.Common.Constants.openmrsUrl + "/ws/rest/v1/visit/"+uuid, {
                     method: "GET", 
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     withCredentials: true
                 });
-                return cag;
+                
             };
 
            this.getAllCags = function () {

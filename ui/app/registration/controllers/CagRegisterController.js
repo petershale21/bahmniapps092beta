@@ -17,20 +17,18 @@ angular.module('bahmni.registration')
             $scope.cag = [];
             $scope.cag.cagPatientList=[];
             $scope.patientThis;// = "5a6f70be-19c2-442e-adf4-89e184abd039";
-
+            var patientListSpinner;
             
             // var visitLocationUuid = $rootScope.visitLocation;
             // var defaultVisitType = $rootScope.regEncounterConfiguration.getDefaultVisitType(loginLocationUuid);
             $scope.Height;
         
-            console.log(cagService.run());
             $scope.searchAddress = function(fieldName, query){
                 var parentUuid = null;
                 addressHierarchyService.search(fieldName, query, parentUuid)
                 .then(function (response) {
                     // Handle the search results
                     $scope.addressResults = response.data;
-                    console.log('Address Results:', $scope.addressResults);
                 })
                 .catch(function (error) {
                     // Handle errors
@@ -39,7 +37,6 @@ angular.module('bahmni.registration')
             }
             $scope.showResults=0;
             $scope.selectAddress = function(selectedAddress){
-                console.log(selectedAddress)
                 $scope.village=selectedAddress.name;
                 $scope.constituency=selectedAddress.parent.name;
                 $scope.district=selectedAddress.parent.parent.name;
@@ -56,11 +53,9 @@ angular.module('bahmni.registration')
                     "district": $scope.district+"",
                     "cagPatientList": $scope.cag.cagPatientList 
                 }
-                console.log(($scope.cagData));
                 var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag';
                 if($location.path!="/cag/new"){
                     apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag/'+$scope.uuid;
-                    console.log(apiUrl);
                 }
 
                 $http({
@@ -71,7 +66,6 @@ angular.module('bahmni.registration')
                     },
                     data: angular.toJson($scope.cagData)
                 }).then(function(response){
-                    console.log(response);
                     if(response.status==200 || response.status==201){
                         $location.url('/cag/'+response.data.uuid);
                         messagingService.showMessage('info', 'Saved');
@@ -94,8 +88,7 @@ angular.module('bahmni.registration')
             }
 
             $scope.searchPatient = function(fieldPatient){
-                patientService.searchByNameOrIdentifier(fieldPatient,10).then(function(response) {
-                    console.log(response.data.pageOfResults);
+                patientService.searchByNameOrIdentifier(fieldPatient,20).then(function(response) {
                     $scope.patientResults=response.data.pageOfResults;
                 });
             }
@@ -119,7 +112,6 @@ angular.module('bahmni.registration')
 
             $scope.openPatientRegistrationInNewTab = function (cagMember) {
                 // var personRelatedTo = getPersonRelatedTo(cagMember);
-                console.log(getPatientRegistrationUrl(cagMember.uuid));
                 $window.open(getPatientRegistrationUrl(cagMember.uuid), '_blank');
             };
             var getPatientRegistrationUrl = function (patientUuid) {
@@ -138,23 +130,20 @@ angular.module('bahmni.registration')
             $scope.show = function(x,y){
                 if(x==true){
                     $scope.cag.cagPatientList[y].absenteeReason="";
-                    console.log($scope.cag.cagPatientList[y]);
                 }
             }
 
 
             $scope.fetchPrevRegimen = function (patientUuids) {
                 var todayDate = DateUtil.getDateTimeInSpecifiedFormat(DateUtil.now(),"YYYY-MM-DD");
-                console.log("===", patientUuids);
                 var deferred = $q.defer();
                 observationsService.fetch(patientUuids, [
-                    "HIVTC, ART Regimen",
-                    "HIVTC, ART start date"
+                    "HIVTC, ART start date",
+                    "HIVTC, ART Regimen"
                 ], "latest")
                 .then(function (response){  
-                    // console.log(response,$scope.getMonthDifference(response.data[1].value,todayDate)>=6);
-                    if(response.data.length==2 && $scope.getMonthDifference(response.data[1].value,todayDate)>=6){
-                        
+
+                    if(response.data.length>1 && response.data[response.data.length-1].concept.name=="HIVTC, ART Regimen" && response.data[0].concept.name=="HIVTC, ART start date" && $scope.getMonthDifference(response.data[0].value,todayDate)>=6){
                         deferred.resolve(true);
                     } 
                     else{
@@ -171,14 +160,11 @@ angular.module('bahmni.registration')
             }
 
 
-            console.log("===========",$scope.getMonthDifference("2024-01-20","2024-02-20"));
             $scope.addPatientToCag = function(patientTobeAdded, cagListLength){
-                console.log(patientTobeAdded);
                 
                 if(cagListLength==undefined) cagListLength=0;
                 if(JSON.stringify($scope.patientTobeAdded) != '{}' && $scope.searchCagList(patientTobeAdded.uuid,cagListLength)==0){
                     $q.all([$scope.fetchPrevRegimen(patientTobeAdded.uuid)]).then(function(hasPrevRegimen) {
-                        console.log(hasPrevRegimen);
                         if(hasPrevRegimen[0]){
                             var patientTobeAdded2={};
                             patientTobeAdded["display"] = patientTobeAdded.identifier+" - "+patientTobeAdded.givenName+" "+patientTobeAdded.familyName;
@@ -200,7 +186,6 @@ angular.module('bahmni.registration')
                                     }
         
                                 }
-                                console.log(data);
                                 apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient';
         
                                 $http({
@@ -215,7 +200,6 @@ angular.module('bahmni.registration')
                                         patientTobeAdded["presentMember"] = true;
                                         patientTobeAdded["absenteeReason"] = "";
                                         $scope.cag.cagPatientList.push(patientTobeAdded);
-                                        console.log($scope.cag.cagPatientList);
                                         $scope.patientTobeAdded = {};
                                         $scope.newPatient = '';
                                         messagingService.showMessage('info', 'Patient has been added to CAG');
@@ -229,7 +213,7 @@ angular.module('bahmni.registration')
                         }
                         
                         else{
-                            alert("has no previous regimen given or started ART less than 6 months ago");
+                            alert("Cannot add patient, patient must have ART Start date and previous regimen filled in previous forms and also ART start date must be 6 or more months ago from today");
                         }
                     })
                     
@@ -244,11 +228,9 @@ angular.module('bahmni.registration')
             }
 
             $scope.deletePatientFromCag = function(patientTobeRemoved, patientindex){
-                console.log(patientindex);
                 apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagPatient/'+patientTobeRemoved.uuid;
                 $http.delete(apiUrl)
                 .then(function(response){
-                    console.log(response);
                     if(response.status==204){
                         $scope.cag.cagPatientList.splice(patientindex, 1);
                         messagingService.showMessage('info', 'Patient has been removed from CAG');
@@ -267,26 +249,32 @@ angular.module('bahmni.registration')
                     ],"latest")
                 ]);
             };
-           console.log(getConceptValues());
 
             getConceptValues().then(function (result) {
                 var heightConcept = _.find(result[0].data, function (observation) {
                     return observation.concept.name === "Height";
                 });
-                console.log(heightConcept);
-                console.log(result);
                 try {
                     $scope.Height = result[0].data[0].value;
                 } catch (error) {
                     
                 }
             });
+
+            var showSpinner = function (spinnerObj, container) {
+                $('.full-screen-spinner').show();
+            };
+            var hideSpinner = function (spinnerObj, data, container) {
+                $('.full-screen-spinner').hide();
+            };
+            patientListSpinner = showSpinner(spinner, $(".tab-content"));
+            hideSpinner(spinner, patientListSpinner, $(".tab-content"));
+            // $('.full-screen-spinner').hide();
             var presentPatientUuid="";
             $scope.startVisit = function(cagMember, cagListLength){
+                patientListSpinner = showSpinner(spinner, $(".tab-content"));
                 var loginLocation = $bahmniCookieStore.get(Bahmni.Common.Constants.locationCookieName);
                 // Generate the current date and time
-                console.log($scope);
-                console.log($rootScope);
                 const currentDate = new Date();
                 const dateStarted = currentDate.toISOString().slice(0, 19).replace("T", " ");
                 const cagUuid = $scope.cag.uuid;
@@ -294,7 +282,6 @@ angular.module('bahmni.registration')
                 const locationUuid = loginLocation.uuid;
                 const locationName = loginLocation.name;
                 // const valueNumeric  = 140;//$scope.Height;
-                console.log($scope.Height);
                 var visitObjArray = [];
                 const absenteesObj = {};
                 for(var i = 0; i<$scope.cag.cagPatientList.length; i++){
@@ -489,11 +476,9 @@ angular.module('bahmni.registration')
                                 ]
                             };
                             visitObjArray.push(buddieObj);
-                            console.log(visitObjArray);
                         }
                     }
                 }
-                console.log(absenteesObj);
                 //const locationName = "Unknown Location";
 
                 // Build the JSON data
@@ -510,7 +495,6 @@ angular.module('bahmni.registration')
                     "visits": visitObjArray
                 }
                 
-                console.log(data);
                 apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit';
                 $http({
                     url: apiUrl,
@@ -520,6 +504,7 @@ angular.module('bahmni.registration')
                     },
                     data: angular.toJson(data)
                 }).then(function(response){
+                    hideSpinner(spinner, patientListSpinner, $(".tab-content"));
                     messagingService.showMessage('info', 'CAG Visit Opened ! !');
                     // $window.open(getPatientVisitUrl(cagMember.uuid), '_blank');
                     $location.path('/patient/' + cagMember.uuid + '/visit')
@@ -536,7 +521,6 @@ angular.module('bahmni.registration')
                 
                 $http.get(apiUrl)
                 .then(function(response) {
-                    console.log('API Response:', response);
                     // Handle the successful response here
                     $scope.cag = response.data;
                     if($scope.cag.cagPatientList!=null){
@@ -548,11 +532,9 @@ angular.module('bahmni.registration')
                                 var CagPatientapiURL=Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cagVisit?attenderuuid='+response.data.cagPatientList[i].uuid+'&isactive='+true;
                                 $http.get(CagPatientapiURL)
                                 .then(function(response2) {
-                                    console.log(response2);
                                     if(response2.data.results){
                                         if(response2.data.results.length!=0){
                                             $scope.activevisits = response2.data.results[0].visits;
-                                            console.log($scope.activevisits);
                                             $scope.activePatientVisitUUid = response2.data.results[0].attender.uuid;
                                         }
                                     }
@@ -568,8 +550,6 @@ angular.module('bahmni.registration')
                         $scope.village=$scope.cag.village;
                         $scope.constituency=$scope.cag.constituency;
                         $scope.district=$scope.cag.district;
-
-                        
                     }
                 })
                 .catch(function(error) {
@@ -592,15 +572,12 @@ angular.module('bahmni.registration')
                             $scope.cag.cagPatientList[k].presentMember=false;
                             $scope.cag.cagPatientList[k].absenteeReason="absent";
                         }
-                        console.log($scope.cag.cagPatientList)
                     }
                 }
             });
             
             if($location.path()!='/cag/new'){
                 $scope.uuid = $stateParams.cagUuid;
-                console.log("state: "+$stateParams.cagUuid);
-                console.log($location.path());
                 var apiUrl = Bahmni.Registration.Constants.baseOpenMRSRESTURL+'/cag/'+$scope.uuid+"?v=full";
                 $scope.fetchCag(apiUrl);
             }

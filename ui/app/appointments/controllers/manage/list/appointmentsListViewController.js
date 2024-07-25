@@ -69,7 +69,7 @@ angular.module('bahmni.appointments')
                                 var contact;
                          
                                 
-                                console.log(client.data.person.addresses[0].cityVillage)
+                                // console.log(client.data.person.addresses[0].cityVillage)
                                
                                 client.data.person.attributes.forEach(attribute =>{
                                     //console.log(attribute.attributeType.display.concat(": ", attribute.value))
