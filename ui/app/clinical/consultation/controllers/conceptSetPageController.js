@@ -263,7 +263,7 @@ angular.module('bahmni.clinical')
             };
 
             $scope.gender = $scope.patient.gender;
-
+            
             $scope.MCHForms = [
                 "Nursery Register",
                 "Gynaecology Register",
