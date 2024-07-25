@@ -543,8 +543,6 @@ angular.module('bahmni.registration')
                 $http.get(apiUrl)
                 .then(function(response) {
                     // Handle the successful response here
-                    console.log(Bahmni.Registration.Constants.baseOpenMRSRESTURL);
-                    console.log('API Response:', response.data);
                     $scope.cagResults = response.data.results;
                 })
                 .catch(function(error) {

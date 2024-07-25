@@ -6,11 +6,9 @@ angular.module('bahmni.common.patientSearch')
     function ($scope, $window, patientService, $rootScope, appService, spinner, $stateParams, $bahmniCookieStore, printer, configurationService, $q) {
         const DEFAULT_FETCH_DELAY = 2000;
         var patientSearchConfig = appService.getAppDescriptor().getConfigValue("patientSearch");
-        console.log(patientSearchConfig);
         var patientListSpinner;
-        $scope.activeVisits = [];
-        $scope.otherCagMemberList=[];
-        $scope.totalqueueLimit=0;
+        $scope.otherCagMember=[];
+        $scope.cagname={};
         var initialize = function () {
             // $scope.cagLoad=1;
             var searchTypes = appService.getAppDescriptor().getExtensions("org.bahmni.patient.search", "config").map(mapExtensionToSearchType);
@@ -18,18 +16,6 @@ angular.module('bahmni.common.patientSearch')
             $scope.search.markPatientEntry();
             $scope.$watch('search.searchType', function (currentSearchType) {
                 _.isEmpty(currentSearchType) || fetchPatients(currentSearchType);
-                console.log($scope.search.searchTypes);
-                console.log(getPatientCount($scope.search.searchTypes[0], null));
-            });
-            $scope.$watch('search.activePatients', function () {
-                if ($scope.search.activePatients.length > 0 && $scope.search.activePatients[0].activeVisitUuid) {
-                    $scope.totalqueueLimit=$scope.search.searchTypes[0].patientCount;
-                    console.log("active === ", $scope.search.activePatients, "searchtypes ===",$scope.search);
-                    // if($scope.search.activePatients)
-                    $scope.isCagType($scope.totalqueueLimit);
-                    $scope.otherCagMemberList=[];
-                    hideSpinner(spinner, patientListSpinner, $(".tab-content"));
-                }
             });
             if (patientSearchConfig && patientSearchConfig.serializeSearch) {
                 getPatientCountSeriallyBySearchIndex(0);
@@ -46,108 +32,69 @@ angular.module('bahmni.common.patientSearch')
                 $scope.primaryIdentifier = _.find(response.identifierTypesConfig, {primary: true}).name;
             });
         };
-
-        $scope.isCagVisit = function(uuid, activePatientsUuid, index){
-            var deferred = $q.defer();
-            appService.getCagPatient(uuid).then(function(response){
-                console.log(response);
-                var res={
-                    "status" : false,
-                    "index" : index,
-                    "cagName":undefined,
-                    "otherMemberList":[]
+        
+        $scope.searchotherCagMembers = function(key){
+            for(var i=0;i<$scope.otherCagMember.length;i++){
+                if(key==$scope.otherCagMember.member_uuid){
+                    return 1;
                 }
-                if(response.data.results.length > 0){
-                    if(response.data.results[response.data.results.length-1].attender.uuid==activePatientsUuid) {
-                        res.status=true;
-                        res.cagName=response.data.results[response.data.results.length-1].cag.name;
-                        res.otherMemberList=response.data.results[response.data.results.length-1].visits;
-                        deferred.resolve(res);
-                    }
-                    else deferred.resolve(res);
-                }
-                else deferred.resolve(res);
-                deferred.resolve();
-            })
-            return deferred.promise;
+            }
+            return 0;
         }
-
-        $scope.isCagType = function(limit){
-            showSpinner(spinner, $(".tab-content"));
-            console.log($scope.search);
-            
-            appService.getIsCAGVisitType(limit).then(function(response){
-                $scope.activeVisits = response.data.results;
-
-                console.log($scope.activeVisits);
-                for(var i=0;i<limit;i++){
-                    console.log(limit);
-                    var found = 0;
-                    var uuid = "";
-                    for(var j=0; j < $scope.activeVisits.length; j++){
-                        try{
-                            console.log($scope.search.activePatients[i].activeVisitUuid,$scope.activeVisits[j].uuid,$scope.activeVisits[j].display);
-                            if($scope.search.activePatients[i].activeVisitUuid == $scope.activeVisits[j].uuid && $scope.activeVisits[j].display.substring(0,3)=="CAG"){
-                                $scope.search.activePatients[i]['showIsCag'] = true;
-                                $scope.search.activePatients[i]['presentMember'] = false;
-                                $scope.search.activePatients[i]['cagName'] = "";
-                                found=1;
-                                j=$scope.activeVisits.length;
-                                uuid=$scope.search.activePatients[i].uuid;
-                                console.log($scope.search.activePatients);
-                                console.log(i,);
-                            }
-                        }catch (Exception) {
-                            // console.error(`Couldn't insert card ${x}`);
-                          }
-                        
+        $scope.isCagVisit = function(patientx,index) {
+            if(patientx.activeVisitUuid!=null){
+                appService.fetchingVisitDatabyUuid(patientx.activeVisitUuid).then(function(res) {
+                    if(res.data.display){
+                        if(res.data.display.substring(0,3)=="CAG"){
+                            patientx['showIsCag'] = true;
+                            patientx['presentMember'] = false;
+                            // patientx['cagName'] = "";
+                            appService.getCagVisit(patientx.uuid).then(function(response){
+                                if(response.data.results && response.data.results.length>0){
+                                    if(response.data.results[0].attender.uuid==patientx.uuid){
+                                        patientx['presentMember'] = true;
+                                        patientx['cagName'] = response.data.results[0].cag.name;
+                                    }
+                                    for (let i = 0; i < response.data.results[0].visits.length; i++) {
+                                        if(patientx.uuid!=response.data.results[0].visits[i].patient.uuid){
+                                            if(!$scope.cagname.hasOwnProperty(patientx.uuid)){
+                                                $scope.cagname[response.data.results[0].visits[i].patient.uuid]=response.data.results[0].cag.name;
+                                            }
+                                        }                                    
+                                    }
+                                }
+                                else if(response.data.results && response.data.results.length==0){
+                                    var member={
+                                        "member_uuid":patientx.uuid,
+                                        "index":index
+                                    }
+                                    if($scope.searchotherCagMembers(patientx.uuid)==0){
+                                        $scope.otherCagMember.push(member);
+                                    }
+                                }
+                                for(var i=0;i<$scope.otherCagMember.length;i++){
+                                    if($scope.otherCagMember[i].member_uuid!=undefined && $scope.otherCagMember[i].index!=undefined && $scope.search.visiblePatients[$scope.otherCagMember[i].index]!=undefined){
+                                        if($scope.cagname.hasOwnProperty($scope.otherCagMember[i].member_uuid)){
+                                            var x=$scope.otherCagMember[i].member_uuid
+                                            $scope.search.visiblePatients[$scope.otherCagMember[i].index]['cagName']=$scope.cagname[x];
+                                        }
+                                    }
+                                }
+                            });
+                        }
                     }
-                    
-                    if(uuid!=""){
-                        var pos=i;
-                        $q.all([$scope.isCagVisit(uuid, $scope.search.activePatients[i].uuid, pos)]).then(function(res){
-                            if(res){
-                                console.log(res[0],i,$scope.otherCagMemberList);
-                                if(res[0].status)   $scope.search.activePatients[res[0].index].presentMember = res[0].status;
-                                if(res[0].cagName!=undefined)  $scope.search.activePatients[res[0].index].cagName = res[0].cagName;
-                                if(res[0].otherMemberList.length==0)  $scope.otherCagMemberList.push({"uuid":$scope.search.activePatients[res[0].index].uuid,"index":res[0].index}) 
-                                // for (let k = 0; k < $scope.otherCagMemberList.length; k++) {
-                                //     console.log( $scope.otherCagMemberList, k,res[0].otherMemberList,$scope.search.activePatients );
-                                //     for(let j=0; j<res[0].otherMemberList.length; j++){
-                                //         if( $scope.otherCagMemberList[k].uuid== res[0].otherMemberList[j].patient.uuid) {
-                                //             console.log( $scope.otherCagMemberList, k,$scope.search.activePatients ,res[0].cagname,$scope.otherCagMemberList[k].index);
-                                //             $scope.search.activePatients[$scope.otherCagMemberList[k].index].cagName = $scope.search.activePatients[res[0].index].cagName;
-                                        
-                                //         }  
-                                //     } 
-                                // }
-
-                                // for(let j=0; j<res[0].otherMemberList.length; j++){
-                                //     for (let k = 0; k < $scope.search.activePatients.length; k++) {
-                                //         // console.log( $scope.otherCagMemberList, k,res[0].otherMemberList,$scope.search.activePatients );
-                                    
-                                //         if( $scope.search.activePatients[k].uuid== res[0].otherMemberList[j].patient.uuid && $scope.search.activePatients[k].cagName=="") {
-                                //             // console.log( $scope.otherCagMemberList, k,$scope.search.activePatients ,res[0].cagname,$scope.otherCagMemberList[k].index);
-                                //             $scope.search.activePatients[k].cagName = res[0].cagName;
-                                        
-                                //         }  
-                                //     } 
-                                // }
-                            }
-                            // $scope.cagLoad=0;
-                        })
-                    }
-                }
-                console.log($scope.search.activePatients);
-            });
-           
+                }) 
+            }
         }
         
         $scope.searchPatients = function () {
             return spinner.forPromise(patientService.search($scope.search.searchParameter)).then(function (response) {
                 $scope.search.updateSearchResults(response.data.pageOfResults);
-                if ($scope.search.hasSingleActivePatient()) {
-                    $scope.forwardPatient($scope.search.activePatients[0]);
+                // if ($scope.search.hasSingleActivePatient() ) {
+                if (response.data.pageOfResults.length==1) {
+                    if( response.data.pageOfResults[0].presentMember==true){
+                        $scope.forwardPatient($scope.search.activePatients[0]);
+                    }
                 }
             });
         };

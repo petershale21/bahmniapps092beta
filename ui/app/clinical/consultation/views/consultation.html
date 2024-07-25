@@ -1,4 +1,4 @@
-<article class="consultation-page visit">
+<article class="consultation-page visit"> 
     <section class="messages" ng-if="isConsultationTabEmpty()">
         <p class="null-data-message">{{ 'CONSULTATION_PAD_EMPTY_MESSAGE'|translate }}</p>
     </section>
@@ -256,7 +256,7 @@
                     <div>
                         <div ng-if="disposition.show" class="inline-notes notes" ng-class="{'print-notes': note.value}">
                             <p class="left">
-                                <strong>{{ 'CONSULTATION_TAB_DISPOSITIONS_NOTES_LABEL'|translate }}: </strong>{{consultation.disposition.additionalObs[0].value}}
+                                <strong>{{ 'CONSULTATION_TAB_DISPOSITIONS_NOTES_LABEL'|translate }}:kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk </strong>{{consultation.disposition.additionalObs[0].value}}
                             </p>
                         </div>
                     </div>
@@ -272,7 +272,9 @@
         <h2 class="section-title">{{ 'CONSULTATION_TAB_CONSULTATION_NOTES_LABEL'|translate }}</h2>
         <textarea ng-model="consultation.consultationNote.value" ng-change="onNoteChanged()"
                   placeholder="{{ 'CLINICAL_ENTER_NOTES_PLACEHOLDER'|translate }} " rows="6" msd-elastic></textarea>
+    
     </section>
+
 
 </article>
 

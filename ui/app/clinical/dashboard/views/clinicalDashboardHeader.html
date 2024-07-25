@@ -1,7 +1,27 @@
-<!-- Note: The below html brought back from two sub-html into this one html because bm-back-link directive is not getting statechangesuccess event -->
-<div ng-show="!stateChange()">
-    <div class="opd-header-wrapper clinical-consultation" id="opd-tabs" ng-class="{'retro-mode':isInEditEncounterMode()}">
 
+<style>
+    .full-screen-spinner {
+            background-color: rgba(0, 0, 0, 0.5);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* background-color: rgba(255, 255, 255, 0.8);  */
+            z-index: 999999999; /* high z-index to overlay everything */
+            background: rgba(0,0,0,0.6) url('../images/spinner.gif') no-repeat center center;
+        }
+</style>
+<!-- Note: The below html brought back from two sub-html into this one html because bm-back-link directive is not getting statechangesuccess event -->
+
+<div class="full-screen-spinner"></div>
+<div ng-show="!stateChange()">
+    
+    <div class="opd-header-wrapper clinical-consultation" id="opd-tabs" ng-class="{'retro-mode':isInEditEncounterMode()}">
+            
         <div class="opd-header-bottom tabs">
             <bm-back-links></bm-back-links>
             <recent-patients ng-if="enablePatientSearch()"></recent-patients>
@@ -46,6 +66,7 @@
 
 <div ng-show="stateChange()" confirm-on-exit>
     <div bindonce class="dashboard-header opd-header-wrapper">
+        
         <div class="opd-header-bottom tabs">
             <bm-back-links></bm-back-links>
             <recent-patients></recent-patients>

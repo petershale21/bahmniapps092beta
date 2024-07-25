@@ -81,7 +81,7 @@
                 visible-results="search.visiblePatients" class="active-visits">
             <ul>
                 <!-- <ul ng-show="cagLoad==0"> -->
-                <li ng-repeat="patient in search.visiblePatients" class="active-patient" ng-class="{notPresentCagMember : patient.presentMember==false}"  ng-click="checkifCagPresentMember(patient, patient.showIsCag, patient.presentMember)">
+                <li ng-repeat="patient in search.visiblePatients" ng-init="isCagVisit(patient,$index)" class="active-patient" ng-class="{notPresentCagMember : patient.presentMember==false}" ng-click="checkifCagPresentMember(patient, patient.showIsCag, patient.presentMember)">
                     <img class="smallImages" ng-show="patient.showIsCag==undefined" ng-src="{{::patient.image}}" fallback-src='../images/blank-user.png'>
                     <img class="smallImages" ng-show="patient.showIsCag==true" ng-src="../images/users.svg.png" style="opacity: 0.34;" fallback-src='../images/users.svg.png'>
                     

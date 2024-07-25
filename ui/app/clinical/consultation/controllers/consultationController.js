@@ -14,6 +14,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             var getPreviousActiveCondition = Bahmni.Common.Domain.Conditions.getPreviousActiveCondition;
             $scope.togglePrintList = false;   
             $scope.patient = patientContext.patient;
+            var patientListSpinner;
 
             appService.getCagPatient($scope.patient.uuid).then(function(response){$rootScope.isCagPresentMemberVisit= response.data;});//helps set type of member = ART Patient for CAG present member
             $scope.showDashboardMenu = false;
@@ -501,14 +502,12 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             };
 
             $scope.fetchPrevRegimen = function (patientUuids,visitUuid) {
-                console.log("===", patientUuids);
                 var deferred = $q.defer();
                 observationsService.fetch(patientUuids, [
                     "HIVTC, ART Regimen"
                 ], "latest")
                 .then(function (response){  
                     if(response.data.length>0){
-                        console.log("Response data : : : ",response);
                         var patientRegimen = response.data[0].value.name;
                         var patientRegimenUuid = response.data[0].value.uuid;
                         var patientVisitData = 
@@ -518,12 +517,10 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                             "patientRegimen": patientRegimen,
                             "patientRegimenUuid": patientRegimenUuid
                         };
-                        console.log("inner loop: ",patientVisitData);
                         
                         $scope.patientVisitData.push(
                             patientVisitData
                         );  
-                        console.log("patientVisitData = ", $scope.patientVisitData);
                         deferred.resolve(true);
                     } 
                     else{
@@ -534,12 +531,10 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                             "patientRegimen": "",
                             "patientRegimenUuid": ""
                         };
-                        console.log("inner loop: ",patientVisitData);
                         
                         $scope.patientVisitData.push(
                             patientVisitData
                         );  
-                        console.log("patientVisitData = ", $scope.patientVisitData);
                         deferred.resolve(true);
                     }
                     
@@ -547,9 +542,17 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                 return deferred.promise;
             }
             $scope.CAGPresentMemberOrders=[];
+            var showSpinner = function (spinnerObj, container) {
+                $('.full-screen-spinner').show();
+            };
+            var hideSpinner = function (spinnerObj, data, container) {
+                // spinnerObj.hide(data, container);
+                $('.full-screen-spinner').hide();
+            };
+            patientListSpinner = showSpinner(spinner, $(".test"));
+            hideSpinner(spinner, patientListSpinner, $(".test"));
             
             $scope.$watchGroup(['consultation','consultation.newlyAddedTabTreatments','consultation.newlyAddedTabTreatments.allMedicationTabConfig','consultation.newlyAddedTabTreatments.allMedicationTabConfig.treatments','consultation.newlyAddedTabTreatments.allMedicationTabConfig.orderSetTreatments'], function(){
-                console.log("=======",$scope.observation);
                 var cagEncounterDateTime = DateUtil.getDateTimeInSpecifiedFormat(DateUtil.now(),"YYYY-MM-DD hh:mm:ss");
                 var autoExpireDate = Bahmni.Common.Util.DateUtil.addDays(cagEncounterDateTime,3);
                     
@@ -595,7 +598,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                             //     cag_order.route="";
                             // }
                             // alert(JSON.stringify($scope.consultation.newlyAddedTabTreatments.allMedicationTabConfig.treatments));
-                            console.log($scope.consultation.newlyAddedTabTreatments.allMedicationTabConfig.treatments);
+                            // console.log($scope.consultation.newlyAddedTabTreatments.allMedicationTabConfig.treatments);
                         }   
                     }
                 } 
@@ -605,7 +608,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
 
             })
             $scope.fetchPrevObsData = function (patientUuids) {
-                console.log("===", patientUuids);
                 var deferred = $q.defer();
                 observationsService.fetch(patientUuids, [
                     "Type of client",
@@ -618,7 +620,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     // "Cotrimoxazole No of days dispensed"
                 ], "latest",1)
                 .then(function (response){
-                    console.log(response)   
                     deferred.resolve(response)
                     
                 }).catch(function(error){console.log(error)}); 
@@ -628,7 +629,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             $scope.isCagVisit = function(uuid){
                 var deferred = $q.defer();
                 appService.getCagPatient(uuid).then(function(response){
-                    console.log(response);
                     if(response.data.results.length == 1){
                         deferred.resolve(true);
                     }
@@ -640,14 +640,19 @@ angular.module('bahmni.clinical').controller('ConsultationController',
             }
             // console.log($scope.consultation);
             $scope.save = function (toStateConfig) {
+                patientListSpinner = showSpinner(spinner, $(".test"));
+            // hideSpinner(spinner, patientListSpinner, $(".tab-content"));
                 appService.setOrderstatus(true);
                 if (!isFormValid()) {
                     $scope.$parent.$parent.$broadcast("event:errorsOnForm");
+                    hideSpinner(spinner, patientListSpinner, $(".test"));
                     return $q.when({});
                 }
                 return $q.all([ $scope.isCagVisit($scope.patient.uuid)]).then(function(results){
-                    console.log(results);
+                    // patientListSpinner = showSpinner(spinner, $(".tab-content"));
+            // hideSpinner(spinner, patientListSpinner, $(".tab-content"));
                     if(results[0] == true){
+
                         var patientUuid =  $scope.patient.uuid;      
                         appService.getCagPatient(patientUuid)
                         .then(function(response){
@@ -655,7 +660,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                 
                                 var visitData = response.data;
                                 
-                                console.log("cag visit Patient data :",visitData);
                                 
                                 $scope.cagVisitUuid = visitData.results[0].uuid;
                                 
@@ -665,7 +669,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                 var patientVisits = visitData.results[0].visits;
                                 var count = 1;
                                 patientVisits.forEach(function(res){  
-                                    console.log("Visit data : ",res);
                                     
                                     $scope.patientUuids = res.patient.uuid;
                                     $scope.patientVisitUuid = res.uuid;
@@ -678,7 +681,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                             if(patientVisits.length == count){
                                                 $scope.complete = true;
                                             }
-                                            console.log($scope.patientVisitData[count-1]);
                                             // if($patientVisitData)
                                             count++;
                                         });
@@ -689,7 +691,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                 
                                 
                                 $q.all([$scope.fetchPrevObsData($scope.patient.uuid)]).then(function (res){  
-                                    console.log(res[0].data);
                                     // $scope.cagEncounterDateTime = DateUtil.getDateTimeInSpecifiedFormat(DateUtil.now(),"YYYY-MM-DDThh:mm:ss.ss+HHMM");
                                     // $scope.obsDateTime = DateUtil.getDateTimeInSpecifiedFormat(DateUtil.now(),"YYYY-MM-DDThh:mm:ss.ss+HHMM")
 
@@ -700,26 +701,21 @@ angular.module('bahmni.clinical').controller('ConsultationController',
 
                                     $q.all([preSavePromise(), encounterService.getEncounterType($state.params.programUuid, sessionService.getLoginLocationUuid())]).then(function (res2){
                                         
-                                        console.log(preSavePromise());
                                         // 746818ac-65a0-4d74-9609-ddb2c330a31b
                                         if(res2[0]){
                                             if(res2[0].observations.length==1 && res2[0].observations[0].concept.uuid=="746818ac-65a0-4d74-9609-ddb2c330a31b"){
                                                 $scope.provider = $rootScope.currentProvider.uuid;                                               
                                                 for(var i = 0; i < res2[0].observations[0].groupMembers.length; i++){
-                                                    console.log($scope.consultation);
                                                     if(res2[0].observations[0].groupMembers[i].concept.uuid=="65aa58be-3957-4c82-ad63-422637c8dd18"){
                                                         var formData = res2[0].observations[0].groupMembers[i];
                                                         
                                                         for(var j = 0; j < formData.groupMembers.length; j++){
-                                                            console.log("form data == ",formData.groupMembers[j]);
                                                             //Type of client
                                                             if(formData.groupMembers[j].concept.uuid=="e0bc761d-ac3b-4033-92c7-476304b9c5e8"){
                                                                 formData.groupMembers[j].value= formData.groupMembers[j].possibleAnswers[1];
                                                                 formData.groupMembers[j]._value= formData.groupMembers[j].possibleAnswers[1];
-                                                                console.log(formData.groupMembers[j].value);
                                                                 $scope.TypeOfClientTreatmentValue = formData.groupMembers[j].value.displayString; 
                                                                 $scope.TypeOfClientTreatmentUuid = formData.groupMembers[j].value.uuid;
-                                                                console.log(formData.groupMembers[j].concept.uuid);
                                                             }
                                                             //Appointment scheduled
                                                             else  if(formData.groupMembers[j].concept.uuid == "ed064424-0331-47f6-9532-77156f40a014"){
@@ -733,7 +729,14 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                             }
                                                             //drug supply duration
                                                             else if(formData.groupMembers[j].concept.uuid == "9eb00622-1078-4f7b-aa69-61e6c36db347"){
-                                                                $scope.ARVDrugsSupplyDurationValue = formData.groupMembers[j].value.names[1].name; 
+                                                                $scope.ARVDrugsSupplyDurationValue; 
+                                                                if(formData.groupMembers[j].value.names){
+                                                                    $scope.ARVDrugsSupplyDurationValue = formData.groupMembers[j].value.names[1].name; 
+                                                                }
+                                                                else{
+                                                                    $scope.ARVDrugsSupplyDurationValue = formData.groupMembers[j].value.name;
+                                                                }
+                                                                // $scope.ARVDrugsSupplyDurationValue = formData.groupMembers[j].value.names[1].name; 
                                                                 $scope.ARVDrugsSupplyDurationUuid = formData.groupMembers[j].value.uuid; 
                                                                 $scope.ARVDrugsSupplyDurationName = formData.groupMembers[j].value.displayString;
                                                             
@@ -777,33 +780,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                     }
                                                 }
                                                 // $scope.consultation.observations=res2[0].observations;
-                                                console.log($scope.consultation);
-                                                console.log("cagUuid :",$scope.cagUuid);
-                                                console.log("cagVisitUuid :",$scope.cagVisitUuid);
-                                                console.log("cagEncounterDateTime :",$scope.cagEncounterDateTime);
-                                                console.log("obsDateTime :",$scope.obsDateTime);
-                                                console.log("nextCagEncounterDateValue :",$scope.nextCagEncounterDateValue);
-                                                console.log("nextCagEncounterDateUuid :",$scope.nextCagEncounterDateUuid);
-                                                console.log("locationUuid :",$scope.cagVisitLocation);  
-                                                console.log("attenderUuid :",$scope.attenderUuid);
-                                                console.log("TypeOfClientTreatmentValue :",$scope.TypeOfClientTreatmentValue);
-                                                console.log("TypeOfClientTreatmentUuid : ",$scope.TypeOfClientTreatmentUuid);
-                                                console.log("AppointmentScheduledValue :",$scope.AppointmentScheduledValue);
-                                                console.log("AppointmentScheduledUuid :",$scope.AppointmentScheduledUuid);
-                                                console.log("ARVDrugsSupplyDurationValue :",$scope.ARVDrugsSupplyDurationValue);
-                                                console.log("ARVDrugsSupplyDurationUuid :",$scope.ARVDrugsSupplyDurationUuid);
-                                                console.log("ARVDrugsSupplyDurationName :",$scope.ARVDrugsSupplyDurationName);
-                                                console.log("DrugsDaysDispensedValue :",$scope.DrugsDaysDispensedValue);
-                                                console.log("DrugsDaysDispensedUuid :",$scope.DrugsDaysDispensedUuid);
-                                                console.log("HIVCareWHOStagingValue :",$scope.HIVCareWHOStagingValue);
-                                                console.log("HIVCareWHOStagingUuid :",$scope.HIVCareWHOStagingUuid);
-                                                console.log("CotrimoxazoleAdherenceValue :",$scope.CotrimoxazoleAdherenceValue);
-                                                console.log("CotrimoxazoleAdherenceUuid :",$scope.CotrimoxazoleAdherenceUuid);
-                                                console.log("cotrimoxazoleNoOfDaysValue :",$scope.cotrimoxazoleNoOfDaysValue);
-                                                console.log("cotrimoxazoleNoOfDaysUuid :",$scope.cotrimoxazoleNoOfDaysUuid);
-                                                console.log("provider :",$scope.provider);
-                                                console.log("patientVisitData :",$scope.patientVisitData); 
-                                                console.log($scope.consultation.newlyAddedTabTreatments);
+                                               
 
                                                 //The function to return POST reponse
                                                 var postCagEncounter = createCagEncounter(
@@ -836,10 +813,9 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                 
                                                 // Post cagEncounter
                                                 postCagEncounter.then(function(cagEncounter){
+                                                    
                                                     if(cagEncounter.status == 201){
-                                                        console.info("CAG Encounter successully posted!!!!",cagEncounter);
                                                         for (let index = 0; index < $scope.patientVisitData.length; index++) {
-                                                            console.log($scope.patientVisitData);
                                                             var appointment = {
                                                                 "uuid" : null,
                                                                 "patientUuid": $scope.patientVisitData[index].patientUuid,
@@ -852,7 +828,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                                 "appointmentKind": "Scheduled"
                                                             }
                                                             appService.createAppointment(appointment).then(function(reply){
-                                                                console.log(reply);
+                                                                // console.log(reply);
                                                             });
                                                         }
                                                         
@@ -865,13 +841,13 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                                     encounterService.findByEncounterUuid(cagEncounter.data.encounters[p].uuid).then(function (saveResponse) {
                                                                         var messageParams = { encounterUuid: saveResponse.data.encounterUuid, encounterType: saveResponse.data.encounterType };
                                                                         auditLogService.log($scope.patient.uuid, "EDIT_ENCOUNTER", messageParams, "MODULE_LABEL_CLINICAL_KEY");
-                                                                        console.log(configurations.dosageFrequencyConfig());
                                                                         var consultationMapper = new Bahmni.ConsultationMapper(configurations.dosageFrequencyConfig(), configurations.dosageInstructionConfig(),
                                                                             configurations.consultationNoteConcept(), configurations.labOrderNotesConcept(), $scope.followUpConditionConcept);
                                                                         var consultation = consultationMapper.map(saveResponse.data);
                                                                         consultation.lastvisited = $scope.lastvisited;
                                                                         return consultation;
                                                                     }).then(function (savedConsultation) {
+                                                                        hideSpinner(spinner, patientListSpinner, $(".test"));
                                                                         return spinner.forPromise(diagnosisService.populateDiagnosisInformation($scope.patient.uuid, savedConsultation)
                                                                             .then(function (consultationWithDiagnosis) {
                                                                                 return saveConditions().then(function (savedConditions) {
@@ -881,7 +857,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                                                     consultationWithDiagnosis.conditions = $scope.consultation.conditions;
                                                                                 }).then(function () {
                                                                                     copyConsultationToScope(consultationWithDiagnosis);
-                                                                                    console.log(copyConsultationToScope(consultationWithDiagnosis));
                                                                                     if ($scope.targetUrl) {
                                                                                         return $window.open($scope.targetUrl, "_self");
                                                                                     }
@@ -900,6 +875,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                             
                                                             })
                                                         }
+                                                        
                                                         // var params = angular.copy($state.params);
                                                         // params.cachebuster = Math.random();
                                                         // messagingService.showMessage('info',"Saved CAG Consultation Successully");
@@ -917,7 +893,8 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                 );
                                             }
                                             else{
-                                                alert("can only save HIV Care and Treatment - Followup form");
+                                                hideSpinner(spinner, patientListSpinner, $(".test"));
+                                                alert("Cag visit open! Can only save HIV Care and Treatment - Followup form");
                                             }
                                         }
                                     }).catch(function(error){
@@ -926,7 +903,8 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                     
                                 }).catch(function(error){console.log(error)}); 
                             }else{
-                                console.log("Patient is not in any cag");
+                                hideSpinner(spinner, patientListSpinner, $(".test"));
+                                // console.log("Patient is not in any cag");
                             }
                         }
                         ).catch(function(error){
@@ -934,17 +912,16 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                         });
                     }
                     else{
+                        hideSpinner(spinner, patientListSpinner, $(".test"));
                         return spinner.forPromise($q.all([preSavePromise(), encounterService.getEncounterType($state.params.programUuid, sessionService.getLoginLocationUuid())])
                         .then(function (results) {
                             var encounterData = results[0];
                             encounterData.encounterTypeUuid = results[1].uuid;
                             var params = angular.copy($state.params);
                             params.cachebuster = Math.random();
-                            console.log(results[0]);
 
                             return encounterService.create(encounterData)
                                 .then(function (saveResponse) {
-                                    console.log(saveResponse,encounterService.findByEncounterUuid(saveResponse.data.encounterUuid));
                                     var messageParams = { encounterUuid: saveResponse.data.encounterUuid, encounterType: saveResponse.data.encounterType };
                                     auditLogService.log($scope.patient.uuid, "EDIT_ENCOUNTER", messageParams, "MODULE_LABEL_CLINICAL_KEY");
                                     var consultationMapper = new Bahmni.ConsultationMapper(configurations.dosageFrequencyConfig(), configurations.dosageInstructionConfig(),
@@ -962,7 +939,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                                 consultationWithDiagnosis.conditions = $scope.consultation.conditions;
                                             }).then(function () {
                                                 copyConsultationToScope(consultationWithDiagnosis);
-                                                console.log(copyConsultationToScope(consultationWithDiagnosis));
                                                 if ($scope.targetUrl) {
                                                     return $window.open($scope.targetUrl, "_self");
                                                 }
@@ -981,7 +957,7 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                         ));
                     }
                 })
-                
+                patientListSpinner = showSpinner(spinner, $(".test"));
             };
             var removeAttenderInOtherCagMember = function(patientVisitArray, patientToRemove) { 
     
@@ -1021,16 +997,13 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                     "instructions":"As directed"
                 };
                 var orderToString = JSON.stringify(orderAsDirected);
-                console.log("Order", orderToString);
                 var cagEncounterData = [];
                 
-                    console.log("data id : ",cagEncounterData);
                     
                     var autoExpireDate = Bahmni.Common.Util.DateUtil.addDays(cagEncounterDateTime,3);
                     
                     autoExpireDate = moment(autoExpireDate, "YYYY-MM-DDTHH:mm:ss.SSSZZ").format();
                 
-                    console.log("expiry date : ",autoExpireDate);
 
                     var attenderEncounterData = [];
                     
@@ -1221,7 +1194,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                                 ]
                             };
                             cagEncounterData.push(attenderData)
-                            console.log("attenderEncounterData : ",attenderEncounterData);
                         }else if(patientVisitData[index].patientUuid != attenderUuid){
                             // Exclude the attender from the list of cagVisits
                             //removeAttenderInOtherCagMember();
@@ -1375,7 +1347,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                             cagEncounterData.push(otherCagMemberData);
                             
                         }
-                        console.log("otherCagMemberData : ",cagEncounterData)
                     } 
                      
                     var encounterData={
@@ -1396,7 +1367,6 @@ angular.module('bahmni.clinical').controller('ConsultationController',
                         encounters:cagEncounterData
 
                     }    
-                    console.log(encounterData);    
                     
                     var cagEncounter = appService.createCagEncounter(encounterData);
                     
